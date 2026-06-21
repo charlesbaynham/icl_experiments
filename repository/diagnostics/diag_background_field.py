@@ -133,13 +133,16 @@ class BackgroundFieldDiagnosticFrag(
         self.override_param("em_gain_enabled", True)
         self.override_param("em_gain", 30.0)
 
-        # Short pulse ~ the ~21 us 3P1 lifetime; WEAK amplitude so the
-        # interrogation stays in the linear (low-excitation) regime - off-resonant
-        # atoms are barely driven so a narrow line appears. On this single-XODT + FK
-        # path, amp 0.3 saturated (RID 75453: ~0.77 excitation flat at every
-        # detuning, no line); dropped to 0.1 to recover resonance contrast.
-        self.override_param("spectroscopy_pulse_time", 25e-6)
-        self.override_param("spectroscopy_pulse_aom_amplitude", 0.1)
+        # WEAK, SHORT pulse so the interrogation stays in the linear (low-excitation)
+        # regime - off-resonant atoms barely driven, so a narrow line appears. On
+        # this single-XODT + FK path the transition saturated badly: amp 0.3 gave
+        # ~0.77 excitation flat at every detuning (RID 75453), and amp 0.1 barely
+        # moved it (~0.70 flat, RID 75454) - i.e. deep saturation, insensitive to
+        # amplitude, because the 25 us pulse exceeds the ~21 us 3P1 lifetime
+        # (incoherent radiation-pressure push, not coherent spectroscopy). Cut the
+        # pulse AREA decisively: shorter than a lifetime AND much weaker.
+        self.override_param("spectroscopy_pulse_time", 12e-6)
+        self.override_param("spectroscopy_pulse_aom_amplitude", 0.03)
 
     @kernel
     def set_postnarrowband_fields_hook(self):
