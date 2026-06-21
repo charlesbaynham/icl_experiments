@@ -139,6 +139,20 @@ class BackgroundFieldDiagnosticFrag(
         self.override_param("spectroscopy_pulse_aom_amplitude", 0.3)
 
     @kernel
+    def set_postnarrowband_fields_hook(self):
+        # Hook-collision fix. Both LoadSingleXODTMixin and
+        # RedSpectroscopyDipoleTrapMixin override this hook (mixins must not share
+        # a hook). With RedSpectroscopyDipoleTrapMixin first in the MRO, its
+        # version (set_fields_default) wins and clobbers the single-XODT loader's
+        # loading fields during the post-narrowband phase -> the dipole trap loads
+        # NO atoms (observed RID 75432 / 75439). The single-XODT loader needs this
+        # hook to do NOTHING (it sets its own loading fields); the working clock
+        # diagnostics get that because their clock mixin doesn't touch this hook.
+        # Restore the loader's no-op here. The measurement compensation field is
+        # still applied in-trap later, in post_dipole_trap_hook -> field_boost().
+        pass
+
+    @kernel
     def DMA_initialization_hook(self):
         # Mirror ClockSpecFromSingleXODTFrag: arm DMA for every loading/cooling
         # phase in the stack (red MOT, dipole trap, XODT-MOT load, evap with field
