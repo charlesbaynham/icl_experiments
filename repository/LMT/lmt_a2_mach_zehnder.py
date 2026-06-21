@@ -190,6 +190,33 @@ class A2MachZehnderLaunch2Frag(
     ]
 
 
+class A2ClockLineCentreFrag(
+    _A2MachZehnderHooks,
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """A single pi pulse on |g, 0> <-> |e, 1> (UP) from the trap.
+
+    Carrier diagnostic for the MZ: scan ``p01_pi_u_m0_carrier_offset`` and read
+    out. Resonance shows as maximal ground depletion (robust to a failing clock
+    de-shelve) and, if the de-shelve readout works, peak excitation fraction.
+    The offset at peak transfer is the carrier correction the MZ pulses need.
+    """
+
+    lmt_initial_population = {("g", 0)}
+    lmt_sequence = [
+        _full_intensity_setpoint(),
+        pi(Beam.UP, m=0, label="carrier"),
+    ]
+
+
 A2MachZehnderDrop = make_fragment_scan_exp(A2MachZehnderDropFrag)
 A2MachZehnderSliced = make_fragment_scan_exp(A2MachZehnderSlicedFrag)
 A2MachZehnderLaunch2 = make_fragment_scan_exp(A2MachZehnderLaunch2Frag)
+A2ClockLineCentre = make_fragment_scan_exp(A2ClockLineCentreFrag)
