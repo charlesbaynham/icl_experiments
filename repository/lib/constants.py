@@ -95,7 +95,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.675e6,
+        frequency=364.657e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -522,11 +522,11 @@ SLACK_FOR_GRAVITY = 25
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 237
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 227
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 266
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 254
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -803,7 +803,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.462e6,
+        99.4618e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1146,7 +1146,7 @@ if USE_LATTICE_MODE:
 B_FIELD_GRADIENT = 90.0  # A
 
 
-BLUE_LOADING_TIME = 1500e-3
+BLUE_LOADING_TIME = 2500e-3
 "Default blue MOT loading time"
 
 RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6

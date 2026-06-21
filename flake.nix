@@ -3,15 +3,23 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
-  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
+  # Pinned to the make-event-spreading-optional base (e98dbf5) plus the head-hack
+  # "WORKING" working-tree-rev commits, which sit directly on top of that base.
+  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=feature/working-tree-rev";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
   inputs.git-hooks.url = "github:cachix/git-hooks.nix";
 
+  # Independent nixpkgs pin used ONLY to provide an up-to-date Grafana. It does
+  # not "follows" anything, so updating it never perturbs the ARTIQ/Python
+  # closure. Grafana is a standalone Go binary that nothing else depends on.
+  inputs.nixpkgs-grafana.url = "github:NixOS/nixpkgs/nixos-26.05";
+
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-grafana,
     flake-utils,
     pyaion,
     git-hooks,
@@ -28,6 +36,10 @@
     flake-utils.lib.eachSystem ["x86_64-linux"] (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       callPackage = pyaion.lib.${system}.callPackage;
+
+      # Grafana pinned to the latest stable nixpkgs release, independent of the
+      # rest of the stack. See the nixpkgs-grafana input above.
+      grafanaPkg = nixpkgs-grafana.legacyPackages.${system}.grafana;
 
       # Build the python bindings for aravis
       python-aravis = callPackage ./nix/aravis/python-aravis.nix {};
@@ -210,6 +222,27 @@
             program = "${script}/bin/run";
           };
 
+          backup_grafana = let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${
+                pkgs.lib.makeBinPath [
+                  pkgs.sqlite
+                  pkgs.gnutar
+                  pkgs.gzip
+                  pkgs.coreutils
+                  pkgs.rsync
+                  pkgs.sshpass
+                  pkgs.openssh
+                ]
+              }:$PATH
+
+              exec ${self}/scripts/backup_grafana.sh
+            '';
+          in {
+            type = "app";
+            program = "${script}/bin/run";
+          };
+
           check_for_fixme = let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
@@ -256,6 +289,13 @@
             program = "${script}/bin/dedrifter";
           };
 
+          # Grafana is pinned to the latest stable nixpkgs (see the
+          # nixpkgs-grafana input) rather than pyaion's old nixpkgs. We inline
+          # the full wrapper here instead of delegating to
+          # overriddenOutputs.apps.grafana.program because modern Grafana
+          # dropped the standalone "grafana-server" binary in favour of the
+          # "grafana server" subcommand. The provisioning config is still
+          # reused from pyaion.
           grafana = flake-utils.lib.mkApp {
             drv = pkgs.writeShellScriptBin "script" ''
               # Add some grafana config
@@ -268,7 +308,14 @@
               export GF_SMTP_HOST=automail.cc.ic.ac.uk:25
               export GF_SMTP_FROM_ADDRESS=grafana@aionlabserver.ph.ic.ac.uk
 
-              exec ${overriddenOutputs.apps.grafana.program}
+              export GF_PATHS_PROVISIONING=${pyaion}/nix/grafana_provisioning
+
+              # Configure grafana data storage locations
+              export GF_PATHS_DATA=~/.grafana/data
+              export GF_PATHS_LOGS=~/.grafana/logs
+              export GF_PATHS_PLUGINS=~/.grafana/plugins
+
+              exec ${grafanaPkg}/bin/grafana server --homepath ${grafanaPkg}/share/grafana
             '';
           };
 
@@ -296,6 +343,7 @@
           full_stack = let
             backup_database = "nix run .#backup_database";
             backup_datasets = "nix run .#backup_datasets";
+            backup_grafana = "nix run .#backup_grafana";
 
             # This is an extra instance of ctlmgr which searches for controllers assigned to
             # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
@@ -314,6 +362,7 @@
                     inherit
                       backup_database
                       backup_datasets
+                      backup_grafana
                       moninj_proxy_ctlmgr
                       monitor_launcher
                       ;

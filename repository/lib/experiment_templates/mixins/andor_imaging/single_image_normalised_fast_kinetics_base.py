@@ -265,8 +265,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def build_fragment(
         self,
@@ -725,7 +725,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
             bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=self.calculate_gravitational_drop(),
+            excited_shift=35,  # self.calculate_gravitational_drop(),
         )
         self.andor_camera_config: SingleFKDoubleTrapConfig
         return f  # type: ignore
