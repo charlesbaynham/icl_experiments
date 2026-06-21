@@ -685,9 +685,10 @@ def _compile_pulse(
         ),
         phase_param=ParamSpec(
             attr_name=name + "_phase",
-            description=f"{_event_prefix(index, event.label)}: {human} - laser phase",
+            description=f"{_event_prefix(index, event.label)}: {human} - laser "
+            "phase in radians",
             default=event.phase,
-            unit="rad",
+            unit="",
         ),
         addressed_pair=(ground, excited),
     )
