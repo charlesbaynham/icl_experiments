@@ -455,7 +455,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
 
         at_mu(t_start)
-        self.register_pulse_with_intent(
+        self.dma_recording_fragment.register_pulse_with_intent(
             is_up=is_up,
             duration_s=duration,
             state_effect=state_effect,
@@ -517,7 +517,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
         Every atom-affecting event registers its intent with the pulse
         recorder as it fires: pulses via
-        :meth:`~repository.lib.experiment_templates.red_mot_experiment.RedMOTWithExperimentBase.register_pulse_with_intent`,
+        :meth:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording.register_pulse_with_intent`,
         clearouts via ``register_clearout`` and callbacks via
         ``register_intent_callback``.
         """
@@ -566,7 +566,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
             elif kind == EVENT_CLEAROUT:
                 clearout_duration = self._lmt_duration_handles[i].get()
-                self.register_clearout(duration_s=clearout_duration)
+                self.dma_recording_fragment.register_clearout(
+                    duration_s=clearout_duration
+                )
                 self.fluorescence_pulse.do_clearout_pulse(
                     duration=clearout_duration,
                     ignore_final_shutters=True,
@@ -587,7 +589,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # Register the declared intent first, so the custom pulse
                 # self-describes; the callback implementation must not also
                 # call register_* (see lmt_sequence_callback)
-                self.register_intent_callback(
+                self.dma_recording_fragment.register_intent_callback(
                     duration_s=self._lmt_intent_duration_s[i],
                     state_effect=self._lmt_intent_state_effect[i],
                     delta_m=self._lmt_intent_delta_m[i],

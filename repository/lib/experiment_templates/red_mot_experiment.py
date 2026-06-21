@@ -54,7 +54,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int32
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
@@ -591,51 +590,6 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         Hook for the spectroscopy / interferometry / whatever sequence, fired
         ``pre_experiment_delay`` after the post-drop and launch hooks. By
         default, do nothing.
-        """
-
-    @kernel
-    def register_pulse(self, is_up: bool, duration_s: float):
-        """
-        No-op base implementation. Overridden by DMAActionsAfterDropMixin (and
-        thus DipoleTrapWithExperimentBase) to record the pulse for dynamic ROI
-        positioning.
-
-        Call this immediately before turning the clock AOM on, passing the full
-        pulse duration. This will be used to record what sequence was run, and
-        used to predict the location of the atoms for imaging.
-        """
-
-    @kernel
-    def register_pulse_with_intent(
-        self,
-        is_up: bool,
-        duration_s: float,
-        state_effect: int32,
-        addressed_state: int32,
-        addressed_m: int32,
-        delta_m: int32,
-    ):
-        """
-        No-op base implementation; see :meth:`register_pulse`. Field
-        semantics: :mod:`repository.lib.pulse_intent`.
-        """
-
-    @kernel
-    def register_clearout(self, duration_s: float):
-        """
-        No-op base implementation. Call immediately before firing a 461 nm
-        clearout pulse so bases with a pulse recorder note its effect for
-        dynamic ROI positioning.
-        """
-
-    @kernel
-    def register_intent_callback(
-        self, duration_s: float, state_effect: int32, delta_m: int32
-    ):
-        """
-        No-op base implementation. Call immediately before a non-standard
-        (shaped/Jesse) pulse to declare its effect on the atoms; see
-        :mod:`repository.lib.pulse_intent`.
         """
 
     @kernel

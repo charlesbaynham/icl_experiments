@@ -48,7 +48,6 @@ import numpy as np
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
-from numpy import int32
 from numpy import int64
 
 from repository.lib.experiment_templates.red_mot_experiment import (
@@ -162,52 +161,6 @@ class DMAActionsAfterDropMixin(RedMOTWithExperimentBase):
         time.
         """
         self.t_atoms_released_mu = now_mu()
-
-    @kernel
-    def register_pulse(self, is_up: bool, duration_s: float):
-        """
-        Delegate to dma_recording_fragment.register_pulse. `register_pulse` is
-        defined on the RedMOTWithExperimentBase as a no-op, so experiments that
-        use clock-pulse mixins can call self.register_pulse unconditionally
-        without knowing whether a DMA fragment exists.
-        """
-        self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
-
-    @kernel
-    def register_pulse_with_intent(
-        self,
-        is_up: bool,
-        duration_s: float,
-        state_effect: int32,
-        addressed_state: int32,
-        addressed_m: int32,
-        delta_m: int32,
-    ):
-        """Delegate to the recording fragment; see :meth:`register_pulse`."""
-        self.dma_recording_fragment.register_pulse_with_intent(
-            is_up=is_up,
-            duration_s=duration_s,
-            state_effect=state_effect,
-            addressed_state=addressed_state,
-            addressed_m=addressed_m,
-            delta_m=delta_m,
-        )
-
-    @kernel
-    def register_clearout(self, duration_s: float):
-        """Delegate to the recording fragment; see :meth:`register_pulse`."""
-        self.dma_recording_fragment.register_clearout(duration_s=duration_s)
-
-    @kernel
-    def register_intent_callback(
-        self, duration_s: float, state_effect: int32, delta_m: int32
-    ):
-        """Delegate to the recording fragment; see :meth:`register_pulse`."""
-        self.dma_recording_fragment.register_intent_callback(
-            duration_s=duration_s,
-            state_effect=state_effect,
-            delta_m=delta_m,
-        )
 
     # ------------------------------------------------------------------
     # Timebase accessors for the dynamic-ROI predictor (DynamicROIImagingMixin).
