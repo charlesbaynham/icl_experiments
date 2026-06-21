@@ -217,7 +217,7 @@ class CompensatedClockSpecMixin(
                 opll_frequency,
                 wave_type=2,
             )
-            self.register_pulse(is_up=False, duration_s=T_sel)
+            self.dma_recording_fragment.register_pulse(is_up=False, duration_s=T_sel)
             self.clock_down_dds.sw.on()
             delay(T_sel)
             self.clock_down_dds.sw.off()
@@ -229,7 +229,7 @@ class CompensatedClockSpecMixin(
                 opll_frequency + 2e6,
                 wave_type=1,
             )
-            self.register_pulse(is_up=True, duration_s=T_sel)
+            self.dma_recording_fragment.register_pulse(is_up=True, duration_s=T_sel)
             self.clock_up_dds.sw.on()
             delay(T_sel)
             self.clock_up_dds.sw.off()
@@ -297,7 +297,7 @@ class CompensatedClockSpecMixin(
                 opll_freq,
                 wave_type=2,
             )
-            self.register_pulse(is_up=False, duration_s=T_clock)
+            self.dma_recording_fragment.register_pulse(is_up=False, duration_s=T_clock)
             self.clock_down_dds.sw.on()
             delay(T_clock)
             self.clock_down_dds.sw.off()
@@ -308,7 +308,7 @@ class CompensatedClockSpecMixin(
                 opll_freq + 2e6,
                 wave_type=1,
             )
-            self.register_pulse(is_up=True, duration_s=T_clock)
+            self.dma_recording_fragment.register_pulse(is_up=True, duration_s=T_clock)
             self.clock_up_dds.sw.on()
             delay(T_clock)
             self.clock_up_dds.sw.off()
