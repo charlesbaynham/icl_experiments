@@ -61,12 +61,11 @@ CLOCK_WAVELENGTH_M = scipy_constants.c / SR_FACTS["FREQUENCIES"]["698"]
 # (perpendicular), +z = up.  Gravity points downward.
 GRAVITY_VEC_M_PER_S2 = np.array([0.0, 0.0, -scipy_constants.g])
 
-# Side-view Andor camera: looks from the +y direction toward the trap.
-# Sensor +x maps to lab +x; sensor +y maps to lab +z so that falling atoms
-# appear to move in the -y direction on the sensor, matching experiment.
-ANDOR_OPTICAL_AXIS_DEFAULT = np.array([0.0, 1.0, 0.0])
-ANDOR_SENSOR_X_AXIS_DEFAULT = np.array([1.0, 0.0, 0.0])
-ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
+# Side-view Andor camera looking from +y toward the trap. Sensor +x → lab +x;
+# sensor +y → lab +z, so falling atoms move in -y on the sensor.
+ANDOR_OPTICAL_AXIS = np.array([0.0, 1.0, 0.0])
+ANDOR_SENSOR_X_AXIS = np.array([1.0, 0.0, 0.0])
+ANDOR_SENSOR_Y_AXIS = np.array([0.0, 0.0, 1.0])
 
 # Clock beam direction: +is_up kick is in the +z (up) direction.
 CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
