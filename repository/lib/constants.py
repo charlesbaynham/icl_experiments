@@ -803,7 +803,10 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.462e6,
+        # Delivery AOM offset calibrated against the velocity-slice resonance:
+        # RID 75473 fit centre -3.07 kHz at +30 kHz delivery offset, so the
+        # on-resonance delivery frequency is 99.462e6 + (30 - 3.07) kHz.
+        99.48893e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
