@@ -37,16 +37,14 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
-from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
-from repository.lib.lmt_sequence import pi2
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 12
+N_LAUNCH = 5
 M_TOP = 1 + N_LAUNCH
 
 
@@ -111,7 +109,7 @@ class DeclarativeLMTMachZehnderFrag(
             start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN
         ),  # TODO: consider making N_LAUNCH scannable
         # Remove any ground-state population left behind by imperfect pulses
-        Clearout(),
+        # Clearout(),  # FIXME
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
         # GOTCHA: the interferometer must be symmetric about the mirror
@@ -122,11 +120,12 @@ class DeclarativeLMTMachZehnderFrag(
         # mirrored SetPoint at the corresponding position on the other side
         # of the mirror (re-declaring the current value costs exactly the
         # same time).
-        pi2(Beam.DOWN, m=M_TOP, label="bs1"),
-        Wait(t=1e-3, label="dark1"),
-        pi(Beam.DOWN, m=M_TOP, label="mirror"),
-        Wait(t=1e-3, label="dark2"),
-        pi2(Beam.DOWN, m=M_TOP, label="bs2"),
+        # FIXME
+        # pi2(Beam.DOWN, m=M_TOP, label="bs1"),
+        # Wait(t=1e-3, label="dark1"),
+        # pi(Beam.DOWN, m=M_TOP, label="mirror"),
+        # Wait(t=1e-3, label="dark2"),
+        # pi2(Beam.DOWN, m=M_TOP, label="bs2"),
         # Escape-hatch example (v2): a shaped pulse implemented by an
         # overridden lmt_sequence_callback, declaring its momentum effect so
         # the bookkeeping of later pulses stays correct:
