@@ -1,7 +1,6 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.ad9910 import PHASE_MODE_CONTINUOUS
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
@@ -10,6 +9,7 @@ from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int32
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
@@ -208,7 +208,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         frequency: float,
         amplitude: float,
         phase: float = 0.0,
-        phase_mode: int = PHASE_MODE_CONTINUOUS,
+        phase_mode: int32 = int32(0),  # 0 == PHASE_MODE_CONTINUOUS
     ):
         """
         Set the up-beam switch DDS and record the commanded frequency.
@@ -237,7 +237,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         frequency: float,
         amplitude: float,
         phase: float = 0.0,
-        phase_mode: int = PHASE_MODE_CONTINUOUS,
+        phase_mode: int32 = int32(0),  # 0 == PHASE_MODE_CONTINUOUS
     ):
         """
         Set the down-beam switch DDS and record the commanded frequency.
