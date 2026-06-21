@@ -474,7 +474,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         delay(10e-6)
 
     @kernel
-    def lmt_sequence_callback(self, callback_id: int32):
+    def lmt_sequence_callback_hook(self, callback_id: int32):
         """Dispatch target for Callback events. Override in the experiment.
 
         Subclasses dispatch on the id::
@@ -590,7 +590,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     state_effect=self._lmt_intent_state_effect[i],
                     delta_m=self._lmt_intent_delta_m[i],
                 )
-                self.lmt_sequence_callback(self._lmt_callback_id[i])
+                self.lmt_sequence_callback_hook(self._lmt_callback_id[i])
 
     @kernel
     def post_sequence_cleanup_hook_declarative_lmt(self):
