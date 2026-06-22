@@ -94,11 +94,11 @@ class DeclarativeLMTMachZehnderFrag(
         # Full intensity for the launch and interferometer; the declared
         # Rabi frequencies set the default pulse durations
         # (pi time = 1 / (2 * Rabi))
-        SetPoint(
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
-            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        ),
+        # SetPoint(
+        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        # ),
         # Blast away the unselected ground-state atoms
         # Clearout(),
         # # Launch: alternating pi pulses walking the atoms up the momentum
