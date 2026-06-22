@@ -1562,3 +1562,9 @@ DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
+
+
+# Dynamic ROI
+# (x,y) position of the atom cloud at t0, i.e. before it is dropped from the dipole trap
+# TODO: Merge with the (several) other ways of expressing this
+ATOM_POSITION_T0 = (180, 297)
