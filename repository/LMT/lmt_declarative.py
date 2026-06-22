@@ -35,9 +35,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 from repository.lib.lmt_sequence import Beam
-from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
-from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -102,12 +100,12 @@ class DeclarativeLMTMachZehnderFrag(
             rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
         ),
         # Blast away the unselected ground-state atoms
-        Clearout(),
-        # Launch: alternating pi pulses walking the atoms up the momentum
-        # ladder from |e, 1> to m = M_TOP
-        *ladder(
-            start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN
-        ),  # TODO: consider making N_LAUNCH scannable
+        # Clearout(),
+        # # Launch: alternating pi pulses walking the atoms up the momentum
+        # # ladder from |e, 1> to m = M_TOP
+        # *ladder(
+        #     start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN
+        # ),  # TODO: consider making N_LAUNCH scannable
         # Remove any ground-state population left behind by imperfect pulses
         # Clearout(),  # FIXME
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
