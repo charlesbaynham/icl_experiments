@@ -28,14 +28,14 @@ Beam selection (``CompensatedClockSpecMixin.use_down_beam``):
 * down beam -> ``use_down_beam = True``  (diagnostic 2)
 * up beam   -> ``use_down_beam = False`` (diagnostic 3, the param default)
 
-Default pulse-time scan ranges are chosen to span ~2.5 expected pi-times so a
-full flop is captured and cleanly fittable. They start at a small nonzero pulse
-time (5 us), not 0: the clock delivery setpoint is auto-scaled as
-``V = V_ref * (T_ref / T_clock)^2``, which divides by the pulse time, so a t=0
-point raises ZeroDivisionError on the core device (observed RID 74681).
+Default pulse-time scans span >=5 expected pi-times (40 points) so several flop
+cycles are captured. They start at a small nonzero pulse time (5 us), not 0: the
+clock delivery setpoint is auto-scaled as ``V = V_ref * (T_ref / T_clock)^2``,
+which divides by the pulse time, so a t=0 point raises ZeroDivisionError on the
+core device (observed RID 74681).
 
-* up beam   (pi ~55 us): 5 -> 150 us, 31 points
-* down beam (pi ~68 us): 5 -> 180 us, 31 points
+* up beam   (pi ~55 us): 5 -> 300 us, 40 points
+* down beam (pi ~68 us): 5 -> 400 us, 40 points
 
 EM gain is enabled by default in the experiment (``em_gain_enabled = True``,
 ``em_gain = 30``) so a default ``arguments={}`` run is self-sufficient. Gain is
@@ -116,29 +116,29 @@ class ClockRabiUpBeamDiagnosticFrag(_ClockRabiDiagnosticBase):
 # device and kills the run (observed RID 74681). Start at 5 us; the t=0 point
 # (trivially excitation=0) is not needed for the flop fit.
 
-# Diagnostic 2: down beam (pi ~68 us) -> scan 5..180 us.
+# Diagnostic 2: down beam (pi ~68 us) -> scan 5..400 us (>=5 pi-times).
 ClockRabiDownBeamDiagnostic = make_default_scan_exp(
     ClockRabiDownBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
             param="spectroscopy_pulse_time",
             start=5e-6,
-            stop=180e-6,
-            num_points=31,
+            stop=400e-6,
+            num_points=40,
         ),
     ],
     default_num_repeats=2,
 )
 
-# Diagnostic 3: up beam (pi ~55 us) -> scan 5..150 us.
+# Diagnostic 3: up beam (pi ~55 us) -> scan 5..300 us (>=5 pi-times).
 ClockRabiUpBeamDiagnostic = make_default_scan_exp(
     ClockRabiUpBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
             param="spectroscopy_pulse_time",
             start=5e-6,
-            stop=150e-6,
-            num_points=31,
+            stop=300e-6,
+            num_points=40,
         ),
     ],
     default_num_repeats=2,
