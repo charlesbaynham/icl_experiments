@@ -865,7 +865,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "clock_up_small",
         frequency=200e6,
-        attenuation=0.0,
+        attenuation=2.0,
         suservo_device="suservo_aom_698_clock_small",
         servo_enabled=False,
         initial_amplitude=1.0,
