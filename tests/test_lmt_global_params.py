@@ -150,9 +150,18 @@ def test_binding_hooks_map_slots_to_global_handles():
     assert hooks.lmt_global_offset_attr(slice_pulse) == "lmt_slice_offset"
     assert hooks.lmt_global_duration_attr(slice_pulse) == "lmt_slice_duration"
 
-    # Up/down pulses bind to the shared per-beam offset/duration
-    up = next(e for e in events if e.kind == EVENT_PULSE and e.beam_sign > 0)
-    down = next(e for e in events if e.kind == EVENT_PULSE and e.beam_sign < 0)
+    # Full-intensity up/down pulses bind to the shared per-beam offset/duration
+    # (exclude the slice pulse, the only up pulse governed by the slice SetPoint)
+    up = next(
+        e
+        for e in events
+        if e.kind == EVENT_PULSE and e.beam_sign > 0 and not hooks._is_slice_pulse(e)
+    )
+    down = next(
+        e
+        for e in events
+        if e.kind == EVENT_PULSE and e.beam_sign < 0 and not hooks._is_slice_pulse(e)
+    )
     assert hooks.lmt_global_offset_attr(up) == "lmt_up_offset"
     assert hooks.lmt_global_duration_attr(up) == "lmt_up_duration"
     assert hooks.lmt_global_offset_attr(down) == "lmt_down_offset"
