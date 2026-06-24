@@ -283,6 +283,134 @@ def ladder(start_m: int, n: int, first_beam: Beam) -> list[Pulse]:
     ]
 
 
+def _raise_arm(arm: tuple) -> "tuple[Pulse, tuple]":
+    """A pi pulse that raises one arm's momentum class by one recoil.
+
+    Returns the pulse and the arm's new ``(state, m)``. The beam is chosen so
+    the recoil is delivered upward (up beam on ground, down beam on excited).
+    """
+    state, m = arm
+    if state == GROUND:
+        return pi(Beam.UP, m=m, state=GROUND), (EXCITED, m + 1)
+    return pi(Beam.DOWN, m=m, state=EXCITED), (GROUND, m + 1)
+
+
+def _lower_arm(arm: tuple) -> "tuple[Pulse, tuple]":
+    """A pi pulse that lowers one arm's momentum class by one recoil."""
+    state, m = arm
+    if state == GROUND:
+        return pi(Beam.DOWN, m=m, state=GROUND), (EXCITED, m - 1)
+    return pi(Beam.UP, m=m, state=EXCITED), (GROUND, m - 1)
+
+
+def mach_zehnder_sequence(
+    *,
+    n_launch: int,
+    n_recoils: int,
+    slice_setpoint: float,
+    slice_rabi_up: float,
+    full_setpoint: float,
+    rabi_up: float,
+    rabi_down: float,
+    dark_param_1: str = "lmt_dark_time_1",
+    dark_param_2: str = "lmt_dark_time_2",
+) -> list:
+    """Build the canonical velocity-selected launch + LMT Mach-Zehnder sequence.
+
+    Procedurally generates the declarative event list for the standard
+    interferometer from a handful of counts, so the whole sequence is driven by
+    global parameters instead of one parameter per pulse. The atoms start in
+    ``{('g', 0)}`` (release from the trap); the structure is:
+
+    1. velocity selection (a low-set-point up-beam pi pulse),
+    2. a launch ladder of ``n_launch`` alternating pi pulses to ``m = 1 +
+       n_launch``,
+    3. a beam splitter, then ``n_recoils`` symmetric augmentation pulses that
+       separate the two arms to ``1 + 2 * n_recoils`` recoils for the dark time,
+       brought back to an adjacent pair around the single-pi mirror, repeated
+       symmetrically after the mirror, and finally the recombiner.
+
+    The arms are maximally separated during the (equal) dark times and adjacent
+    at the mirror and beam splitters, so the interferometer closes to a single
+    momentum pair for any ``n_launch``/``n_recoils`` (verified by the compiler's
+    population walk). The augmentation geometry is the idealised-closure
+    baseline; the per-beam detunings, durations, set points and dark times are
+    bound to shared global handles by the execution mixin.
+
+    Args:
+        n_launch: Number of launch ladder pulses (set once per run).
+        n_recoils: Number of LMT-enhanced recoils added to each arm in each
+            half of the interferometer (set once per run; 0 is a plain 1-recoil
+            Mach-Zehnder).
+        slice_setpoint: Delivery set point declared for the slice SetPoint.
+        slice_rabi_up: Up-beam Rabi frequency declared at the slice set point.
+        full_setpoint: Delivery set point declared for the launch/interferometer.
+        rabi_up: Up-beam Rabi frequency declared at the full set point.
+        rabi_down: Down-beam Rabi frequency declared at the full set point.
+        dark_param_1: Fragment attribute name of the first dark-time parameter.
+        dark_param_2: Fragment attribute name of the second dark-time parameter.
+
+    Returns:
+        A list of event dataclasses suitable for :func:`compile_sequence` with
+        ``initial_population={('g', 0)}``.
+    """
+    if n_launch < 0:
+        raise ValueError(f"n_launch must be non-negative, got {n_launch}")
+    if n_recoils < 0:
+        raise ValueError(f"n_recoils must be non-negative, got {n_recoils}")
+
+    m_top = 1 + n_launch
+    sequence: list = [
+        SetPoint(setpoint=slice_setpoint, rabi_up=slice_rabi_up, label="slice"),
+        pi(Beam.UP, m=0, label="slice"),
+        SetPoint(setpoint=full_setpoint, rabi_up=rabi_up, rabi_down=rabi_down),
+        Clearout(label="post_slice"),
+        *ladder(start_m=1, n=n_launch, first_beam=Beam.DOWN),
+    ]
+
+    # The slice leaves (e, 1); each launch pulse flips the internal state, so
+    # the launched packet is excited only for an even launch count. The
+    # post-launch clearout removes residual ground atoms, which is only possible
+    # (and meaningful) when the packet itself is excited.
+    packet_excited = n_launch % 2 == 0
+    if packet_excited:
+        sequence.append(Clearout(label="post_launch"))
+
+    sequence.append(pi2(Beam.DOWN, m=m_top, label="bs1"))
+    if packet_excited:
+        # bs1 on (e, m_top) populates the pair (e, m_top) <-> (g, m_top + 1)
+        arm_lo, arm_hi = (EXCITED, m_top), (GROUND, m_top + 1)
+    else:
+        # bs1 on (g, m_top) populates the pair (g, m_top) <-> (e, m_top - 1)
+        arm_lo, arm_hi = (EXCITED, m_top - 1), (GROUND, m_top)
+
+    def separate():
+        nonlocal arm_hi, arm_lo
+        for _ in range(n_recoils):
+            pulse, arm_hi = _raise_arm(arm_hi)
+            sequence.append(pulse)
+            pulse, arm_lo = _lower_arm(arm_lo)
+            sequence.append(pulse)
+
+    def rejoin():
+        nonlocal arm_hi, arm_lo
+        for _ in range(n_recoils):
+            pulse, arm_hi = _lower_arm(arm_hi)
+            sequence.append(pulse)
+            pulse, arm_lo = _raise_arm(arm_lo)
+            sequence.append(pulse)
+
+    separate()
+    sequence.append(Wait(param=dark_param_1, label="dark1"))
+    rejoin()
+    sequence.append(pi(Beam.DOWN, m=min(arm_hi[1], arm_lo[1]) + 1, label="mirror"))
+    separate()
+    sequence.append(Wait(param=dark_param_2, label="dark2"))
+    rejoin()
+    sequence.append(pi2(Beam.DOWN, m=min(arm_hi[1], arm_lo[1]) + 1, label="bs2"))
+    return sequence
+
+
 @dataclass(frozen=True)
 class ParamSpec:
     """Specification of one ndscan FloatParam to spawn for an event."""
