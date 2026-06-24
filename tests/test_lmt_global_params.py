@@ -115,12 +115,21 @@ def test_negative_counts_raise():
 
 
 def _hooks():
-    """A bare mixin instance for calling the pure binding hooks (no build)."""
+    """A mixin instance for calling the pure binding hooks (no build).
+
+    The mixin is abstract (the release-mechanism base leaves
+    ``get_doppler_t_ref_mu`` abstract), so a concrete throwaway subclass is
+    instantiated via ``object.__new__`` to skip ``build_fragment``.
+    """
     from repository.lib.experiment_templates.mixins.lmt_global_params import (
         LMTGlobalParamsMachZehnderMixin,
     )
 
-    return object.__new__(LMTGlobalParamsMachZehnderMixin)
+    class _ConcreteHooks(LMTGlobalParamsMachZehnderMixin):
+        def get_doppler_t_ref_mu(self):
+            return 0
+
+    return object.__new__(_ConcreteHooks)
 
 
 def test_binding_hooks_map_slots_to_global_handles():
