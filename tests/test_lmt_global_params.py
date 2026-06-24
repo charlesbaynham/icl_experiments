@@ -54,12 +54,7 @@ def test_event_count_scales_with_counts():
     # + 8 per recoil
     for n_launch in range(0, 7):
         for n_recoils in range(0, 4):
-            expected = (
-                9
-                + n_launch
-                + (1 if n_launch % 2 == 0 else 0)
-                + 8 * n_recoils
-            )
+            expected = 9 + n_launch + (1 if n_launch % 2 == 0 else 0) + 8 * n_recoils
             assert n_events(n_launch, n_recoils) == expected
 
 

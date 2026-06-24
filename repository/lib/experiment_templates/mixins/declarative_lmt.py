@@ -456,8 +456,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
     def lmt_global_offset_attr(self, event) -> "str | None":
         raise NotImplementedError(
-            "Global-parameter mode requires lmt_global_offset_attr to be "
-            "overridden"
+            "Global-parameter mode requires lmt_global_offset_attr to be " "overridden"
         )
 
     def lmt_global_duration_attr(self, event) -> "str | None":
