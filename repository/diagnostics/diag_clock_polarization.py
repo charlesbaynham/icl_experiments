@@ -1,180 +1,326 @@
 r"""
-Diagnostic 4 - Clock beam polarization (field-angle scan in the x-z plane).
+Diagnostic 4 - Clock beam polarization (in-trap field-angle scan in the x-z plane).
 
-The clock beam polarization is fixed by the optics and lies along the cavity
-axis (x), per the lab notes. The *quantization field* the clock atoms actually
-experience at the spectroscopy pulse is the evaporation field-ramp end value,
-which on the live assembled ``ClockSpecPulseRatioFrag`` is
-``ramp_during_evap_phase.bias_field_{x,y,z}_end`` =
-**(-0.81, -0.009, -0.69) A** - dominantly along x (the polarization / cavity
-axis) but with a *large vertical (z) component*. It is therefore NOT in the
-radial (x-y) plane; the plane that actually contains the polarization axis and
-the field tilt is the **x-z plane**.
+FIXME: This module was rewritten from the reviewer's corrected physics (PR #28)
+but has NOT been validated on the live rig. The reviewer expects it to need
+careful on-rig testing before it is trusted (see
+``.claude/plans/diagnostics_live_test_plan.md``). This FIXME deliberately blocks
+merge to master until those live checks are done; remove it only once the
+diagnostic has been confirmed on hardware.
 
-This diagnostic probes the polarization purity by an ANGULAR scan of the bias
-field **in the x-z plane** (Charles's decision; the radial x-y scan was rejected
-because it would not rotate around the true field). At each angle θ the field
-direction is rotated at fixed magnitude while the clock is driven hard on
-resonance, and the excitation is recorded:
+Corrected physics (supersedes the earlier free-fall field-set approach)
+-----------------------------------------------------------------------
+For normal clock pulses the bias (quantization) field is **adiabatically ramped
+while the atoms are still trapped** in the dipole trap, from the **Y** direction
+used for spin polarization to the **clock-spectroscopy** endpoint
+``constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END`` ~ (-0.81, -0.009, -0.69) A
+(dominantly along x - the clock-beam polarization / cavity axis - with a large
+vertical z component). The atomic spin follows this slow rotation adiabatically.
 
-    x = |B| * cos(θ)
-    z = z_nominal + |B| * sin(θ)
+To probe the polarization, this diagnostic **overrides the endpoint of that
+adiabatic ramp**: after the normal in-trap ramp completes, the in-trap bias field
+is adiabatically rotated *further*, by a scanned angle theta in the x-z plane (the
+plane containing both the polarization axis and the operating field tilt), at
+fixed x-z magnitude::
+
+    x = |B| * cos(phi0 + theta)
+    z = |B| * sin(phi0 + theta)
     y = y_nominal   (held)
 
-with ``field_magnitude`` |B| ≈ 0.81 A and ``field_z_nominal`` = -0.69 A (the
-operating point), so θ=0 reproduces ~the normal operating field along +x (the
-polarization axis) and θ sweeps the field direction through the x-z plane.
+where phi0 is the nominal field's x-z angle and |B| its x-z magnitude, so theta=0
+reproduces the normal operating field. The rotation is done **in-trap, before
+release**, via the proper ``chamber_2_field_setter.set_bias_fields`` wrapper as a
+stepped adiabatic sub-ramp - never a post-release free-fall jump (which the
+earlier version did, and which the reviewer rejected).
 
-The field is re-set **per shot in the kernel** via the proper
-``chamber_2_field_setter.set_all_fields`` wrapper (never raw DDS/switches), with a
-settling delay before the clock pulse (compensation coils take ms to settle).
-NOTE: at this point in the sequence the trap has already been released, so the
-settle happens in free-fall - acceptable for a direction scan, accepted by
-Charles.
+Because there is **no velocity selection / shelving** here, the *whole* thermal
+(Doppler-broadened, unsliced) cloud is addressed. A single **pi/4 pulse** on
+resonance then drives the clock transition; the excitation depends on the angle
+between the (fixed) clock-beam polarization and the rotated quantization field.
 
-Result = excitation vs field angle: the angle of maximum excitation = the
-effective polarization axis; the residual excitation at the orthogonal angle =
-the polarization-purity diagnostic. Plot in polar coordinates (angle = field
-direction θ, radius = excitation) for the figure-of-eight signature centred on
-the polarization axis (done in the analysis notebook).
-
-Default-runnable: submitting with ``arguments={}`` scans ``field_angle_deg``
-0->360° (37 points, 10° step) at |B|=0.81 A, driving the clock hard on resonance
-(short pulse at the reference setpoint), EM gain on, up beam.
+Result = excitation vs field angle: the angle of maximum excitation is the
+effective polarization axis; the modulation depth is the polarization-purity
+diagnostic. The fitted polarization axis (and contrast) are written to result
+datasets by a ``CustomAnalysis``; a live ``OnlineFit`` plots the modulation.
 
 SAFETY: the ``DISABLE_EM_GAIN`` interlock is never touched (gain only via
-``em_gain_enabled``); field is set only through the ``set_all_fields`` wrapper;
-coil currents stay within the coil limits by construction (|x| <= |B| = 0.81 and
-z in [z_nom-|B|, z_nom+|B|] = [-1.50, +0.12] A). On surrender the caller resets
-coils to nominal, since a field-angle scan leaves the coils at its last angle.
+``em_gain_enabled``); the field is set only through the ``set_bias_fields``
+wrapper; coil currents stay within the coil limits by construction (the x-z
+magnitude is held at the nominal operating magnitude, y at nominal).
 """
 
 import logging
+import math
 
 import numpy as np
+from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
+from artiq.language import now_mu
+from ndscan.experiment import CustomAnalysis
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.clock_spectroscopy.clock_spectroscopy_pulse_ratio import (
     ClockSpecPulseRatioFrag,
 )
+from repository.lib import constants
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
+from repository.lib.experiment_templates.mixins.clock_spec_pulse_ratio import (
+    CLOCK_BEAM_DELIVERY_INFO,
+)
+from repository.lib.experiment_templates.mixins.clock_spec_pulse_ratio import ramp_rate
+from repository.lib.experiment_templates.mixins.clock_spec_pulse_ratio import (
+    start_opll_offset,
+)
 
 logger = logging.getLogger(__name__)
 
-# Default in-plane field magnitude (A) and the nominal vertical (z) offset (A).
-# |B| ~ the in-plane projection of the operating clock field; z_nominal = the
-# operating vertical bias. Defaults reproduce ~the operating field at theta=0.
-_DEFAULT_FIELD_MAGNITUDE_A = 0.81
-_DEFAULT_Z_NOMINAL_A = -0.69
+_DEG_TO_RAD = math.pi / 180.0
 
-_DEG_TO_RAD = 3.141592653589793 / 180.0
+# pi/4 pulse on the unsliced thermal cloud (small enough that excitation tracks
+# the polarization projection without saturating).
+_DEFAULT_PULSE_AREA_FRACTION = 0.25
+
+# Nominal in-trap clock-spectroscopy bias field (the adiabatic ramp's normal
+# endpoint). The diagnostic rotates the field about the origin in the x-z plane
+# starting from this point, holding the x-z magnitude (and y) at nominal.
+_FIELD_END = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
+_X_NOMINAL = _FIELD_END[0]
+_Y_NOMINAL = _FIELD_END[1]
+_Z_NOMINAL = _FIELD_END[2]
+
+# x-z magnitude and starting angle of the nominal field, so theta=0 reproduces it.
+_XZ_MAGNITUDE = math.hypot(_X_NOMINAL, _Z_NOMINAL)
+_XZ_ANGLE_0 = math.atan2(_Z_NOMINAL, _X_NOMINAL)
+
+# Number of steps in the in-trap adiabatic rotation sub-ramp (kernel loop bound).
+_N_ROTATION_STEPS = 50
 
 
 class ClockPolarizationDiagnosticFrag(ClockSpecPulseRatioFrag):
-    """Diagnostic 4 - clock polarization via an x-z-plane field-angle scan.
+    """Diagnostic 4 - clock polarization via an in-trap x-z-plane field-angle scan.
 
-    Wraps ``ClockSpecPulseRatioFrag``: drives the clock hard on resonance and, at
-    each ``field_angle_deg`` θ, re-sets the bias field to
-    ``(|B|cosθ, y_nom, z_nom + |B|sinθ)`` via the ``set_all_fields`` wrapper with a
-    settling delay, then measures excitation. See module docstring.
+    Wraps ``ClockSpecPulseRatioFrag``. Overrides the in-trap adiabatic bias-field
+    ramp endpoint to rotate the quantization field by a scanned angle theta in the
+    x-z plane (still trapped), skips velocity selection, and fires a single pi/4
+    pulse on the whole thermal cloud. See the module docstring for the physics.
     """
 
     def build_fragment(self):
         super().build_fragment()
 
-        # On resonance for the strongest, cleanest excitation reading.
+        # On resonance for the strongest, cleanest excitation reading. The OPLL is
+        # used for gravity compensation only; no extra detuning.
         self.override_param("extra_clock_detuning", 0.0)
 
         # Up beam (default) for the polarization probe.
         self.override_param("use_down_beam", False)
+
+        # pi/4 pulse area (weak enough to track the polarization projection).
+        self.setattr_param(
+            "pulse_area_fraction",
+            FloatParam,
+            "Pulse area as a fraction of pi (pi/4 default: weak probe of the "
+            "polarization projection on the unsliced thermal cloud)",
+            default=_DEFAULT_PULSE_AREA_FRACTION,
+            min=1e-3,
+            max=1.0,
+        )
+        self.pulse_area_fraction: FloatParamHandle
+
+        # Pulse duration sets the Fourier linewidth; area fixed by setpoint scaling.
+        self.override_param("spectroscopy_pulse_time", constants.CLOCK_PI_TIME)
 
         # EM gain on by default (normalised FK clock readout needs it). Enabled
         # only via the experiment flag; DISABLE_EM_GAIN never touched.
         self.override_param("em_gain_enabled", True)
         self.override_param("em_gain", 30.0)
 
-        # Field-angle scan axis (degrees) - the polarization probe axis.
-        # No unit (scale 1) so the stored value IS degrees - 'deg' is not a
-        # defined artiq.language.units scale, and a unitless param keeps the scan
-        # range (0..360) and the kernel deg->rad conversion unambiguous.
+        # Field-angle scan axis (degrees) - the polarization probe axis. Unitless
+        # (the stored value IS degrees); the kernel converts deg->rad.
         self.setattr_param(
             "field_angle_deg",
             FloatParam,
-            "Bias-field direction in the x-z plane, in DEGREES: "
-            "x=|B|cos, z=z_nom+|B|sin, y held nominal",
+            "Extra in-trap bias-field rotation in the x-z plane, in DEGREES, "
+            "added to the nominal clock field (theta=0 -> nominal field)",
             default=0.0,
         )
         self.field_angle_deg: FloatParamHandle
 
-        # In-plane field magnitude |B| (A).
+        # x-z magnitude held during the rotation (default = nominal field's x-z
+        # magnitude, so the rotation is pure direction, no Zeeman-shift change).
         self.setattr_param(
             "field_magnitude",
             FloatParam,
-            "Magnitude |B| of the rotated in-plane bias field",
-            default=_DEFAULT_FIELD_MAGNITUDE_A,
+            "x-z magnitude |B| held while the field direction is rotated",
+            default=_XZ_MAGNITUDE,
             unit="A",
         )
         self.field_magnitude: FloatParamHandle
 
-        # Nominal vertical (z) offset about which the field is rotated (A).
+        # y component, held at nominal throughout the rotation.
         self.setattr_param(
-            "field_z_nominal",
+            "field_y_nominal",
             FloatParam,
-            "Nominal z (vertical) offset about which the field is rotated",
-            default=_DEFAULT_Z_NOMINAL_A,
+            "Nominal y (held) bias field during the rotation",
+            default=_Y_NOMINAL,
             unit="A",
         )
-        self.field_z_nominal: FloatParamHandle
+        self.field_y_nominal: FloatParamHandle
 
-        # Settling time for the compensation coils after the per-shot field
-        # re-set, before the clock pulse (coils take ms to settle).
+        # Duration of the in-trap adiabatic rotation sub-ramp (slow -> adiabatic so
+        # the spin follows the field).
         self.setattr_param(
-            "field_angle_settling_time",
+            "field_rotation_ramp_time",
             FloatParam,
-            "Coil settling time after the per-shot field re-set",
-            default=10e-3,
+            "Duration of the in-trap adiabatic field-rotation sub-ramp",
+            default=20e-3,
             unit="ms",
         )
-        self.field_angle_settling_time: FloatParamHandle
+        self.field_rotation_ramp_time: FloatParamHandle
 
     @kernel
-    def _set_rotated_field(self):
-        """Re-set the bias field to the rotated x-z direction for this shot.
+    def dipole_trap_evaporation_hook_ramper(self):
+        # Standard adiabatic Y->Z bias-field ramp to the nominal clock-spec
+        # endpoint, in-trap (precalculated DMA), exactly as for a normal clock run.
+        self.ramp_during_evap_phase.do_phase()
+        # Override that ramp's ENDPOINT: adiabatically rotate the in-trap
+        # quantization field into the scanned x-z direction *before release*, so
+        # the whole (unsliced, thermal) cloud is addressed at the rotated field.
+        self._rotate_field_in_trap()
 
-        Uses the proper chamber_2_field_setter.set_all_fields wrapper (never raw
-        DDS). y is held at the nominal blue-MOT bias; x/z are rotated in-plane.
+    @kernel
+    def _rotate_field_in_trap(self):
+        """Adiabatically rotate the in-trap bias field to the scanned x-z angle.
+
+        Steps the field from the nominal clock endpoint to
+        ``(|B|cos(phi0+theta), y_nom, |B|sin(phi0+theta))`` over
+        ``field_rotation_ramp_time`` using the proper ``set_bias_fields`` wrapper
+        (never raw DDS). Slow enough that the atomic spin follows adiabatically;
+        the trap is still on.
         """
         theta = self.field_angle_deg.get() * _DEG_TO_RAD
-        b = self.field_magnitude.get()
-        x = b * np.cos(theta)
-        z = self.field_z_nominal.get() + b * np.sin(theta)
-        y = self.blue_3d_mot.chamber_2_bias_y.get()
-        self.red_mot.chamber_2_field_setter.set_all_fields(
-            self.spectroscopy_field_gradient.get(),
-            x,
-            y,
-            z,
-        )
-        # Let the compensation coils settle before the field-sensitive pulse.
-        delay(self.field_angle_settling_time.get())
+        magnitude = self.field_magnitude.get()
+        y = self.field_y_nominal.get()
+
+        x_target = magnitude * np.cos(_XZ_ANGLE_0 + theta)
+        z_target = magnitude * np.sin(_XZ_ANGLE_0 + theta)
+
+        step_time = self.field_rotation_ramp_time.get() / _N_ROTATION_STEPS
+        for i in range(_N_ROTATION_STEPS):
+            frac = float(i + 1) / float(_N_ROTATION_STEPS)
+            x = _X_NOMINAL + (x_target - _X_NOMINAL) * frac
+            z = _Z_NOMINAL + (z_target - _Z_NOMINAL) * frac
+            self.ramp_during_evap_phase.chamber_2_field_setter.set_bias_fields(x, y, z)
+            delay(step_time)
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # Rotate the quantization field for this angle, settle, then run the
-        # standard clock shelving + spectroscopy sequence.
-        self._set_rotated_field()
-        # Explicit (not zero-arg ``super()``) base call: the ARTIQ kernel compiler
-        # cannot resolve zero-arg ``super()`` inside a ``@kernel`` method.
-        ClockSpecPulseRatioFrag.do_experiment_after_dipole_trap_hook(self)
+        # NO velocity selection (the whole thermal/Doppler cloud is addressed) and
+        # a single weak (pi/4) clock pulse. The quantization field was already
+        # rotated in-trap (dipole_trap_evaporation_hook_ramper) and persists
+        # through release into the pulse.
+        self.t_dipole_beams_off = now_mu()
+        delay_mu(int64(self.core.ref_multiplier))
+
+        T_clock = self.spectroscopy_pulse_time.get()
+        T_ref = self.reference_pi_pulse_duration.get()
+        V_ref = self.reference_clock_setpoint.get()
+        f = self.pulse_area_fraction.get()
+
+        # pi-pulse setpoint auto-scaling V = V_ref * (T_ref / T)^2, then * f^2 so
+        # that Omega * T = f * pi (a pi/4 pulse by default).
+        auto_setpoint = V_ref * (T_ref / T_clock) * (T_ref / T_clock) * f * f
+
+        # Configure the delivery AOM and pre-position the OPLL, done "in the past"
+        # via the preempt window then returning to _t_prep.
+        _t_prep = now_mu()
+        delay(-self.clock_delivery_preempt_time.get())
+        self.clock_delivery_setter.set_suservo(
+            freq=self.clock_delivery_handles.frequency_handle.get(),
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=auto_setpoint,
+            enable_iir=True,
+        )
+        self.set_clock_delivery_aom(
+            freq=self.clock_delivery_handles.frequency_handle.get(),
+            setpoint_v=auto_setpoint,
+        )
+        self.set_clock_opll(freq=start_opll_offset + self.extra_clock_detuning.get())
+        self.after_clock_delivery_setup_hook(_t_prep)
+        at_mu(_t_prep)
+
+        # Fire the single pulse, gravity-compensated relative to release.
+        t_start = now_mu() + self.core.seconds_to_mu(50e-6)
+        total_ramp_time = self.core.mu_to_seconds(t_start - self.t_dipole_beams_off)
+
+        if self.use_down_beam.get():
+            opll_freq = (
+                start_opll_offset
+                - total_ramp_time * ramp_rate
+                + self.extra_clock_detuning.get()
+            )
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                opll_freq - 1e6,
+                opll_freq,
+                wave_type=2,
+            )
+            self.register_pulse(is_up=False, duration_s=T_clock)
+            self.clock_down_dds.sw.on()
+            delay(T_clock)
+            self.clock_down_dds.sw.off()
+        else:
+            opll_freq = (
+                start_opll_offset
+                + total_ramp_time * ramp_rate
+                + self.extra_clock_detuning.get()
+            )
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                opll_freq,
+                opll_freq + 2e6,
+                wave_type=1,
+            )
+            self.register_pulse(is_up=True, duration_s=T_clock)
+            self.clock_up_dds.sw.on()
+            delay(T_clock)
+            self.clock_up_dds.sw.off()
+
+        delay(self.delay_after_spectroscopy.get())
 
     def get_default_analyses(self):
-        # Excitation vs field angle. A Cartesian trace; the polar figure-of-eight
-        # is produced in the analysis notebook (tag_plot, RID baked in).
+        # OnlineFit draws the live modulation; the CustomAnalysis below writes the
+        # fitted polarization axis (and contrast) to result datasets.
+        def _analyse_polarization(axis_values, result_values, analysis_results):
+            angles_deg = np.array(axis_values[self.field_angle_deg], dtype=float)
+            exc = np.array(result_values[self.excitation_fraction], dtype=float)
+
+            # The pi-selection modulation has 180 deg periodicity (excitation goes
+            # as cos^2 of the field-polarization angle), so estimate the
+            # polarization axis from the first even harmonic (robust,
+            # fit-library-free):
+            #   axis = 1/2 * atan2(sum E*sin2theta, sum E*cos2theta)  (mod 180 deg)
+            theta = np.deg2rad(angles_deg)
+            c = float(np.sum(exc * np.cos(2.0 * theta)))
+            s = float(np.sum(exc * np.sin(2.0 * theta)))
+            axis_deg = math.degrees(0.5 * math.atan2(s, c)) % 180.0
+
+            span = float(exc.max() + exc.min())
+            contrast = float(exc.max() - exc.min()) / span if span > 0 else 0.0
+
+            analysis_results["polarization_axis_deg"].push(axis_deg)
+            analysis_results["polarization_contrast"].push(contrast)
+            return []
+
         return [
             OnlineFit(
                 "sinusoid",
@@ -182,12 +328,27 @@ class ClockPolarizationDiagnosticFrag(ClockSpecPulseRatioFrag):
                     "x": self.field_angle_deg,
                     "y": self.excitation_fraction,
                 },
-            )
+            ),
+            CustomAnalysis(
+                [self.field_angle_deg],
+                _analyse_polarization,
+                [
+                    FloatChannel(
+                        "polarization_axis_deg",
+                        "Estimated clock polarization axis (field angle of max "
+                        "excitation, mod 180 deg)",
+                    ),
+                    FloatChannel(
+                        "polarization_contrast",
+                        "Excitation modulation depth (polarization-purity metric)",
+                    ),
+                ],
+            ),
         ]
 
 
-# Default-runnable field-angle scan, 0..360 deg, 10 deg step (37 points incl.
-# both endpoints), 2 repeats.
+# Default-runnable in-trap field-angle scan, 0..360 deg, 10 deg step (37 points
+# incl. both endpoints), 2 repeats.
 ClockPolarizationDiagnostic = make_default_scan_exp(
     ClockPolarizationDiagnosticFrag,
     default_axes=[

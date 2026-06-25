@@ -50,6 +50,8 @@ import logging
 
 from ndscan.experiment import OnlineFit
 
+from repository.diagnostics.dataset_fit_analysis import FitOutput
+from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -109,6 +111,8 @@ class BackgroundFieldDiagnosticFrag(
 
     def get_default_analyses(self):
         # Line-centre fit on the AOM detuning axis (excited-fraction peak).
+        # OnlineFit draws the live curve; make_dataset_fit_analysis additionally
+        # writes the fitted line centre (and its error) into result datasets.
         return [
             OnlineFit(
                 "lorentzian",
@@ -117,7 +121,25 @@ class BackgroundFieldDiagnosticFrag(
                     "y": self.excitation_fraction_forward,
                 },
             )
-        ]
+        ] + make_dataset_fit_analysis(
+            fit_type="lorentzian",
+            x=self.spectroscopy_pulse_aom_detuning,
+            y=self.excitation_fraction_forward,
+            outputs=[
+                FitOutput(
+                    "line_centre_aom",
+                    "Fitted 1S0->3P1 line centre on the AOM axis",
+                    fit_key="x0",
+                    unit="kHz",
+                ),
+                FitOutput(
+                    "line_fwhm",
+                    "Fitted Lorentzian FWHM",
+                    fit_key="fwhm",
+                    unit="kHz",
+                ),
+            ],
+        )
 
 
 # Default-runnable detuning scan across the 689 1S0->3P1 line on the AOM axis.

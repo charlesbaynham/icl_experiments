@@ -82,6 +82,14 @@ class _DefaultScanArgumentInterface(ArgumentInterface):
     The default axes and repeat count are injected into the PYON ``desc`` *before*
     ``get_argument`` is called, so they become the argument default (still
     overridable from the dashboard).
+
+    FIXME: This re-implements ``ArgumentInterface.build`` (copying its body to
+    inject the default scan section) and so is tightly coupled to ndscan internals
+    that may shift under us. It has not yet been exercised end-to-end on the live
+    rig - submitting a diagnostic with ``arguments={}`` and confirming the seeded
+    scan axes / repeats actually take effect in the dashboard. See
+    ``.claude/plans/diagnostics_live_test_plan.md``. This FIXME deliberately blocks
+    merge to master until those live checks are done; remove it once confirmed.
     """
 
     # Overridden per-experiment in make_default_scan_exp's subclass body.

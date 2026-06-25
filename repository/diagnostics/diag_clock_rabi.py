@@ -50,10 +50,26 @@ from ndscan.experiment import OnlineFit
 from repository.clock_spectroscopy.clock_spectroscopy_pulse_ratio import (
     ClockSpecPulseRatioFrag,
 )
+from repository.diagnostics.dataset_fit_analysis import FitOutput
+from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
 
 logger = logging.getLogger(__name__)
+
+
+def _rabi_frequency_from_pi_time(fit_results, fit_errs):
+    """Rabi frequency f = 1 / (2 * t_pi) from the fitted pi-time, with its error.
+
+    A full Rabi flop has excitation ~ sin^2(pi * t / (2 * t_pi)), so the Rabi
+    frequency (full oscillation rate) is 1 / (2 * t_pi). The error propagates as
+    df = dt_pi / (2 * t_pi^2).
+    """
+    t_pi = fit_results["t_max_transfer"]
+    t_pi_err = fit_errs.get("t_max_transfer", float("nan"))
+    f = 1.0 / (2.0 * t_pi)
+    f_err = t_pi_err / (2.0 * t_pi * t_pi)
+    return f, f_err
 
 
 class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
@@ -85,6 +101,8 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
     def get_default_analyses(self):
         # Excitation-fraction-from-zero Rabi flop; t_dead pinned to 0 (the WS1
         # 689-spectroscopy convention). pi_time annotation = t_max_transfer.
+        # OnlineFit draws the live flop; make_dataset_fit_analysis additionally
+        # writes the fitted pi-time and the derived Rabi frequency to datasets.
         return [
             OnlineFit(
                 "decaying_sinusoid",
@@ -94,7 +112,26 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
                 },
                 constants={"t_dead": 0},
             )
-        ]
+        ] + make_dataset_fit_analysis(
+            fit_type="decaying_sinusoid",
+            x=self.spectroscopy_pulse_time,
+            y=self.excitation_fraction,
+            fit_constants={"t_dead": 0},
+            outputs=[
+                FitOutput(
+                    "pi_time",
+                    "Fitted clock pi-pulse time",
+                    fit_key="t_max_transfer",
+                    unit="us",
+                ),
+                FitOutput(
+                    "rabi_frequency",
+                    "Clock Rabi frequency derived from the fitted pi-time",
+                    derive=_rabi_frequency_from_pi_time,
+                    unit="kHz",
+                ),
+            ],
+        )
 
 
 class ClockRabiDownBeamDiagnosticFrag(_ClockRabiDiagnosticBase):

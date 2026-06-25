@@ -22,10 +22,14 @@ replaced: ``do_experiment_after_dipole_trap_hook`` is overridden to fire one
 weak, frequency-scanned pulse instead of the standard shelve-then-interrogate
 pair.
 
-Diagnosed quantity: the transition centre, via a ``lorentzian`` ``OnlineFit`` over
-``extra_clock_detuning`` (the scanned detuning added to the OPLL frequency) vs
-``excitation_fraction``. Since velocity selection is skipped, the line sits on
-the full (Doppler-broadened) cloud; the weak pulse ensures the lineshape is not
+Diagnosed quantity: the transition centre, via a ``lorentzian`` fit over
+``delivery_aom_frequency`` (the scanned SUServo clock-delivery AOM drive
+frequency) vs ``excitation_fraction``. The frequency scan is carried by the
+delivery AOM, *not* the OPLL: the OPLL is reserved for gravity compensation and
+``extra_clock_detuning`` is held at 0. A live ``OnlineFit`` plots the line and a
+paired ``CustomAnalysis`` writes the fitted centre into the result datasets.
+Since velocity selection is skipped, the line sits on the full
+(Doppler-broadened) cloud; the weak pulse ensures the lineshape is not
 *additionally* power-broadened, so the fitted centre is a faithful line-centre.
 
 Pulse-area scaling: the clock delivery setpoint auto-scales to a ``pi`` pulse as
@@ -63,6 +67,8 @@ from numpy import int64
 from repository.clock_spectroscopy.clock_spectroscopy_pulse_ratio import (
     ClockSpecPulseRatioFrag,
 )
+from repository.diagnostics.dataset_fit_analysis import FitOutput
+from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
 from repository.lib import constants
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
@@ -109,12 +115,25 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
         # Pick the clock beam for this diagnostic.
         self.override_param("use_down_beam", self._use_down_beam)
 
-        # Centre the scanned detuning on the (gravity-compensated) clock line;
-        # extra_clock_detuning is the scan axis.
+        # The line is scanned by stepping the SUServo clock-delivery AOM frequency
+        # directly (this param is the scan axis), NOT by adding to the OPLL: the
+        # OPLL is reserved for gravity compensation. extra_clock_detuning is held
+        # at 0 so the OPLL stays on the (gravity-compensated) clock line.
         self.override_param("extra_clock_detuning", 0.0)
+        self.setattr_param(
+            "delivery_aom_frequency",
+            FloatParam,
+            "Clock-delivery AOM drive frequency (scan axis: sweeps the line)",
+            default=CLOCK_BEAM_DELIVERY_INFO.frequency,
+            unit="MHz",
+        )
+        self.delivery_aom_frequency: FloatParamHandle
 
         # Pulse duration sets the Fourier-limited linewidth; the area is fixed at
         # pulse_area_fraction * pi by the setpoint scaling regardless of duration.
+        # TODO: load the reference pi-pulse time / setpoint (and ultimately this
+        # pulse duration) from per-beam calibration datasets once those exist;
+        # for now it defaults to the CLOCK_PI_TIME constant.
         self.override_param("spectroscopy_pulse_time", constants.CLOCK_PI_TIME)
 
         # EM gain on by default so the diagnostic is genuinely default-runnable
@@ -142,12 +161,17 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
         # that Omega * T = f * pi (area ~ pi/8 by default), independent of T_clock.
         auto_setpoint = V_ref * (T_ref / T_clock) * (T_ref / T_clock) * f * f
 
+        # The scan axis: sweep the clock-delivery AOM drive frequency to step the
+        # interrogation frequency across the line (the OPLL is left to do gravity
+        # compensation only).
+        aom_freq = self.delivery_aom_frequency.get()
+
         # Configure the delivery AOM (weak setpoint) and pre-position the OPLL,
         # done "in the past" via the preempt window then returning to _t_prep.
         _t_prep = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get(),
+            freq=aom_freq,
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
@@ -155,7 +179,7 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
             enable_iir=True,
         )
         self.set_clock_delivery_aom(
-            freq=self.clock_delivery_handles.frequency_handle.get(),
+            freq=aom_freq,
             setpoint_v=auto_setpoint,
         )
         self.set_clock_opll(freq=start_opll_offset + self.extra_clock_detuning.get())
@@ -163,7 +187,9 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
         at_mu(_t_prep)
 
         # Fire the single pulse, gravity-compensated relative to release
-        # (t_dipole_beams_off), with the scanned detuning added to the OPLL.
+        # (t_dipole_beams_off). The frequency scan is carried by the delivery AOM
+        # above; the OPLL only applies the gravity-compensation ramp here
+        # (extra_clock_detuning is held at 0).
         t_start = now_mu() + self.core.seconds_to_mu(50e-6)
         total_ramp_time = self.core.mu_to_seconds(t_start - self.t_dipole_beams_off)
 
@@ -206,16 +232,36 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
         delay(self.delay_after_spectroscopy.get())
 
     def get_default_analyses(self):
-        # Line-centre fit on the clock detuning axis (excited-fraction peak).
+        # Line-centre fit on the delivery-AOM frequency axis (excited-fraction
+        # peak). OnlineFit draws the live curve; make_dataset_fit_analysis
+        # additionally writes the fitted line centre (and its error) to datasets.
         return [
             OnlineFit(
                 "lorentzian",
                 data={
-                    "x": self.extra_clock_detuning,
+                    "x": self.delivery_aom_frequency,
                     "y": self.excitation_fraction,
                 },
             )
-        ]
+        ] + make_dataset_fit_analysis(
+            fit_type="lorentzian",
+            x=self.delivery_aom_frequency,
+            y=self.excitation_fraction,
+            outputs=[
+                FitOutput(
+                    "line_centre_aom",
+                    "Fitted clock line centre on the delivery-AOM axis",
+                    fit_key="x0",
+                    unit="MHz",
+                ),
+                FitOutput(
+                    "line_fwhm",
+                    "Fitted Lorentzian FWHM",
+                    fit_key="fwhm",
+                    unit="kHz",
+                ),
+            ],
+        )
 
 
 class ClockLineCentreUpBeamDiagnosticFrag(_ClockLineCentreDiagnosticBase):
@@ -230,16 +276,20 @@ class ClockLineCentreDownBeamDiagnosticFrag(_ClockLineCentreDiagnosticBase):
     _use_down_beam = True
 
 
-# Default-runnable detuning scan across the clock line. +-50 kHz, 41 points,
-# 2 repeats. The range/points are a starting point: tune on hardware to span a
-# few linewidths and fold any tuned value back into repository/lib/constants.py.
+# Default-runnable frequency scan across the clock line, stepping the delivery
+# AOM +-50 kHz about its nominal drive frequency, 41 points, 2 repeats. The
+# range/points are a starting point: tune on hardware to span a few linewidths
+# and fold any tuned value back into repository/lib/constants.py.
+_AOM_CENTRE = CLOCK_BEAM_DELIVERY_INFO.frequency
+_AOM_HALF_SPAN = 50e3
+
 ClockLineCentreUpBeamDiagnostic = make_default_scan_exp(
     ClockLineCentreUpBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
-            param="extra_clock_detuning",
-            start=-50e3,
-            stop=50e3,
+            param="delivery_aom_frequency",
+            start=_AOM_CENTRE - _AOM_HALF_SPAN,
+            stop=_AOM_CENTRE + _AOM_HALF_SPAN,
             num_points=41,
         ),
     ],
@@ -250,9 +300,9 @@ ClockLineCentreDownBeamDiagnostic = make_default_scan_exp(
     ClockLineCentreDownBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
-            param="extra_clock_detuning",
-            start=-50e3,
-            stop=50e3,
+            param="delivery_aom_frequency",
+            start=_AOM_CENTRE - _AOM_HALF_SPAN,
+            stop=_AOM_CENTRE + _AOM_HALF_SPAN,
             num_points=41,
         ),
     ],
