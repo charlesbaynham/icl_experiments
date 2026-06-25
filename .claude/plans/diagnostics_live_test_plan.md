@@ -13,7 +13,7 @@ Do the checks in order; each later one assumes the earlier machinery works.
 - Atoms loading; XODT + clock stack known-good on the day.
 - `oitg` importable in the runtime (the dataset-output analyses import it lazily).
 - Confirm `DISABLE_EM_GAIN` interlock state allows the EM gain the diagnostics
-  request (they only *read* it; they never write it).
+  request (they only _read_ it; they never write it).
 
 ## 1. `default_scan` template (default-runnable scans)
 
@@ -41,9 +41,9 @@ For `diag_background_field`, `diag_clock_rabi`, `diag_clock_line_centre`:
 1. Run the default scan over a real line / flop.
 2. Confirm the live `OnlineFit` curve still draws as before.
 3. Confirm the new result channels are populated in the dataset:
-   - background field: `line_centre_aom`, `line_fwhm` (+ `_err`)
-   - clock Rabi: `pi_time`, `rabi_frequency` (+ `_err`)
-   - clock line centre: `line_centre_aom`, `line_fwhm` (+ `_err`)
+    - background field: `line_centre_aom`, `line_fwhm` (+ `_err`)
+    - clock Rabi: `pi_time`, `rabi_frequency` (+ `_err`)
+    - clock line centre: `line_centre_aom`, `line_fwhm` (+ `_err`)
 4. Sanity-check the dataset values against the on-screen `OnlineFit` annotation
    (they fit the same data with the same `oitg` procedure, so should agree).
 5. If a fit-result key is wrong for the installed `oitg`, the analysis will raise
@@ -68,7 +68,7 @@ attempt. The corrected physics: the quantization field is rotated **in-trap**
 a single **pi/4** pulse addresses the whole thermal cloud.
 
 1. **Field rotation is in-trap and persists.** Instrument / scope the comp-coil
-   currents: confirm the bias field rotates to the scanned angle *while trapped*
+   currents: confirm the bias field rotates to the scanned angle _while trapped_
    (during `dipole_trap_evaporation_hook_ramper`, after the nominal ramp) and that
    it is **not** reset between release and the clock pulse. If something downstream
    re-sets the bias field after release, move/repeat the rotation accordingly.
