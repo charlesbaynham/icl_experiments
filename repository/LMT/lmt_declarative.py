@@ -4,10 +4,10 @@ LMT interferometry driven by the declarative sequence language.
 This is the reference experiment for the declarative LMT stack
 (:mod:`repository.lib.lmt_sequence` +
 :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`):
-the velocity-selective pulse, the launch and a Mach-Zehnder interferometer
-are declared as a single list of pulse descriptions, from which scannable
-per-pulse parameters (detuning offsets and durations) are generated with
-model-predicted defaults.
+the velocity-selective pulse, the launch and a symmetric Mach-Zehnder
+interferometer are declared as a single list of pulse descriptions, from
+which scannable per-pulse parameters (detuning offsets and durations) are
+generated with model-predicted defaults.
 """
 
 from artiq.language import kernel
@@ -46,7 +46,7 @@ N_LAUNCH = 5
 M_TOP = 1 + N_LAUNCH
 
 
-class DeclarativeLMTMachZehnderFrag(
+class DeclarativeLMTSymmetricMachZehnderFrag(
     DeclarativeLMTBase,
     # Repositions the camera ROIs along the ballistic trajectory predicted
     # from the recorded pulse sequence, with t=0 at the dipole-trap drop
@@ -63,7 +63,8 @@ class DeclarativeLMTMachZehnderFrag(
     DipoleTrapWithExperimentBase,
 ):
     """
-    Velocity selection, launch and Mach-Zehnder from a declared pulse sequence
+    Velocity selection, launch and symmetric Mach-Zehnder from a declared pulse
+    sequence
     """
 
     # Atoms are released from the trap in the ground state with no kicks
@@ -145,4 +146,6 @@ class DeclarativeLMTMachZehnderFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
-DeclarativeLMTMachZehnder = make_fragment_scan_exp(DeclarativeLMTMachZehnderFrag)
+DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
+    DeclarativeLMTSymmetricMachZehnderFrag
+)

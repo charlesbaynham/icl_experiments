@@ -162,9 +162,24 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     kernels have no function pointers).
     """
 
+    # Required at compile time when per-pulse params are generated (the engine
+    # validates and compiles this list in build). Optional when a subclass
+    # generates the sequence procedurally instead (lmt_use_per_pulse_params =
+    # False, overriding lmt_make_sequence): then it may stay None.
     lmt_sequence: list = None
     lmt_initial_population: set = None
     lmt_strict_validation: bool = True
+
+    # When True (default) the engine spawns one detuning-offset and one duration
+    # parameter per pulse and one set point per SetPoint - ideal for
+    # commissioning a fixed sequence pulse by pulse. When False, no per-event
+    # parameters are spawned; a subclass instead supplies the sequence
+    # procedurally (lmt_make_sequence) and binds each event's offset / duration /
+    # set-point kernel slot to one of its own shared handles via the
+    # lmt_global_*_attr hooks. In global mode the sequence is (re)built in
+    # host_setup from set-once count parameters, so those counts must NOT be
+    # placed on a scan axis.
+    lmt_use_per_pulse_params: bool = True
 
     def build_fragment(self):
         super().build_fragment()
@@ -217,30 +232,6 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
         self.lmt_probe_stark_alpha: FloatParamHandle
 
-        if not self.lmt_sequence:
-            raise TypeError(
-                f"{type(self).__name__} must declare a non-empty 'lmt_sequence' "
-                "class attribute"
-            )
-        if not self.lmt_initial_population:
-            raise TypeError(
-                f"{type(self).__name__} must declare a non-empty "
-                "'lmt_initial_population' class attribute, e.g. {('e', 1)}"
-            )
-
-        # Build-time validation happens here
-        compiled = compile_sequence(
-            list(self.lmt_sequence),
-            initial_population=set(self.lmt_initial_population),
-            strict=self.lmt_strict_validation,
-        )
-        self._lmt_compiled: CompiledSequence = compiled
-        logger.info(
-            "Compiled LMT sequence with %d events; final population: %s",
-            len(compiled.events),
-            sorted(compiled.final_population),
-        )
-
         # The kernel cannot iterate a list of heterogeneous event objects (no
         # dataclasses/sum types across the host->kernel boundary), so each event
         # is shipped as a slot in several parallel, same-length, same-type
@@ -248,7 +239,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         # slot in that array, so they get this dummy "pad" handle. Do not try to
         # "tidy" this into a list of per-event objects - the ARTIQ compiler
         # cannot consume that.
-        pad_handle = self.setattr_param(
+        self._lmt_pad_handle = self.setattr_param(
             "lmt_unused_pad",
             FloatParam,
             "Padding parameter for the LMT sequence engine - ignored, do not scan",
@@ -257,11 +248,58 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.lmt_unused_pad: FloatParamHandle
         self.override_param("lmt_unused_pad", initial_value=0.0)
 
-        # Parallel per-event arrays read by the kernel. NB no bool lists:
-        # the ARTIQ compiler quotes host lists of Python bools as integer
-        # lists (bool is an int subclass); beam direction is carried as a
-        # float sign and compared in the kernel instead.
-        self._lmt_n_events = len(compiled.events)
+        self._lmt_init_empty_arrays()
+
+        # In per-pulse mode the sequence is fixed and its parameters are spawned
+        # now (ndscan parameters must be created during build). In global mode
+        # the event count depends on set-once counts only known at host time, so
+        # the sequence is compiled and the slots are bound in host_setup; no
+        # per-event parameters are spawned (slots bind to shared handles).
+        if self.lmt_use_per_pulse_params:
+            if not self.lmt_sequence:
+                raise TypeError(
+                    f"{type(self).__name__} must declare a non-empty "
+                    "'lmt_sequence' class attribute"
+                )
+            if not self.lmt_initial_population:
+                raise TypeError(
+                    f"{type(self).__name__} must declare a non-empty "
+                    "'lmt_initial_population' class attribute, e.g. {('e', 1)}"
+                )
+            self._lmt_build_sequence_arrays()
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
+            "_lmt_n_events",
+            "_lmt_event_kind",
+            "_lmt_beam_sign",
+            "_lmt_m_term_hz",
+            "_lmt_rabi_hz",
+            "_lmt_callback_id",
+            "_lmt_intent_state_effect",
+            "_lmt_intent_addressed_state",
+            "_lmt_intent_addressed_m",
+            "_lmt_intent_delta_m",
+            "_lmt_intent_duration_s",
+        }
+
+    def lmt_make_sequence(self) -> list:
+        """Return the declared event list to compile.
+
+        Defaults to the ``lmt_sequence`` class attribute. Global-parameter
+        subclasses override this to generate the sequence procedurally from
+        their set-once count parameters (read with ``.get()``); it is called in
+        ``host_setup`` in that mode.
+        """
+        return self.lmt_sequence
+
+    def _lmt_init_empty_arrays(self):
+        """Initialise the parallel per-event arrays (read by the kernel) empty.
+
+        NB no bool lists: the ARTIQ compiler quotes host lists of Python bools
+        as integer lists (bool is an int subclass); beam direction is carried as
+        a float sign and compared in the kernel instead.
+        """
+        self._lmt_n_events = 0
         self._lmt_event_kind = []
         self._lmt_beam_sign = []
         self._lmt_m_term_hz = []
@@ -279,10 +317,44 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_intent_delta_m = []
         self._lmt_intent_duration_s = []
         # (slot index, fragment attribute name) pairs resolved in host_setup,
-        # because the referenced parameter may be created by a mixin that
-        # builds after this one in the MRO.
+        # because the referenced parameter may be created by a mixin that builds
+        # after this one in the MRO, or (global mode) be a shared global handle.
+        self._lmt_offset_refs = []
         self._lmt_duration_param_refs = []
+        self._lmt_setpoint_refs = []
 
+    def _lmt_build_sequence_arrays(self):
+        """Compile the sequence and assemble the parallel kernel arrays.
+
+        Called in build (per-pulse mode) or host_setup (global mode).
+        """
+        if not self.lmt_initial_population:
+            raise TypeError(
+                f"{type(self).__name__} must declare a non-empty "
+                "'lmt_initial_population' class attribute, e.g. {('e', 1)}"
+            )
+        sequence = self.lmt_make_sequence()
+        if not sequence:
+            raise TypeError(
+                f"{type(self).__name__}.lmt_make_sequence() returned an empty "
+                "sequence"
+            )
+        compiled = compile_sequence(
+            list(sequence),
+            initial_population=set(self.lmt_initial_population),
+            strict=self.lmt_strict_validation,
+        )
+        self._lmt_compiled: CompiledSequence = compiled
+        logger.info(
+            "Compiled LMT sequence with %d events; final population: %s",
+            len(compiled.events),
+            sorted(compiled.final_population),
+        )
+        self._lmt_assemble_event_arrays(compiled)
+
+    def _lmt_assemble_event_arrays(self, compiled: CompiledSequence):
+        self._lmt_init_empty_arrays()
+        self._lmt_n_events = len(compiled.events)
         for event in compiled.events:
             self._lmt_event_kind.append(int32(event.kind))
             self._lmt_beam_sign.append(float(event.beam_sign))
@@ -295,6 +367,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_intent_delta_m.append(int32(event.delta_m))
             self._lmt_intent_duration_s.append(float(event.declared_duration_s))
 
+            self._bind_offset_slot(event)
+            self._bind_duration_slot(event)
+            self._bind_setpoint_slot(event)
+
+    def _bind_offset_slot(self, event):
+        if self.lmt_use_per_pulse_params:
             if event.offset_param is not None:
                 handle = self.setattr_param(
                     event.offset_param.attr_name,
@@ -305,8 +383,24 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 )
                 self._lmt_offset_handles.append(handle)
             else:
-                self._lmt_offset_handles.append(pad_handle)
+                self._lmt_offset_handles.append(self._lmt_pad_handle)
+        else:
+            self._lmt_append_global_slot(
+                self._lmt_offset_handles,
+                self._lmt_offset_refs,
+                self.lmt_global_offset_attr(event),
+            )
 
+    def _bind_duration_slot(self, event):
+        # Wait(param=...) and the shared Clearout reuse an existing handle by
+        # name in BOTH modes.
+        if event.duration_param_ref is not None:
+            self._lmt_append_global_slot(
+                self._lmt_duration_handles,
+                self._lmt_duration_param_refs,
+                event.duration_param_ref,
+            )
+        elif self.lmt_use_per_pulse_params:
             if event.duration_param is not None:
                 spec = event.duration_param
                 handle = self.setattr_param(
@@ -318,14 +412,17 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     min=spec.min,
                 )
                 self._lmt_duration_handles.append(handle)
-            elif event.duration_param_ref is not None:
-                self._lmt_duration_param_refs.append(
-                    (len(self._lmt_duration_handles), event.duration_param_ref)
-                )
-                self._lmt_duration_handles.append(pad_handle)
             else:
-                self._lmt_duration_handles.append(pad_handle)
+                self._lmt_duration_handles.append(self._lmt_pad_handle)
+        else:
+            self._lmt_append_global_slot(
+                self._lmt_duration_handles,
+                self._lmt_duration_param_refs,
+                self.lmt_global_duration_attr(event),
+            )
 
+    def _bind_setpoint_slot(self, event):
+        if self.lmt_use_per_pulse_params:
             if event.setpoint_param is not None:
                 spec = event.setpoint_param
                 handle = self.setattr_param(
@@ -338,37 +435,74 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 )
                 self._lmt_setpoint_handles.append(handle)
             else:
-                self._lmt_setpoint_handles.append(pad_handle)
+                self._lmt_setpoint_handles.append(self._lmt_pad_handle)
+        else:
+            self._lmt_append_global_slot(
+                self._lmt_setpoint_handles,
+                self._lmt_setpoint_refs,
+                self.lmt_global_setpoint_attr(event),
+            )
 
-        self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
-            "_lmt_n_events",
-            "_lmt_event_kind",
-            "_lmt_beam_sign",
-            "_lmt_m_term_hz",
-            "_lmt_rabi_hz",
-            "_lmt_callback_id",
-            "_lmt_intent_state_effect",
-            "_lmt_intent_addressed_state",
-            "_lmt_intent_addressed_m",
-            "_lmt_intent_delta_m",
-            "_lmt_intent_duration_s",
-        }
+    def _lmt_append_global_slot(self, handles: list, refs: list, attr_name):
+        """Append a pad placeholder and, if an attr name is given, a ref to
+        resolve it to a shared handle in host_setup."""
+        handles.append(self._lmt_pad_handle)
+        if attr_name is not None:
+            refs.append((len(handles) - 1, attr_name))
+
+    # ------------------------------------------------------------------
+    # Global-parameter slot binding (only used when
+    # lmt_use_per_pulse_params is False). Subclasses override these to bind each
+    # event's offset / duration / set-point slot to one of their shared global
+    # FloatParamHandle attributes (return the attribute name), or None to leave
+    # the slot unused (pad). The argument is the CompiledEvent.
+    # ------------------------------------------------------------------
+
+    def lmt_global_offset_attr(self, event) -> "str | None":
+        raise NotImplementedError(
+            "Global-parameter mode requires lmt_global_offset_attr to be " "overridden"
+        )
+
+    def lmt_global_duration_attr(self, event) -> "str | None":
+        raise NotImplementedError(
+            "Global-parameter mode requires lmt_global_duration_attr to be "
+            "overridden"
+        )
+
+    def lmt_global_setpoint_attr(self, event) -> "str | None":
+        raise NotImplementedError(
+            "Global-parameter mode requires lmt_global_setpoint_attr to be "
+            "overridden"
+        )
 
     def host_setup(self):
         super().host_setup()
 
-        # Late resolution of duration parameters that reference existing
-        # handles (Wait(param=...) and shared clearouts): the referenced
-        # parameter may only exist after every mixin has built.
-        for slot, attr_name in self._lmt_duration_param_refs:
-            handle = getattr(self, attr_name, None)
-            if not isinstance(handle, FloatParamHandle):
-                raise TypeError(
-                    f"LMT sequence event {slot} references parameter "
-                    f"'{attr_name}', which is not a FloatParamHandle on "
-                    f"{type(self).__name__} (got {type(handle).__name__})"
-                )
-            self._lmt_duration_handles[slot] = handle
+        # In global mode the sequence is built now: the set-once count
+        # parameters are bound (init_params has run) and any shared handles the
+        # slots reference exist. Counts must not be scanned - the per-event
+        # arrays are kernel_invariants and so must be constant across the scan.
+        if not self.lmt_use_per_pulse_params:
+            self._lmt_build_sequence_arrays()
+
+        # Late resolution of slots that reference an existing handle by name:
+        # Wait(param=...)/shared clearouts in both modes, and every global-mode
+        # offset/duration/set-point binding. The referenced parameter may only
+        # exist after every mixin has built.
+        for refs, handles in (
+            (self._lmt_offset_refs, self._lmt_offset_handles),
+            (self._lmt_duration_param_refs, self._lmt_duration_handles),
+            (self._lmt_setpoint_refs, self._lmt_setpoint_handles),
+        ):
+            for slot, attr_name in refs:
+                handle = getattr(self, attr_name, None)
+                if not isinstance(handle, FloatParamHandle):
+                    raise TypeError(
+                        f"LMT sequence event slot {slot} references parameter "
+                        f"'{attr_name}', which is not a FloatParamHandle on "
+                        f"{type(self).__name__} (got {type(handle).__name__})"
+                    )
+                handles[slot] = handle
 
     # set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp come from
     # ClockOPLLTrackingMixin (they drive _clock_opll and update the
