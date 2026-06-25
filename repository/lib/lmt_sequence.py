@@ -283,24 +283,30 @@ def ladder(start_m: int, n: int, first_beam: Beam) -> list[Pulse]:
     ]
 
 
-def _raise_arm(arm: tuple) -> "tuple[Pulse, tuple]":
+@dataclass(frozen=True)
+class Arm:
+    """One arm of the interferometer: an atomic state and momentum class."""
+
+    state: str
+    m: int
+
+
+def _raise_arm(arm: Arm) -> "tuple[Pulse, Arm]":
     """A pi pulse that raises one arm's momentum class by one recoil.
 
-    Returns the pulse and the arm's new ``(state, m)``. The beam is chosen so
-    the recoil is delivered upward (up beam on ground, down beam on excited).
+    Returns the pulse and the arm's new state. The beam is chosen so the recoil
+    is delivered upward (up beam on ground, down beam on excited).
     """
-    state, m = arm
-    if state == GROUND:
-        return pi(Beam.UP, m=m, state=GROUND), (EXCITED, m + 1)
-    return pi(Beam.DOWN, m=m, state=EXCITED), (GROUND, m + 1)
+    if arm.state == GROUND:
+        return pi(Beam.UP, m=arm.m, state=GROUND), Arm(EXCITED, arm.m + 1)
+    return pi(Beam.DOWN, m=arm.m, state=EXCITED), Arm(GROUND, arm.m + 1)
 
 
-def _lower_arm(arm: tuple) -> "tuple[Pulse, tuple]":
+def _lower_arm(arm: Arm) -> "tuple[Pulse, Arm]":
     """A pi pulse that lowers one arm's momentum class by one recoil."""
-    state, m = arm
-    if state == GROUND:
-        return pi(Beam.DOWN, m=m, state=GROUND), (EXCITED, m - 1)
-    return pi(Beam.UP, m=m, state=EXCITED), (GROUND, m - 1)
+    if arm.state == GROUND:
+        return pi(Beam.DOWN, m=arm.m, state=GROUND), Arm(EXCITED, arm.m - 1)
+    return pi(Beam.UP, m=arm.m, state=EXCITED), Arm(GROUND, arm.m - 1)
 
 
 def mach_zehnder_sequence(
@@ -379,10 +385,10 @@ def mach_zehnder_sequence(
     sequence.append(pi2(Beam.DOWN, m=m_top, label="bs1"))
     if packet_excited:
         # bs1 on (e, m_top) populates the pair (e, m_top) <-> (g, m_top + 1)
-        arm_lo, arm_hi = (EXCITED, m_top), (GROUND, m_top + 1)
+        arm_lo, arm_hi = Arm(EXCITED, m_top), Arm(GROUND, m_top + 1)
     else:
         # bs1 on (g, m_top) populates the pair (g, m_top) <-> (e, m_top - 1)
-        arm_lo, arm_hi = (EXCITED, m_top - 1), (GROUND, m_top)
+        arm_lo, arm_hi = Arm(EXCITED, m_top - 1), Arm(GROUND, m_top)
 
     def separate():
         nonlocal arm_hi, arm_lo
@@ -403,11 +409,11 @@ def mach_zehnder_sequence(
     separate()
     sequence.append(Wait(param=dark_param_1, label="dark1"))
     rejoin()
-    sequence.append(pi(Beam.DOWN, m=min(arm_hi[1], arm_lo[1]) + 1, label="mirror"))
+    sequence.append(pi(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="mirror"))
     separate()
     sequence.append(Wait(param=dark_param_2, label="dark2"))
     rejoin()
-    sequence.append(pi2(Beam.DOWN, m=min(arm_hi[1], arm_lo[1]) + 1, label="bs2"))
+    sequence.append(pi2(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="bs2"))
     return sequence
 
 

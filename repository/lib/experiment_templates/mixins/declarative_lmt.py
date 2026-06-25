@@ -162,6 +162,10 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     kernels have no function pointers).
     """
 
+    # Required at compile time when per-pulse params are generated (the engine
+    # validates and compiles this list in build). Optional when a subclass
+    # generates the sequence procedurally instead (lmt_use_per_pulse_params =
+    # False, overriding lmt_make_sequence): then it may stay None.
     lmt_sequence: list = None
     lmt_initial_population: set = None
     lmt_strict_validation: bool = True
