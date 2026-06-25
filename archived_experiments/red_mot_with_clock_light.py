@@ -44,8 +44,9 @@ class RedMOTWithClockLight(
         self.clock_up_dds.cfg_sw(True)
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
+    def start_of_red_broadband_checkpoint(self):
+        self.start_of_red_broadband_checkpoint_subfragments()
+        self.start_of_red_broadband_checkpoint_imaging_base()
 
         delay_mu(int64(self.core.ref_multiplier))
 

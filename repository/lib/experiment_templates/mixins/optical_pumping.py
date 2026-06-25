@@ -16,6 +16,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +163,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperimentBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -232,6 +233,27 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperimentBase):
         )
         self.lattice_setter: SetBeamsToDefaults
 
+        class _LatticeCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, lattice_suservo, lattice_high_setpoint):
+                self.lattice_suservo = lattice_suservo
+                self.lattice_high_setpoint = lattice_high_setpoint
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("lattice_suservo")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                # After the sequence completes, put the lattice back to its
+                # high setpoint
+                self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())
+
+        self.setattr_fragment(
+            "_lattice_cleanup",
+            _LatticeCleanupFrag,
+            lattice_suservo=self.lattice_suservo,
+            lattice_high_setpoint=self.lattice_high_setpoint,
+        )
+
     @kernel
     def device_setup(self) -> None:
         # TODO: This won't work, it overrides the device_setup in
@@ -285,13 +307,3 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperimentBase):
         low-pass filter this step
         """
         self.lattice_suservo.set_setpoint(self.lattice_low_setpoint.get())
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_lattice()
-
-    @kernel
-    def post_sequence_cleanup_hook_lattice(self):
-        # After the sequence completes, put the lattice back to its high setpoint
-        self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())

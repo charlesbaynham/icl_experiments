@@ -28,7 +28,7 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
 
     We override this to do nothing since this Mixin is now taking charge of field setting:
@@ -92,12 +92,13 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         # )
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_xodt_molasses()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_xodt_molasses()
 
     @kernel
-    def DMA_initialization_hook_xodt_molasses(self):
+    def DMA_initialization_checkpoint_xodt_molasses(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
@@ -155,7 +156,7 @@ class XODTDoubleMolassesPlusFieldRampMixin(
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
@@ -173,7 +174,8 @@ class XODTDoubleMolassesPlusFieldRampMixin(
         )
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()

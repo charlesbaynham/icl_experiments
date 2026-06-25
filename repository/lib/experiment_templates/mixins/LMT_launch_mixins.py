@@ -30,6 +30,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 
@@ -840,7 +841,7 @@ class LMTInterferometryMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_experiment_after_dipole_trap`
-    * :meth:`~post_sequence_cleanup_hook_lmt`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -961,6 +962,25 @@ class LMTInterferometryMixin(
             unit="us",
         )
         self.first_lmt_duration: FloatParamHandle
+
+        class _LMTCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_opll):
+                self.clock_opll = clock_opll
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("clock_opll")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                # stop the clock laser ramp and reset the OPLL offset
+                self.clock_opll.clock_frequency_ramper.stop_ramp()
+                self.clock_opll.clock_OPLL_offset.set(80e6)
+
+        self.setattr_fragment(
+            "_lmt_cleanup",
+            _LMTCleanupFrag,
+            clock_opll=self.clock_opll,
+        )
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -1321,17 +1341,6 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_lmt()
-
-    @kernel
-    def post_sequence_cleanup_hook_lmt(self):
-        # stop the clock laser ramp
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(80e6)
 
 
 class ShapedFirstPulseLMTInterferometryMixin(

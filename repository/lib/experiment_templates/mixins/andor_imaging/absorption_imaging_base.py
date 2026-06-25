@@ -62,7 +62,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     * :meth:`~do_imaging_hook_andor`
     * :meth:`~save_andor_data_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     * :meth:`~save_andor_data_hook`
     """
 
@@ -177,10 +177,11 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.atom_numbers.append(atom_number)
 
     @kernel
-    def start_of_red_broadband_hook(self):
+    def start_of_red_broadband_checkpoint(self):
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
         # time than this then we'll have problems
+        self.start_of_red_broadband_checkpoint_subfragments()
         self.andor_camera_control.set_shutter(True)
 
     @kernel

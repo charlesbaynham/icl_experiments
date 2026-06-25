@@ -45,13 +45,6 @@ class MeasureEvaporatedXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
 
@@ -65,12 +58,6 @@ class MeasureXODTNewMolassesFrag(
     """
     Measure a Single XODT with retroed molasses
     """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -87,13 +74,6 @@ class MeasureExaporatedXODTAbsFrag(
     """
     Measure a single XODT with evaporation & absorption imaging
     """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

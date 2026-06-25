@@ -17,7 +17,7 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -38,12 +38,13 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
         )
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
 
     @kernel
-    def DMA_initialization_hook_loading_xodt_mot(self):
+    def DMA_initialization_checkpoint_loading_xodt_mot(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled

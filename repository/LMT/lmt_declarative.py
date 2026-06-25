@@ -10,7 +10,6 @@ per-pulse parameters (detuning offsets and durations) are generated with
 model-predicted defaults.
 """
 
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib import constants
@@ -130,20 +129,6 @@ class DeclarativeLMTMachZehnderFrag(
         # the bookkeeping of later pulses stays correct:
         # Callback(callback_id=1, delta_m=1, state_effect="flip"),
     ]
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_declarative_lmt()
 
 
 DeclarativeLMTMachZehnder = make_fragment_scan_exp(DeclarativeLMTMachZehnderFrag)

@@ -205,7 +205,7 @@ class PulseDMARecording(Fragment):
         self._pulse_record_checksum = checksum
 
     @kernel
-    def DMA_initialization_hook_after_drop(self):
+    def DMA_initialization_checkpoint_after_drop(self):
         self.dma_handle = self.core_dma.get_handle(self.dma_name)
         self.dma_handle_valid = True
 
@@ -213,7 +213,7 @@ class PulseDMARecording(Fragment):
     def playback(self):
         if not self.dma_handle_valid:
             raise RuntimeError(
-                "DMA buffer handle not set. Did you forget to call DMA_initialization_hook_after_drop?"
+                "DMA buffer handle not set. Did you forget to call DMA_initialization_checkpoint_after_drop?"
             )
         return self.core_dma.playback_handle(self.dma_handle)
 

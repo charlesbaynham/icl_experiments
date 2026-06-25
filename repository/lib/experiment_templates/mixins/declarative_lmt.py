@@ -75,6 +75,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
@@ -149,6 +150,28 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         if not hasattr(self, "clock_opll"):
             self.setattr_fragment("clock_opll", ClockOPLLController)
             self.clock_opll: ClockOPLLController
+
+        # Self-registering cleanup checkpoint: stop the clock laser ramp and
+        # restore the nominal OPLL offset at the end of the sequence. Done as an
+        # inner RedMOTCheckpoints subfragment so it cascades automatically from
+        # the base experiment's post_sequence_cleanup_checkpoint.
+        class _LMTCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_opll):
+                self.clock_opll = clock_opll
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("clock_opll")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                self.clock_opll.clock_frequency_ramper.stop_ramp()
+                self.clock_opll.clock_OPLL_offset.set(start_opll_offset)
+
+        self.setattr_fragment(
+            "_lmt_cleanup",
+            _LMTCleanupFrag,
+            clock_opll=self.clock_opll,
+        )
 
         # Required by ClockSpectroscopyBase.prepare_clock_delivery_aom
         if not hasattr(self, "spectroscopy_pulse_time"):
@@ -503,9 +526,3 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         delay_mu(16)
         self._prepare_switch_dds_nominal()
         self.run_lmt_sequence()
-
-    @kernel
-    def post_sequence_cleanup_hook_declarative_lmt(self):
-        # Stop any OPLL ramp and restore the nominal offset
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(start_opll_offset)

@@ -1,4 +1,3 @@
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -74,24 +73,6 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_adiabatic_cooling()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
-        self.post_sequence_cleanup_hook_loading()
-
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMTInterferometryMixin,
@@ -112,24 +93,6 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMT interferometry with double trap launch and shaped first pulse
 
     """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_loading()
-        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometrySymmetricFrag(
@@ -153,24 +116,6 @@ class LMTInterferometrySymmetricFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
-        self.post_sequence_cleanup_hook_loading()
-
 
 class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
@@ -192,21 +137,6 @@ class LMTInterferometryWithLaunchFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
-
 
 class ShapedFirstPulseLMTInterferometryFrag(
     ShapedFirstPulseLMTInterferometryMixin,
@@ -227,20 +157,6 @@ class ShapedFirstPulseLMTInterferometryFrag(
     LMT interferometry with shaped selective pulses
 
     """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
 
 
 TInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)

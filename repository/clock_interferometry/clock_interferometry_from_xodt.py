@@ -79,11 +79,7 @@ class _DifferentialClockInterferometry(
     # Base:
     ClockInterferometryBase,
 ):
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
+    pass
 
 
 class DifferentialClockInterferometryFrag(
@@ -93,12 +89,6 @@ class DifferentialClockInterferometryFrag(
     """
     Clock interferometry from a double XODT
     """
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseFrag(
@@ -110,12 +100,6 @@ class DifferentialClockInterferometryWithNoiseFrag(
     """
     Clock interferometry from a double XODT with added noise
     """
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseAndSignalFrag(
@@ -135,12 +119,6 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
         self.host_functions_after_experiment_hook_signal_injection()
         # self.host_functions_after_experiment_hook_glitch_counter()
 
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
@@ -151,12 +129,6 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     """
     Absorption imaging clock interferometry from a double XODT with added noise
     """
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(

@@ -468,6 +468,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         # Image ground state atoms
         t_start_mu = now_mu()
         self.do_first_pulse()
+        self.after_first_imaging_pulse_checkpoint()
 
         # Image excited state atoms
         at_mu(t_start_mu)
@@ -751,6 +752,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         # Image ground state atoms
         t_start_mu = now_mu()
         self.do_first_pulse()
+        self.after_first_imaging_pulse_checkpoint()
 
         # Image excited state atoms
         at_mu(t_start_mu)

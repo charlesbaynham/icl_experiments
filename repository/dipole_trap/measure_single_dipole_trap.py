@@ -63,12 +63,6 @@ class MeasureSingleXODTBGCorrectedFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
 
@@ -104,12 +98,6 @@ class SingleXODTSloshedFrag(
         self.down_813_suservo: LibSetSUServoStatic
 
         super().build_fragment()
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
 
     @kernel
     def post_dipole_trap_hook(self):
@@ -175,12 +163,6 @@ class MeasureSingleXODTAbsFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
 
@@ -199,20 +181,12 @@ class MeasureCooledXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
+    def post_sequence_cleanup_checkpoint(self):
+        # andor / loading cleanups now cascade automatically via
+        # post_sequence_cleanup_checkpoint_subfragments(). This override is
+        # retained only for the experiment-specific post_narrowband reset.
+        self.post_sequence_cleanup_checkpoint_subfragments()
         self.post_narrowband_hook_default()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
