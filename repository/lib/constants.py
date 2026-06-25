@@ -82,7 +82,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.675e6,
+        frequency=364.657e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -111,13 +111,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=0.0,
+        attenuation=25.0,
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=0.0,
+        attenuation=22.0,
         urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
@@ -497,8 +497,8 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
-_ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
+_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 11
+_ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 11
 _ANDOR_ROI_DIPOLE_WIDTH = 80
 
 
@@ -509,11 +509,11 @@ SLACK_FOR_GRAVITY = 25
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 227
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 254
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -790,7 +790,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4717e6,
+        99.4618e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -860,6 +860,15 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=0.5,
+        setpoint=0.25,
+    ),
+    SUServoedBeam(
+        "clock_up_small",
+        frequency=200e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_698_clock_small",
+        servo_enabled=False,
+        initial_amplitude=1.0,
         setpoint=0.25,
     ),
 ]
@@ -1133,7 +1142,7 @@ if USE_LATTICE_MODE:
 B_FIELD_GRADIENT = 90.0  # A
 
 
-BLUE_LOADING_TIME = 1500e-3
+BLUE_LOADING_TIME = 2500e-3
 "Default blue MOT loading time"
 
 RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6

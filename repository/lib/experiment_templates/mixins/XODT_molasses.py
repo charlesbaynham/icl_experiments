@@ -8,9 +8,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
-    ControlBeamsWithoutCoolingAOM,
-)
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (

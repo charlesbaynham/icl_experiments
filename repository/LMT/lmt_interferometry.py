@@ -14,7 +14,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
-    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -55,15 +55,16 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 
 class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     LMTInterferometryMixin,
-    LMTLaunchDoubleTrapShapedPulseMixin,
-    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperimentBase,
 ):

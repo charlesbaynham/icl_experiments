@@ -47,8 +47,6 @@ Usage example::
     )
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Literal
 from typing import Sequence
@@ -149,27 +147,44 @@ def predict_position(
     cfg: BallisticConfig,
     state: Literal["ground", "excited"],
     pulse_durations_s: Sequence[float] | None = None,
+    initial_state: Literal["ground", "excited"] = "ground",
 ) -> tuple[float, float]:
     """3-D ballistic integration → sensor pixel coordinates.
 
-    t=0 is the moment atoms are released (trap turned off).
+    t=0 is the moment atoms are released (trap turned off), starting in
+    ``initial_state`` (ground, for atoms dropped from the dipole trap).
 
-    Each clock pulse contributes an instantaneous velocity kick:
-        Δv = (+1 if is_up else -1) * v_r * clock_beam_direction
+    The model tracks the main population branch assuming every recorded
+    pulse acts as a pi pulse on it (true for velocity-selection, launch and
+    LMT transfer ladders). Each transfer changes the branch's velocity by
+    one photon recoil whose direction depends on the transition direction,
+    not just the beam::
 
-    Pulses are described by their start time and duration. The instantaneous
-    kick model applies the kick at ``pulse_times_s[i] + pulse_durations_s[i] / 2``.
+        ground  --absorb-->  excited:  Δv = +v_r * beam_sign * direction
+        excited --emit---->  ground:   Δv = -v_r * beam_sign * direction
 
-    Position at imaging time::
+    so e.g. an alternating up/down ladder kicks the branch the same way on
+    every pulse. Kicks are applied instantaneously at the pulse centre,
+    ``pulse_times_s[i] + pulse_durations_s[i] / 2``::
 
-        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i + τ_i/2 ≤ t} Δv_i·(t - (t_i + τ_i/2))
+        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i ≤ t} Δv_i·(t - t_i)
 
-    ``state="ground"`` ignores all kicks; ``state="excited"`` applies them all.
+    The two imaged output ports differ by exactly the final pulse's kick
+    (they are the two members of the last addressed pair): the port whose
+    internal state matches the tracked branch gets the full kick history,
+    while the other port is identical except that the last transfer did not
+    happen. For a closed interferometer this is exact; for sequences with
+    large mid-sequence arm separations it predicts the recombined mean
+    trajectory.
 
     Returns ``(x_pixel, y_pixel)`` via orthographic projection.
     """
-    # TODO This logic is totally wrong
-    raise NotImplementedError
+    if state not in ("ground", "excited"):
+        raise ValueError(f"state must be 'ground' or 'excited', got {state!r}")
+    if initial_state not in ("ground", "excited"):
+        raise ValueError(
+            f"initial_state must be 'ground' or 'excited', got {initial_state!r}"
+        )
 
     pulse_times_s = list(pulse_times_s)
     pulse_is_up = list(pulse_is_up)
@@ -200,18 +215,25 @@ def predict_position(
     # Free-fall position
     r = r0 + v0 * t + 0.5 * g * t * t
 
-    if state == "excited":
-        v_r = recoil_velocity(cfg)
-        for start_i, duration_i, up_i in zip(
-            pulse_times_s, pulse_durations_s, pulse_is_up
-        ):
-            t_i = start_i + duration_i / 2
-            if t_i <= t:
-                sign = 1.0 if up_i else -1.0
-                delta_v = sign * v_r * cfg.clock_beam_direction
-                r = r + delta_v * (t - t_i)
-    elif state != "ground":
-        raise ValueError(f"state must be 'ground' or 'excited', got {state!r}")
+    # Walk the pulse record, transferring the tracked branch at each pulse
+    v_r = recoil_velocity(cfg)
+    tracked_is_ground = initial_state == "ground"
+    last_kick_contribution = np.zeros(3)
+    for start_i, duration_i, up_i in zip(pulse_times_s, pulse_durations_s, pulse_is_up):
+        t_i = start_i + duration_i / 2
+        if t_i > t:
+            break
+        # +ħk when absorbing from a beam or emitting into the opposite one
+        sign = 1.0 if bool(up_i) == tracked_is_ground else -1.0
+        delta_v = sign * v_r * cfg.clock_beam_direction
+        last_kick_contribution = delta_v * (t - t_i)
+        r = r + last_kick_contribution
+        tracked_is_ground = not tracked_is_ground
+
+    # The other output port of the final pulse missed the last transfer
+    requested_is_ground = state == "ground"
+    if requested_is_ground != tracked_is_ground:
+        r = r - last_kick_contribution
 
     return cfg.camera.project(r)
 
@@ -226,6 +248,7 @@ def predict_positions_from_mu(
     t_zero_mu: int,
     ref_period_s: float,
     cfg: BallisticConfig,
+    initial_state: Literal["ground", "excited"] = "ground",
 ) -> dict[str, np.ndarray]:
     """RPC-friendly wrapper converting machine units → seconds then calling predict_position.
 
@@ -272,6 +295,7 @@ def predict_positions_from_mu(
             cfg=cfg,
             state="ground",
             pulse_durations_s=pulse_durations_s,
+            initial_state=initial_state,
         )
         excited_pix[i] = predict_position(
             site_offset_m=site_offset_m,
@@ -282,6 +306,7 @@ def predict_positions_from_mu(
             cfg=cfg,
             state="excited",
             pulse_durations_s=pulse_durations_s,
+            initial_state=initial_state,
         )
 
     return {"ground": ground_pix, "excited": excited_pix}

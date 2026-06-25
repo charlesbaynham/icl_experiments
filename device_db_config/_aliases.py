@@ -56,6 +56,7 @@ aliases = {
     "urukul9910_aom_698_down_switch": "urukul2_ch1",
     "urukul9910_OPLL_698_clock": "urukul8_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
+    "suservo_aom_698_clock_small": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
     # %% TTLs
     # ttl0-3 bank set to In/Out
