@@ -174,7 +174,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         self.setattr_param(
             "pre_experiment_delay",
             FloatParam,
-            "Delay between post-drop actions and the experiment sequence",
+            "Delay before experiment sequence",
             default=10e-6,
             unit="us",
             min=0.0,
