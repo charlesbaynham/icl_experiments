@@ -7,6 +7,7 @@ from artiq.language import TInt64
 from artiq.language import TList
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -49,8 +50,8 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 2
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self):
         super().build_fragment()
@@ -157,6 +158,8 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         self.excited_x = 0
         self.excited_y = 0
 
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
         # Cache sensor dimensions as kernel invariants
         self.andor_sensor_width = constants.ANDOR_CAMERA_FACTS["sensor_width"]
         self.andor_sensor_height = constants.ANDOR_CAMERA_FACTS["sensor_height"]
@@ -166,8 +169,8 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
     # ── ROI calculation ───────────────────────────────────────────────────────
 
-    @kernel
-    def get_rois(self):
+    @portable
+    def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]
         half_width = self.roi_width.get() // 2
         half_height = self.roi_height.get() // 2
 
@@ -192,14 +195,14 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         return self.roi_buffer
 
     def host_setup(self):
-        super().host_setup()
-        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
-        # Initialise gnd/excited to the trap centre so that get_rois() works
-        # even if calculate_atom_positions has never been called.
+        # Initialise gnd/excited to the trap centre so that get_rois() -
+        # called on the host by the base class's host_setup validation -
+        # returns sensible ROIs even before calculate_atom_positions runs.
         self.gnd_x = int(self.trap_x_pixel.get())
         self.gnd_y = int(self.trap_y_pixel.get())
         self.excited_x = self.gnd_x
         self.excited_y = self.gnd_y
+        super().host_setup()
 
     # ── Ballistic predictor ───────────────────────────────────────────────────
 
@@ -332,7 +335,8 @@ class NormalisedFastKineticsLMTCorrectedMixin(
     Must be combined with a class that provides:
 
     * ``dma_recording_fragment`` (from :class:`~DipoleTrapWithExperimentBase`)
-    * ``t_dipole_beams_off`` (from :class:`~ClockShelvingAndClearoutDipoleTrapMixin`)
+    * ``t_dipole_beams_off`` (from :class:`~ClockShelvingAndClearoutDipoleTrapMixin`
+      or :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`)
 
     Kernel hooks overridden:
 
@@ -363,4 +367,6 @@ class NormalisedFastKineticsLMTCorrectedMixin(
             t_zero_mu=t_zero_mu,
         )
 
-        super().do_imaging_hook_andor()
+        # ARTIQ kernels do not support super(); call the base implementation
+        # by name instead
+        self.do_imaging_hook_andor_default()

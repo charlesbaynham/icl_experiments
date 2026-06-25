@@ -445,6 +445,15 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+        self.do_imaging_hook_andor_default()
+
+    @kernel
+    def do_imaging_hook_andor_default(self):
+        """
+        Default implementation of the imaging hook. Overrides of
+        :meth:`do_imaging_hook_andor` call this by name, since ARTIQ kernels
+        do not support ``super()``.
+        """
         self.do_first_series()
         t_post_mu = now_mu()
         self.post_first_series()  # call rpc to get images, start next acquisition

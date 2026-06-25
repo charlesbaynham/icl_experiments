@@ -2,6 +2,19 @@
 
 # ICL ARTIQ Experiments Repository
 
+## Maintaining this file: prefer skills
+
+This file is loaded into context on **every** agent run, so keep it lean -
+only conventions that apply to most tasks belong here. Anything situational
+(setup recipes, niche workflows, deep reference material) belongs in a Claude
+Code skill under `.claude/skills/`, which agents load on demand; see
+`nix-setup`, `running-tests` and `ndscan-artiq` for examples.
+
+If a user asks you to "remember" something - even if they explicitly say to
+add it to this file - and it would not be used in every run, suggest making a
+skill instead and explain why: lean always-on context plus progressive
+disclosure through skills gets noticeably better performance out of agents.
+
 ## Project Overview
 
 This is the Imperial College London (ICL) ARTIQ experiments repository for controlling quantum physics experiments. ARTIQ (Advanced Real-Time Infrastructure for Quantum physics) is a leading-edge control system for quantum information experiments.
@@ -88,6 +101,18 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Use `pre-commit install` for automatic formatting on commits
 - All style rules are enforced by CI
 
+### Calibration values & constants
+
+- **Calibration/position values are magic numbers → they live in
+  `repository/lib/constants.py`** (trap/ROI anchors, pixel positions, pulse
+  durations, setpoints, …) and are sourced as the **default** of the relevant
+  experiment parameter.
+- **Do not tune them via per-experiment ndscan parameter overrides.** ndscan keys
+  overrides by experiment FQN, so an override set on one experiment class silently
+  fails to propagate to the others — this is exactly what derailed the 2026-06-18
+  dynamic-ROI work (an ROI anchor "fixed" on one experiment, wrong and unseen
+  everywhere else). Found the right value experimentally? **Update the constant.**
+
 ### ARTIQ-Specific Patterns
 
 #### Experiment Classes
@@ -129,6 +154,7 @@ These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_
 - Mark expected failures with `@pytest.mark.xfail`
 - Test non-kernel utility functions (kernel testing is difficult)
 - The `test_compile_all.py` test will compile every Fragment in the repo. It's very useful for catching errors, but also very expensive to run - it takes >1h. Only run the whole thing if explicitly requested, otherwise use pytest selectors to choose which tests from it you need.
+- The **`running-tests`** skill has the exact local invocations (and the **`nix-setup`** skill covers installing Nix in an ephemeral container first).
 
 ### Documentation
 
@@ -155,36 +181,13 @@ These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_
 
 Used for all dependencies. Never make a python venv yourself.
 
-### Environment setup (required before running tests)
+Two Claude Code skills cover working with Nix locally - load them instead of
+working it out from scratch:
 
-The test suite can only be run from inside the Nix development shell. On a
-fresh machine (e.g. an ephemeral CI or agent container) you must first:
-
-1. **Install Nix** (e.g. `sh <(curl -L https://nixos.org/nix/install) --no-daemon`)
-   and enable flakes (`experimental-features = nix-command flakes` in
-   `~/.config/nix/nix.conf`).
-2. **Configure the `aion-physics` Cachix cache** so that the (large) build
-   closure is substituted instead of built locally: `cachix use aion-physics`,
-   or add to `nix.conf` directly:
-
-    ```
-    substituters = https://cache.nixos.org https://aion-physics.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= aion-physics.cachix.org-1:6nSnNuBFRf4kl9EPG6hAMQHBjcrrKEfHG2BpHBE2DVs=
-    ```
-
-3. **Provide GitLab credentials if needed**: some poetry git dependencies
-   (e.g. `andor-artiq-ndsp`) live in private GitLab repositories and are
-   fetched at flake evaluation time. Without credentials `nix develop` will
-   fail with "Failed to fetch git repository". Write a `~/.netrc` with a token
-   that has `read_repository` scope, as the CI does:
-
-    ```
-    machine gitlab.com
-    login oauth2
-    password <GITLAB_TOKEN>
-    ```
-
-4. Then run tests with `nix develop -c pytest tests/ -n 16`.
+- **`nix-setup`**: installing Nix in an ephemeral container (no systemd),
+  including the aion-physics Cachix cache and manual daemon start.
+- **`running-tests`**: running targeted tests via `nix run .#pytest`,
+  including compiling individual Fragments and the pitfalls to avoid.
 
 ### Key Commands
 
