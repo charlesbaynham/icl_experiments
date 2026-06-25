@@ -1,5 +1,5 @@
 """
-Global-parameter Mach-Zehnder mixin for the declarative LMT stack.
+Global-parameter symmetric Mach-Zehnder mixin for the declarative LMT stack.
 
 The per-pulse declarative engine (:mod:`repository.lib.lmt_sequence` +
 :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTCoreBase`)
@@ -7,10 +7,10 @@ spawns one detuning-offset and one duration parameter per pulse, which is ideal
 for commissioning a fixed sequence but unwieldy for routine running. This mixin
 runs the engine in global-parameter mode
 (``lmt_use_per_pulse_params = False``): the standard velocity-selected launch +
-Mach-Zehnder interferometer is generated procedurally from a handful of shared
-knobs - launch-pulse and LMT-recoil counts, per-beam detunings and durations,
-the delivery set points and the dark times - and every pulse's offset / duration
-/ set-point slot is bound to the relevant shared handle.
+symmetric Mach-Zehnder interferometer is generated procedurally from a handful
+of shared knobs - launch-pulse and LMT-recoil counts, per-beam detunings and
+durations, the delivery set points and the dark times - and every pulse's
+offset / duration / set-point slot is bound to the relevant shared handle.
 
 The two counts are read once per run in ``host_setup`` and must NOT be placed on
 a scan axis: they change the number of events, and the per-event kernel arrays
@@ -20,7 +20,7 @@ durations, set points, dark times) is freely scannable.
 Compose it above one of the concrete release bases, e.g.
 :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`.
 See :mod:`repository.lib.lmt_sequence` for the generated interferometer shape
-(:func:`~repository.lib.lmt_sequence.mach_zehnder_sequence`).
+(:func:`~repository.lib.lmt_sequence.symmetric_mach_zehnder_sequence`).
 """
 
 import logging
@@ -36,7 +36,7 @@ from repository.lib.experiment_templates.mixins.declarative_lmt import (
 )
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
-from repository.lib.lmt_sequence import mach_zehnder_sequence
+from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _SLICE_SETPOINT_INDEX = 0
 
 
-class LMTGlobalParamsMachZehnderMixin(DeclarativeLMTCoreBase):
+class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
     """Drive the declarative LMT engine from a compact set of global knobs.
 
     See the module docstring. Provides the global parameters, the procedural
@@ -195,7 +195,7 @@ class LMTGlobalParamsMachZehnderMixin(DeclarativeLMTCoreBase):
         # The declared Rabi frequencies set the compile-time defaults and feed
         # the kernel's AC-Stark term; derive them from the duration knobs so a pi
         # pulse of that duration has the declared Rabi frequency.
-        return mach_zehnder_sequence(
+        return symmetric_mach_zehnder_sequence(
             n_launch=n_launch,
             n_recoils=n_recoils,
             slice_setpoint=self.lmt_slice_setpoint.get(),

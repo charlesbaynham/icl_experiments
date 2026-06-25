@@ -2,12 +2,12 @@
 Global-parameter LMT interferometry.
 
 Like :mod:`repository.LMT.lmt_declarative`, but driven by the global-parameter
-Mach-Zehnder mixin
-(:class:`~repository.lib.experiment_templates.mixins.lmt_global_params.LMTGlobalParamsMachZehnderMixin`)
+symmetric Mach-Zehnder mixin
+(:class:`~repository.lib.experiment_templates.mixins.lmt_global_params.LMTGlobalParamsSymmetricMachZehnderMixin`)
 instead of one parameter per pulse: the velocity selection, launch and
-Mach-Zehnder interferometer are generated procedurally from a compact set of
-global knobs (launch-pulse and LMT-recoil counts, per-beam detunings and
-durations, delivery set points and dark times).
+symmetric Mach-Zehnder interferometer are generated procedurally from a
+compact set of global knobs (launch-pulse and LMT-recoil counts, per-beam
+detunings and durations, delivery set points and dark times).
 """
 
 from artiq.language import kernel
@@ -27,7 +27,7 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.lmt_global_params import (
-    LMTGlobalParamsMachZehnderMixin,
+    LMTGlobalParamsSymmetricMachZehnderMixin,
 )
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -38,10 +38,10 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 )
 
 
-class DeclarativeLMTGlobalMachZehnderFrag(
-    LMTGlobalParamsMachZehnderMixin,
+class DeclarativeLMTGlobalSymmetricMachZehnderFrag(
+    LMTGlobalParamsSymmetricMachZehnderMixin,
     DeclarativeLMTBase,
-    # See DeclarativeLMTMachZehnderFrag: repositions the camera ROIs along the
+    # See DeclarativeLMTSymmetricMachZehnderFrag: repositions the camera ROIs along the
     # predicted ballistic trajectory; do not also mix in a static-config imaging
     # mixin.
     NormalisedFastKineticsLMTCorrectedMixin,
@@ -71,6 +71,6 @@ class DeclarativeLMTGlobalMachZehnderFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
-DeclarativeLMTGlobalMachZehnder = make_fragment_scan_exp(
-    DeclarativeLMTGlobalMachZehnderFrag
+DeclarativeLMTGlobalSymmetricMachZehnder = make_fragment_scan_exp(
+    DeclarativeLMTGlobalSymmetricMachZehnderFrag
 )

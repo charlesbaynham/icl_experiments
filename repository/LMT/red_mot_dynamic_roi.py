@@ -112,7 +112,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 class RedMOTDropDynamicROIFrag(
     # Imaging mixin first, then EMGain, then the experiment base last - mirroring
-    # the ordering of the dipole reference (DeclarativeLMTMachZehnderFrag).
+    # the ordering of the dipole reference (DeclarativeLMTSymmetricMachZehnderFrag).
     DynamicROIImagingMixin,
     EMGainMixin,
     DMAActionsAfterDropMixin,

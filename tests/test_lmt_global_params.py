@@ -1,7 +1,8 @@
 """
-Tests for the global-parameter Mach-Zehnder generator and slot-binding hooks.
+Tests for the global-parameter symmetric Mach-Zehnder generator and slot-binding
+hooks.
 
-The generator (:func:`repository.lib.lmt_sequence.mach_zehnder_sequence`) is pure
+The generator (:func:`repository.lib.lmt_sequence.symmetric_mach_zehnder_sequence`) is pure
 host code; the binding hooks are pure mappings from a CompiledEvent to a shared
 handle attribute name, so both are tested without building an ARTIQ fragment.
 """
@@ -13,11 +14,11 @@ from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import compile_sequence
-from repository.lib.lmt_sequence import mach_zehnder_sequence
+from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
 
 
 def _make(n_launch, n_recoils):
-    return mach_zehnder_sequence(
+    return symmetric_mach_zehnder_sequence(
         n_launch=n_launch,
         n_recoils=n_recoils,
         slice_setpoint=0.012,
@@ -30,7 +31,7 @@ def _make(n_launch, n_recoils):
 
 @pytest.mark.parametrize("n_launch", range(0, 7))
 @pytest.mark.parametrize("n_recoils", range(0, 5))
-def test_generated_mach_zehnder_closes(n_launch, n_recoils):
+def test_generated_symmetric_mach_zehnder_closes(n_launch, n_recoils):
     """For any launch/recoil count the interferometer closes to a single
     adjacent momentum pair."""
     sequence = _make(n_launch, n_recoils)
@@ -122,10 +123,10 @@ def _hooks():
     instantiated via ``object.__new__`` to skip ``build_fragment``.
     """
     from repository.lib.experiment_templates.mixins.lmt_global_params import (
-        LMTGlobalParamsMachZehnderMixin,
+        LMTGlobalParamsSymmetricMachZehnderMixin,
     )
 
-    class _ConcreteHooks(LMTGlobalParamsMachZehnderMixin):
+    class _ConcreteHooks(LMTGlobalParamsSymmetricMachZehnderMixin):
         def get_doppler_t_ref_mu(self):
             return 0
 
@@ -180,8 +181,8 @@ def test_per_pulse_mode_is_the_default():
         DeclarativeLMTCoreBase,
     )
     from repository.lib.experiment_templates.mixins.lmt_global_params import (
-        LMTGlobalParamsMachZehnderMixin,
+        LMTGlobalParamsSymmetricMachZehnderMixin,
     )
 
     assert DeclarativeLMTCoreBase.lmt_use_per_pulse_params is True
-    assert LMTGlobalParamsMachZehnderMixin.lmt_use_per_pulse_params is False
+    assert LMTGlobalParamsSymmetricMachZehnderMixin.lmt_use_per_pulse_params is False

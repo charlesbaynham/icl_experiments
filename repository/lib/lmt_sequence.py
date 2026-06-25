@@ -309,7 +309,7 @@ def _lower_arm(arm: Arm) -> "tuple[Pulse, Arm]":
     return pi(Beam.UP, m=arm.m, state=EXCITED), Arm(GROUND, arm.m - 1)
 
 
-def mach_zehnder_sequence(
+def symmetric_mach_zehnder_sequence(
     *,
     n_launch: int,
     n_recoils: int,
@@ -321,7 +321,8 @@ def mach_zehnder_sequence(
     dark_param_1: str = "lmt_dark_time_1",
     dark_param_2: str = "lmt_dark_time_2",
 ) -> list:
-    """Build the canonical velocity-selected launch + LMT Mach-Zehnder sequence.
+    """Build the canonical velocity-selected launch + symmetric LMT Mach-Zehnder
+    sequence.
 
     Procedurally generates the declarative event list for the standard
     interferometer from a handful of counts, so the whole sequence is driven by

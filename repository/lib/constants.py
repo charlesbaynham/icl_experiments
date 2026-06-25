@@ -1563,7 +1563,7 @@ MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 
-# Defaults for the global-parameter Mach-Zehnder generator. The
+# Defaults for the global-parameter symmetric Mach-Zehnder generator. The
 # velocity-selective pulse provides the first kick, so the launch ladder runs
 # from m = 1 and ends at m = 1 + LMT_N_LAUNCH_DEFAULT.
 LMT_N_LAUNCH_DEFAULT = 5
