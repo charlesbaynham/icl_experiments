@@ -197,9 +197,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.setattr_param(
             "lmt_initial_velocity",
             FloatParam,
-            "Initial (release) z-velocity v0 of the velocity-selected class, "
-            "positive upward. Adds -beam_sign*v0/lambda to each pulse's OPLL "
-            "centre frequency (opposite sign up vs down).",
+            "Release z-velocity v0 (up positive)",
+            # Adds -beam_sign*v0/lambda to each pulse's OPLL centre freq
+            # (opposite sign up vs down).
             default=constants.DEFAULT_INITIAL_VELOCITY_M_S,
             unit="mm/s",
             scale=1e-3,
@@ -209,9 +209,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.setattr_param(
             "lmt_probe_stark_alpha",
             FloatParam,
-            "Probe (AC-Stark) shift coefficient alpha. Each pulse's OPLL centre "
-            "frequency is shifted by -alpha*rabi**2 (rabi = declared Rabi at the "
-            "governing set point).",
+            "AC-Stark shift coefficient alpha",
+            # Shifts each pulse's OPLL centre freq by -alpha*rabi**2
+            # (rabi = declared Rabi at the governing set point).
             default=constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
             unit="",
         )

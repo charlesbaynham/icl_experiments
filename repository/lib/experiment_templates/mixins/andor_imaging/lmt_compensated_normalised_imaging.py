@@ -448,7 +448,7 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.setattr_param(
             "image_delay_after_sequence",
             FloatParam,
-            "Delay from the end of the LMT sequence to the first fast-kinetics image",
+            "Delay: sequence end to first image",
             # Measured from the end of the declared sequence, so the post-sequence
             # drop is constant as the sequence grows.
             # Scannable; keeps the cloud in the short fast-kinetics z-window.
