@@ -27,7 +27,6 @@ from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 
 from repository.lib import constants
-from repository.lib.physics import lmt_resonance
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsBase,
 )
@@ -36,6 +35,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
+from repository.lib.physics import lmt_resonance
 from repository.lib.physics import trajectory
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry

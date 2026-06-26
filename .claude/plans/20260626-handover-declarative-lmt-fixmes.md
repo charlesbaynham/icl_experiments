@@ -33,18 +33,18 @@ The 12 code FIXMEs were in 6 files: `lmt_sequence.py` (144, 250, 254, 256, 261),
    (the "flatten" model), so the 7-row record format is unchanged and the
    trajectory/spacetime predictors drop their callback-specific code. `state_effect`
    is the `StateEffect` enum (FLIP/SUPERPOSE/NONE) — done; resolves FIXMEs 250/254/256/261.
-   - **IMPORTANT design correction (owner-confirmed):** there is NO "selective vs
-     broadcast" / off-resonant concept. The trackers never modelled off-resonant
-     excitation; every declarative pulse already addresses only its own `(state,m)`
-     pair. A `CallbackAction` is treated EXACTLY like an ordinary pulse. What a
-     callback adds over one pulse is only: (a) several simultaneous actions,
-     (b) a pure-momentum-kick `StateEffect.NONE` (no g↔e flip), (c) zero actions
-     (external trigger, no record/branch change). The old callback's
-     "apply delta_m to every branch" broadcast was deliberately dropped.
-   - **Dummy callback** added to `demo_declarative_lmt.py` (`DemoDeclarativeLMTCallback`):
-     fires a normal pulse via the RAW, UNTRACKED `clock_up_dds.sw.on()/off()` path,
-     because the action's intent is already registered by `register_intent_action`
-     — using the tracked wrappers would double-count.
+    - **IMPORTANT design correction (owner-confirmed):** there is NO "selective vs
+      broadcast" / off-resonant concept. The trackers never modelled off-resonant
+      excitation; every declarative pulse already addresses only its own `(state,m)`
+      pair. A `CallbackAction` is treated EXACTLY like an ordinary pulse. What a
+      callback adds over one pulse is only: (a) several simultaneous actions,
+      (b) a pure-momentum-kick `StateEffect.NONE` (no g↔e flip), (c) zero actions
+      (external trigger, no record/branch change). The old callback's
+      "apply delta_m to every branch" broadcast was deliberately dropped.
+    - **Dummy callback** added to `demo_declarative_lmt.py` (`DemoDeclarativeLMTCallback`):
+      fires a normal pulse via the RAW, UNTRACKED `clock_up_dds.sw.on()/off()` path,
+      because the action's intent is already registered by `register_intent_action`
+      — using the tracked wrappers would double-count.
 7. **AUTO/M_AUTO sentinels KEPT** (legacy `register_pulse` in clock_interferometry,
    clock_shelving, clock_spectroscopy, clock_spec_pulse_ratio, LMT_launch_mixins,
    dma_actions_after_drop depends on them).
@@ -90,17 +90,14 @@ Nix environment (which the prior session could not reach — see Environment bel
    `import lmt_resonance as pulse_intent` (ugly but valid). Likely culprits to check
    first: `tests/test_intent_vocabulary.py`, `tests/test_callback_flatten.py`,
    `tests/test_intenum_kernel_compile.py` (has a local `_IntentKind` mirror),
-   `repository/tests/test_trajectory_applet.py`.
-   - Run targeted host-side first (fast): `nix run .#pytest -- tests/test_lmt_sequence.py
-     tests/test_callback_flatten.py tests/test_intent_vocabulary.py tests/test_lmt_resonance.py
-     tests/test_ballistic_predictor.py tests/test_lmt_spacetime.py
-     tests/test_roi_prediction_equivalence.py tests/test_lmt_global_params.py
-     repository/tests/test_trajectory_applet.py -q`
-   - Then the kernel-compile ones: `tests/test_intenum_kernel_compile.py`, and compile
-     the two declarative fragments via `test_compile_all` selectors
-     (`DeclarativeLMTSymmetricMachZehnder`, `DemoDeclarativeLMT`, `DemoDeclarativeLMTCallback`).
-   - See the `running-tests` skill for exact invocation/pitfalls (`--no-cov` breaks
-     pytest; full suite >1h — use selectors).
+   `repository/tests/test_trajectory_applet.py`. - Run targeted host-side first (fast): `nix run .#pytest -- tests/test_lmt_sequence.py
+tests/test_callback_flatten.py tests/test_intent_vocabulary.py tests/test_lmt_resonance.py
+tests/test_ballistic_predictor.py tests/test_lmt_spacetime.py
+tests/test_roi_prediction_equivalence.py tests/test_lmt_global_params.py
+repository/tests/test_trajectory_applet.py -q` - Then the kernel-compile ones: `tests/test_intenum_kernel_compile.py`, and compile
+   the two declarative fragments via `test_compile_all` selectors
+   (`DeclarativeLMTSymmetricMachZehnder`, `DemoDeclarativeLMT`, `DemoDeclarativeLMTCallback`). - See the `running-tests` skill for exact invocation/pitfalls (`--no-cov` breaks
+   pytest; full suite >1h — use selectors).
 
 2. **Formatting / lint (`pre-commit`).** The agent edits were NOT black-formatted
    (black/isort/flake8 were unavailable without Nix). Run `pre-commit run --all`

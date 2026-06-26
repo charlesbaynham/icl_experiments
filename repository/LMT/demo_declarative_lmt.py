@@ -15,8 +15,8 @@ import logging
 
 from artiq.language import delay
 from artiq.language import kernel
-from numpy import int32
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from numpy import int32
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (

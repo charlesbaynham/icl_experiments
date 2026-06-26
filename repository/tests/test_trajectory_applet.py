@@ -287,9 +287,12 @@ def _events_from_compiled(compiled, *, pulse_duration, interrogation_time):
             # A callback flattens to one ordinary pulse intent row per declared
             # action (addressed_state, addressed_m, delta_m, state_effect), all
             # sharing one t_start - exactly as register_intent_action records it.
-            for addressed_state, addressed_m, delta_m, state_effect in (
-                ce.callback_actions
-            ):
+            for (
+                addressed_state,
+                addressed_m,
+                delta_m,
+                state_effect,
+            ) in ce.callback_actions:
                 events.append(
                     _pulse(
                         t,

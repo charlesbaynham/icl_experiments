@@ -141,9 +141,7 @@ def test_flip_callback_walk_matches_explicit_pulse_walk():
 def test_none_kick_callback_equivalent_in_compiler_and_walk():
     """A NONE action is a pure momentum kick on the single declared population:
     same final population and same walked branches as a hand-built NONE row."""
-    action = CallbackAction(
-        state=GROUND, m=0, delta_m=3, state_effect=StateEffect.NONE
-    )
+    action = CallbackAction(state=GROUND, m=0, delta_m=3, state_effect=StateEffect.NONE)
     via_callback = compile_sequence(
         [_setpoint(), Callback(callback_id=2, actions=[action])],
         initial_population={(GROUND, 0)},

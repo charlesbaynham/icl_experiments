@@ -34,7 +34,6 @@ import scipy.constants as _const
 from repository.lib import constants
 from repository.lib.physics import lmt_resonance
 from repository.lib.physics.lmt_resonance import AddressedState
-from repository.lib.physics.lmt_resonance import IntentEvent
 from repository.lib.physics.lmt_resonance import Kind
 from repository.lib.physics.lmt_resonance import StateEffect
 

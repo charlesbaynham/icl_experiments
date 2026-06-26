@@ -388,9 +388,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             # record this event's slice into them.
             self._lmt_cb_action_start.append(int32(len(self._lmt_cb_action_delta_m)))
             self._lmt_cb_action_count.append(int32(len(event.callback_actions)))
-            for addressed_state, addressed_m, delta_m, state_effect in (
-                event.callback_actions
-            ):
+            for (
+                addressed_state,
+                addressed_m,
+                delta_m,
+                state_effect,
+            ) in event.callback_actions:
                 self._lmt_cb_action_addressed_state.append(int32(addressed_state))
                 self._lmt_cb_action_addressed_m.append(int32(addressed_m))
                 self._lmt_cb_action_delta_m.append(int32(delta_m))
