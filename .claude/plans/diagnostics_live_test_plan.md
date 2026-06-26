@@ -106,7 +106,12 @@ Live checks (do both variants; they cross-check each other):
 6. **Modulation + axis.** Confirm excitation modulates with angle (period 180 deg)
    and that `polarization_axis_deg` / `polarization_contrast` land in the dataset
    and match the plotted modulation. The two variants should agree on the axis.
-7. Only once 1-6 pass for at least one variant: remove the FIXME in
+7. **Gradient signs / handedness.** `COIL_SENSITIVITY_{X,Y,Z}_G_PER_A` signs are
+   _assumed_ positive (labbook unclear). Confirm the rotation sense against a known
+   direction (e.g. command a small +Y tilt and check the field/excitation moves the
+   expected way) - a wrong Y sign mirrors the reported axis. Fix the constant sign
+   if needed.
+8. Only once 1-7 pass for at least one variant: remove the FIXME in
    `diag_clock_polarization.py`.
 
 ## 5. Compile check (cheap, do anytime)

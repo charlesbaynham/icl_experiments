@@ -100,16 +100,12 @@ _PHYS_X_NOMINAL, _PHYS_Y_NOMINAL, _PHYS_Z_NOMINAL = constants.calc_new_field_def
     _FIELD_END[0], _FIELD_END[1], _FIELD_END[2]
 )
 
-# Per-axis current->field calibration (Gauss / Amp).
+# Per-axis current->field calibration (Gauss / Amp). SIGNED gradients: the sign
+# encodes the coil polarity (whether +current produces +axis field), so the
+# rotation produces the intended field direction. See COIL_SENSITIVITY_* in
+# constants.py.
 _SENS_X = constants.COIL_SENSITIVITY_X_G_PER_A
 _SENS_Y = constants.COIL_SENSITIVITY_Y_G_PER_A
-
-# Earth's-field compensation offsets. Mirror constants.add_field_offset, which is
-# host-only (no @kernel/@portable) and so cannot be called from a kernel; bound to
-# module-level floats here so the kernel folds them as constants.
-_FIELD_COMP_X = constants.FIELD_COMP_X
-_FIELD_COMP_Y = constants.FIELD_COMP_Y
-_FIELD_COMP_Z = constants.FIELD_COMP_Z
 
 # Nominal physical field in the x-y plane, in Gauss, and its starting angle, so the
 # field can be rotated at fixed magnitude with theta=0 reproducing the nominal.
@@ -164,11 +160,10 @@ class _ClockPolarizationBaseFrag(ClockSpecPulseRatioFrag):
         by = _XY_FIELD_MAG * np.sin(angle)
         ix = bx / _SENS_X
         iy = by / _SENS_Y
-        # Earth's-field compensation (mirrors constants.add_field_offset); physical
-        # z is held at 0, so the applied z is the pure compensation value.
-        self.ramp_during_evap_phase.chamber_2_field_setter.set_bias_fields(
-            ix + _FIELD_COMP_X, iy + _FIELD_COMP_Y, _FIELD_COMP_Z
-        )
+        # Earth's-field compensation via the (now @portable) constants helper;
+        # physical z is held at 0, so the applied z is the pure compensation value.
+        x, y, z = constants.add_field_offset(ix, iy, 0.0)
+        self.ramp_during_evap_phase.chamber_2_field_setter.set_bias_fields(x, y, z)
 
     def get_default_analyses(self):
         # OnlineFit draws the live modulation; the CustomAnalysis below writes the
