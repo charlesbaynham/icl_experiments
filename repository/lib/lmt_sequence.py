@@ -141,6 +141,8 @@ class Wait:
     existing ``FloatParamHandle`` attribute on the fragment to reuse instead.
     """
 
+    # FIXME Pass a FloatParamHandle instead of a string
+
     t: float | None = None
     param: str | None = None
     label: str = ""
@@ -190,9 +192,7 @@ class SetPoint:
     the Rabi frequency for each beam you intend to use before the next
     :class:`SetPoint`. These set the default durations of those pulses
     (``duration = area / (2 * rabi)``); a pulse on a beam with no declared
-    Rabi at the current set point is a compile error. Note that scanning the
-    spawned set-point parameter does *not* rescale the pulse durations -
-    durations are their own parameters.
+    Rabi at the current set point is a compile error.
 
     Args:
         setpoint: Delivery SUServo set point in volts (spawns a scannable
@@ -236,7 +236,10 @@ class Callback:
 
     Args:
         callback_id: Integer id passed to ``lmt_sequence_callback``.
-        delta_m: Momentum change applied to every populated state.
+        delta_m: Momentum change applied to every populated state listed.
+                Ground state atoms receive +delta_m, excited state receive -delta_m.
+        m_states: List of addressed m-states. These will received kicks
+                according to delta_m and whether they are ground / excited.
         state_effect: ``"none"`` (internal states unchanged), ``"flip"``
             (ground <-> excited) or ``"superpose"`` (populate both).
         duration: Nominal duration in seconds, for documentation only (the
@@ -247,11 +250,15 @@ class Callback:
     # FIXME This needs to be more expressive
 
     callback_id: int
-    delta_m: int = 0
+    delta_m: int
+    # FIXME we need to be able to specify which states this pulse addresses as a list. For example:
+    m_states: list[int]
+    # FIXME state_effect should be a IntEnum, not a string. We should always prefer IntEnums over strings. In fact we already have this: StateEffect in pulse_intent. Use that
     state_effect: str = "none"
     duration: float = 0.0
     label: str = ""
 
+    # FIXME If state_effect was an enum, this check would be automatic
     def __post_init__(self):
         if self.state_effect not in ("none", "flip", "superpose"):
             raise ValueError(
