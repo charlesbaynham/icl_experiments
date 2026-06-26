@@ -209,20 +209,20 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=373e-3,
-        window_low=367e-3,
-        relock_step=3e-3,
-    ),
-    "blue_IJD3_controller": IJDSettings(
-        temperature=8200,
         window_high=371e-3,
         window_low=365e-3,
         relock_step=3e-3,
     ),
+    "blue_IJD3_controller": IJDSettings(
+        temperature=8200,
+        window_high=373e-3,
+        window_low=367e-3,
+        relock_step=3e-3,
+    ),
     "red_IJD1_controller": IJDSettings(
         temperature=9380,
-        window_high=174.0e-3,
-        window_low=169.0e-3,
+        window_high=173.0e-3,
+        window_low=170.5e-3,
         relock_step=3e-3,
         associated_beams=["red_doublepass_injection"],
     ),
@@ -795,7 +795,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=2.6,
+        setpoint=2.0,
         kI_loop_constant=-100000.0,
     ),
     SUServoedBeam(
@@ -861,6 +861,15 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=0.5,
+        setpoint=0.25,
+    ),
+    SUServoedBeam(
+        "clock_up_small",
+        frequency=200e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_698_clock_small",
+        servo_enabled=False,
+        initial_amplitude=1.0,
         setpoint=0.25,
     ),
 ]
