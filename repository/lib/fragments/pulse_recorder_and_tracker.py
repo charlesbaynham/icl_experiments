@@ -53,10 +53,10 @@ from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
-from repository.lib.pulse_intent import M_AUTO
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics.lmt_resonance import M_AUTO
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
 BUFFER_DEPTH = 300
 
 # The intent vocabulary (and the archive schema) is defined in
-# repository.lib.pulse_intent. The Kind/StateEffect/AddressedState IntEnum
+# repository.lib.physics.lmt_resonance. The Kind/StateEffect/AddressedState IntEnum
 # members are int-valued, so the kernel compiler inlines them as compile-time
 # integer constants (see tests/test_intenum_kernel_compile.py).
 
@@ -115,7 +115,7 @@ class PulseDMARecording(Fragment):
 
         # Preallocate the intent stream: one entry per atom-affecting event
         # (clock pulses, clearouts, callbacks), appended at fire time next to
-        # the facts. Schema in repository.lib.pulse_intent.
+        # the facts. Schema in repository.lib.physics.lmt_resonance.
         self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
@@ -342,7 +342,7 @@ class PulseDMARecording(Fragment):
         intent (what the pulse is meant to do to the atomic populations,
         assumed 100 % efficient) are appended by this single call, so they
         can never misalign - even for conditional or per-shot-varying
-        sequences. Field semantics: :mod:`repository.lib.pulse_intent`.
+        sequences. Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
 
         if self._pulse_record_num_pulses >= BUFFER_DEPTH:
@@ -489,7 +489,7 @@ class PulseDMARecording(Fragment):
         Writes ``pulse_intent_record_flat`` / ``pulse_intent_record_offsets``;
         each regular record is ``[num_events, kind_0, …, start_0, …, dur_0, …,
         effect_0, …, addressed_state_0, …, addressed_m_0, …, delta_m_0, …]``.
-        Field semantics: :mod:`repository.lib.pulse_intent`.
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
         self._archive_flat_encoded("pulse_intent_record", "pulse_intent_record")
 

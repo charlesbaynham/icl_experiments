@@ -46,6 +46,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
+from repository.lib.physics.lmt_resonance import GROUND
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class DemoDeclarativeLMTFrag(
 ):
     """A minimal declarative-LMT launch with the repumped fast-kinetics readout."""
 
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
         SetPoint(

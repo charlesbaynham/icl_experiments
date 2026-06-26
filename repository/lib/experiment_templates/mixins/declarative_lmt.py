@@ -70,7 +70,7 @@ Principles
   fires: pulses register their build-time intent (pi transfer or
   superposition of the resolved pair), clearouts and callbacks register
   theirs too, so the recorded intent stream always matches what actually ran
-  (see :mod:`repository.lib.pulse_intent`).
+  (see :mod:`repository.lib.physics.lmt_resonance`).
 """
 
 import abc
@@ -131,7 +131,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     with a longer duration and a lower delivery set point::
 
         class MyInterferometerFrag(DeclarativeLMTBase, ...):
-            lmt_initial_population = {("g", 0)}
+            lmt_initial_population = {(GROUND, 0)}
             lmt_sequence = [
                 SetPoint(setpoint=0.012, rabi_up=1.3e3, label="slice"),
                 pi(Beam.UP, m=0, label="slice"),
@@ -310,7 +310,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_setpoint_handles = []
         # Build-time intent shipped to the kernel and registered with the
         # pulse recorder as each event fires (integer codes from
-        # repository.lib.pulse_intent, filled in by the sequence compiler)
+        # repository.lib.physics.lmt_resonance, filled in by the sequence compiler)
         self._lmt_intent_state_effect = []
         self._lmt_intent_addressed_state = []
         self._lmt_intent_addressed_m = []
@@ -573,7 +573,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         early - at ~14 MHz/s the resulting frequency error is negligible.
 
         The intent arguments are the compile-time-resolved effect of the
-        pulse (see :mod:`repository.lib.pulse_intent`), registered with the
+        pulse (see :mod:`repository.lib.physics.lmt_resonance`), registered with the
         pulse recorder alongside the pulse facts.
         """
         self.stop_clock_opll_ramp()

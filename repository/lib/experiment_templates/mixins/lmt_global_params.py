@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.declarative_lmt import (
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
+from repository.lib.physics.lmt_resonance import GROUND
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
     lmt_use_per_pulse_params = False
 
     # Atoms are released from the trap in the ground state with no kicks
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     def build_fragment(self):
         super().build_fragment()

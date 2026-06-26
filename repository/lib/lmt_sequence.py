@@ -65,10 +65,11 @@ from enum import Enum
 
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
+from repository.lib.physics.lmt_resonance import M_AUTO
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import InternalState
+from repository.lib.physics.lmt_resonance import StateEffect
 from repository.lib.physics.lmt_resonance import opll_m_term_hz
-from repository.lib.pulse_intent import M_AUTO
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class SequenceError(ValueError):
 
 
 # Mapping from the Callback declaration's state_effect strings to the integer
-# intent codes recorded at fire time (repository.lib.pulse_intent).
+# intent codes recorded at fire time (repository.lib.physics.lmt_resonance).
 _CALLBACK_STATE_EFFECT_CODES = {
     "none": StateEffect.NONE,
     "flip": StateEffect.FLIP,
@@ -114,22 +115,25 @@ class Pulse:
         area: Pulse area in units of pi (1.0 = pi pulse, 0.5 = pi/2 pulse).
         beam: Beam direction.
         m: Momentum class of the populated state this pulse addresses.
-        state: Internal state (``"g"`` or ``"e"``) of that population. Only
-            needed when both internal states are populated at the same ``m``.
+        state: Internal state (:data:`GROUND` or :data:`EXCITED`) of that
+            population. Only needed when both internal states are populated at
+            the same ``m``.
         label: Optional tag appended to the generated parameter names.
     """
 
     area: float
     beam: Beam
     m: int
-    state: str | None = None
+    state: InternalState | None = None
     label: str = ""
 
     def __post_init__(self):
         if self.area <= 0:
             raise ValueError(f"Pulse area must be positive, got {self.area}")
         if self.state not in (None, GROUND, EXCITED):
-            raise ValueError(f"Pulse state must be 'g' or 'e', got {self.state!r}")
+            raise ValueError(
+                f"Pulse state must be GROUND or EXCITED, got {self.state!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -140,8 +144,6 @@ class Wait:
     scannable duration parameter with that default; ``param`` names an
     existing ``FloatParamHandle`` attribute on the fragment to reuse instead.
     """
-
-    # FIXME Pass a FloatParamHandle instead of a string
 
     t: float | None = None
     param: str | None = None
@@ -253,7 +255,7 @@ class Callback:
     delta_m: int
     # FIXME we need to be able to specify which states this pulse addresses as a *list*. For example, as described in docstring above:
     m_states: list[int]
-    # FIXME state_effect should be a IntEnum, not a string. We should always prefer IntEnums over strings. In fact we already have this: StateEffect in pulse_intent. Use that
+    # FIXME state_effect should be a IntEnum, not a string. We should always prefer IntEnums over strings. In fact we already have this: StateEffect in repository.lib.physics.lmt_resonance. Use that
     state_effect: str = "none"
     duration: float = 0.0
     label: str = ""
@@ -267,12 +269,16 @@ class Callback:
             )
 
 
-def pi(beam: Beam, m: int, state: str | None = None, label: str = "") -> Pulse:
+def pi(
+    beam: Beam, m: int, state: InternalState | None = None, label: str = ""
+) -> Pulse:
     """A pi pulse addressing momentum class ``m``."""
     return Pulse(area=1.0, beam=beam, m=m, state=state, label=label)
 
 
-def pi2(beam: Beam, m: int, state: str | None = None, label: str = "") -> Pulse:
+def pi2(
+    beam: Beam, m: int, state: InternalState | None = None, label: str = ""
+) -> Pulse:
     """A pi/2 pulse addressing momentum class ``m``."""
     return Pulse(area=0.5, beam=beam, m=m, state=state, label=label)
 
@@ -294,7 +300,7 @@ def ladder(start_m: int, n: int, first_beam: Beam) -> list[Pulse]:
 class Arm:
     """One arm of the interferometer: an atomic state and momentum class."""
 
-    state: str
+    state: InternalState
     m: int
 
 
@@ -449,7 +455,7 @@ class CompiledEvent:
     ``state_effect``, ``addressed_state``, ``addressed_m`` and ``delta_m``
     carry the event's *intent* - what it is meant to do to the atomic
     populations - encoded with the integer codes of
-    :mod:`repository.lib.pulse_intent`. For pulses these are filled by
+    :mod:`repository.lib.physics.lmt_resonance`. For pulses these are filled by
     :func:`_compile_pulse` from the resolved transition (``EFFECT_FLIP`` for a
     pi pulse, ``EFFECT_SUPERPOSE`` otherwise); for :class:`Callback` events
     they come from the declaration. ``declared_duration_s`` is the
@@ -490,7 +496,7 @@ class CompiledSequence:
 
 
 def _format_state(state: tuple) -> str:
-    return f"|{state[0]}, m={state[1]}>"
+    return f"|{state[0].value}, m={state[1]}>"
 
 
 def _slug(text: str) -> str:

@@ -4,7 +4,7 @@ Intent-driven trajectory predictor
 
 Pure host-side (no ARTIQ) prediction of where the atom clouds appear on the
 camera sensor, computed from the **recorded intent stream** (see
-:mod:`repository.lib.pulse_intent`) rather than from any physical model of the
+:mod:`repository.lib.physics.lmt_resonance`) rather than from any physical model of the
 pulses: every event is assumed to do exactly what it declared, 100 %
 efficiently. This is deliberate - the full Bordé-frame simulation
 (LMT_sim_scratch) stays a desk-side sanity check and is never in the
@@ -52,10 +52,10 @@ import numpy as np
 
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import recoil_velocity
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 

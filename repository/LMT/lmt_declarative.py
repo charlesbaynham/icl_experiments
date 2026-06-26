@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
+from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
@@ -68,7 +69,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     """
 
     # Atoms are released from the trap in the ground state with no kicks
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
         # Velocity selection: a normal pulse, just longer and with a lower

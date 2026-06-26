@@ -10,7 +10,7 @@ space-time / momentum diagram.
 
 On the declarative-LMT stack the trajectory is *recorded*, not inferred: every
 atom-affecting event archives what it does to the populations (see
-``repository.lib.pulse_intent``), so this applet walks that intent stream
+``repository.lib.physics.lmt_resonance``), so this applet walks that intent stream
 exactly -- no Rabi-probability guesswork. The reconstruction lives in
 ``repository.lib.physics.lmt_spacetime``; this module only does the drawing, in
 the usual icl_experiments pyqtgraph idiom (black background, white text, colours

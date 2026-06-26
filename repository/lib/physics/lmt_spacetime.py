@@ -9,7 +9,7 @@ simulator draws it: a two-panel space-time / momentum diagram.
 Unlike the simulator -- which only has the *pulse facts* (frequencies and
 durations) and must infer flip/drift/split from a Bordé Rabi-probability
 heuristic -- the declarative-LMT stack records the **intent stream** alongside
-the facts (see :mod:`repository.lib.pulse_intent`). Every atom-affecting event
+the facts (see :mod:`repository.lib.physics.lmt_resonance`). Every atom-affecting event
 self-describes what it is meant to do to the populations, assumed 100 %
 efficient. So here the trajectory is walked *exactly* from the recorded intent,
 with no Rabi guesswork: the branch bookkeeping is identical to the dynamic-ROI
@@ -32,11 +32,11 @@ import numpy as np
 import scipy.constants as _const
 
 from repository.lib import constants
-from repository.lib import pulse_intent
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics import lmt_resonance
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +156,7 @@ def _append_transfer(cloud: Cloud, t: float, dt: float, delta_m: int, label: str
 def walk_intent_to_trajectory(events):
     """Walk an intent stream into ``(sequence, clouds, clearout_times)``.
 
-    ``events`` is a list of :class:`~repository.lib.pulse_intent.IntentEvent` in
+    ``events`` is a list of :class:`~repository.lib.physics.lmt_resonance.IntentEvent` in
     firing order. Returns the contiguous drawing ``sequence`` (list of
     :class:`Pulse`/:class:`Drift`/:class:`Clearout`), the list of
     :class:`Cloud` branches, and an array of clearout times (seconds). Times are
@@ -413,7 +413,7 @@ def intent_events_from_record(record):
     addressed_m, delta_m]``.
     """
     kinds, start_s, dur_s, effects, states, addr_m, delta_m = record
-    return pulse_intent.intent_events_from_arrays(
+    return lmt_resonance.intent_events_from_arrays(
         t_start_s=start_s,
         duration_s=dur_s,
         kinds=[int(round(x)) for x in kinds],
