@@ -36,29 +36,34 @@ remove the FIXME in `default_scan.py`.
 Goal: confirm the `CustomAnalysis` fits run at scan end and write values to
 datasets (the whole point of the review: `OnlineFit` plots but does not output).
 
-For `diag_background_field`, `diag_clock_rabi`, `diag_clock_line_centre`:
+For `diag_background_field`, `diag_clock_rabi` (the two that use the shared
+`make_dataset_fit_analysis`; `diag_clock_line_centre` was repurposed - see step 3):
 
 1. Run the default scan over a real line / flop.
 2. Confirm the live `OnlineFit` curve still draws as before.
 3. Confirm the new result channels are populated in the dataset:
     - background field: `line_centre_aom`, `line_fwhm` (+ `_err`)
     - clock Rabi: `pi_time`, `rabi_frequency` (+ `_err`)
-    - clock line centre: `line_centre_aom`, `line_fwhm` (+ `_err`)
 4. Sanity-check the dataset values against the on-screen `OnlineFit` annotation
    (they fit the same data with the same `oitg` procedure, so should agree).
 5. If a fit-result key is wrong for the installed `oitg`, the analysis will raise
    a `KeyError` at scan end - fix the `fit_key` in the relevant `FitOutput`.
 
-## 3. `diag_clock_line_centre` - delivery-AOM scan (review thread #3)
+## 3. `diag_clock_line_centre` - cavity offset + down-vs-up (review thread #3)
 
-Goal: confirm the line is now scanned by the **SUServo delivery AOM frequency**
-(`delivery_aom_frequency`), not by `extra_clock_detuning` on the OPLL.
+This file was reworked (feature/diagnostics, 2026-06-23) into two experiments:
+`ClockCavityOffset` (up beam) and `ClockDownVsUpOffset` (down beam).
 
-1. Run the default scan; confirm a clean Lorentzian line vs AOM frequency.
-2. Confirm the OPLL still does gravity compensation (line centre stable shot to
-   shot; no drift that would indicate the OPLL is being mis-driven).
-3. Tune the `_AOM_HALF_SPAN` / point count to span a few linewidths; fold the
-   final good centre/range back into `repository/lib/constants.py`.
+1. **`ClockCavityOffset`** (up beam): run the default scan; confirm a clean
+   **Gaussian** line vs the clock-delivery AOM frequency (`frequency_clock_delivery`)
+   on the _unselected_ (Doppler-broadened) cloud - weak `pi/8` pulse, OPLL held on
+   the nominal line (`extra_clock_detuning = 0`). The resonance position calibrates
+   the clock-cavity drift. Confirm the OPLL still does gravity compensation (line
+   stable shot to shot). Tune the scan span; fold any tuned centre/range back into
+   `repository/lib/constants.py`.
+2. **`ClockDownVsUpOffset`** (down beam): the standard velocity-slice + `pi` pulse,
+   scanning `extra_clock_detuning`; fit the Rabi (`detuned_square_pulse`) lineshape.
+   Read against the up-beam cavity calibration, gives the down-vs-up offset.
 
 ## 4. `diag_clock_polarization` - full rewrite (review thread #4)
 
