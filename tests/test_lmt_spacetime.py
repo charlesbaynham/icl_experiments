@@ -58,7 +58,7 @@ def _clearout(t_start, duration, state=pi.AddressedState.GROUND):
     }
 
 
-def _mach_zehnder_events():
+def _symmetric_mach_zehnder_events():
     """Declared up-beam pi/2 - pi - pi/2 Mach-Zehnder on the (g,0)<->(e,1) pair."""
     t_pulse = 30e-6
     T = 1e-3
@@ -75,7 +75,7 @@ def test_most_recent_valid_record_skips_sentinels():
     real_a = _record(
         [_pulse(0.0, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1)]
     )
-    real_b = _record(_mach_zehnder_events())
+    real_b = _record(_symmetric_mach_zehnder_events())
     same_as_last = [[st.INTENT_RECORD_SAME_AS_LAST_SENTINEL]]
     disabled = [[st.INTENT_RECORD_DISABLED_SENTINEL]]
 
@@ -113,8 +113,8 @@ def test_pi2_superpose_splits_ground_into_two_branches():
     assert finals == [(False, 1), (True, 0)]
 
 
-def test_mach_zehnder_trajectory_shapes():
-    record = _record(_mach_zehnder_events())
+def test_symmetric_mach_zehnder_trajectory_shapes():
+    record = _record(_symmetric_mach_zehnder_events())
     result = st.infer_trajectory_from_intent_record([record])
     assert result is not None
     sequence, clouds, clearout_times = result

@@ -48,7 +48,7 @@ def test_ladder_helper():
     assert all(p.area == 1.0 for p in rungs)
 
 
-def test_mach_zehnder_compiles_and_closes():
+def test_symmetric_mach_zehnder_compiles_and_closes():
     """The canonical launch + Mach-Zehnder sequence compiles, and the
     interferometer output pair is the final population."""
     sequence = [
