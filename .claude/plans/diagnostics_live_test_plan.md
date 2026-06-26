@@ -63,28 +63,51 @@ Goal: confirm the line is now scanned by the **SUServo delivery AOM frequency**
 ## 4. `diag_clock_polarization` - full rewrite (review thread #4)
 
 This is the highest-risk change; the reviewer expects it to be broken on first
-attempt. The corrected physics: the quantization field is rotated **in-trap**
-(overriding the adiabatic Y->Z ramp endpoint), velocity selection is skipped, and
-a single **pi/4** pulse addresses the whole thermal cloud.
+attempt. **Corrected geometry (Charles, 2026-06-26):** the clock beam propagates
+along **Z**, so its linear polarization lies in the **x-y plane**; the nominal
+quantization field is along **x**. The field is therefore rotated **in the x-y
+plane** (the old x-z rotation was wrong), at fixed **field magnitude** (per-axis
+coil amps differ via `COIL_SENSITIVITY_{X,Y}_G_PER_A`), with Earth's-field
+compensation applied by `constants.add_field_offset`. theta=0 reproduces the
+nominal field.
 
-1. **Field rotation is in-trap and persists.** Instrument / scope the comp-coil
-   currents: confirm the bias field rotates to the scanned angle _while trapped_
-   (during `dipole_trap_evaporation_hook_ramper`, after the nominal ramp) and that
-   it is **not** reset between release and the clock pulse. If something downstream
-   re-sets the bias field after release, move/repeat the rotation accordingly.
-2. **Adiabaticity.** Vary `field_rotation_ramp_time` (and `_N_ROTATION_STEPS` if
-   needed); confirm the excitation signal is insensitive to making the rotation
-   slower (i.e. it is already adiabatic). If it depends on ramp time, increase the
-   default until it plateaus.
-3. **theta=0 reproduces nominal.** At `field_angle_deg=0` the field must equal the
-   normal clock-spec operating field; confirm a normal clock excitation there.
-4. **pi/4 on the thermal cloud.** Confirm the single pulse (no shelving) gives a
-   sensible excitation on the unsliced cloud; adjust `pulse_area_fraction` if it
-   saturates or is too weak.
-5. **Modulation + axis.** Confirm excitation modulates with angle (period 180 deg)
+Two variants ("trials") are provided:
+
+- **`ClockPolarizationInTrapDiagnostic`** (Approach 1): in-trap adiabatic rotation,
+  no velocity slice, single weak **pi/4** pulse on the whole thermal cloud
+  immediately after release. Default scan `field_angle_deg` 0..360 deg.
+- **`ClockPolarizationPostReleaseDiagnostic`** (Approach 2): normal in-trap ramp to
+  the nominal x field, release, **normal velocity slice** (lower shelving
+  setpoint), then rotate the field by the scanned angle (+/-90 deg) **post-release**
+  and wait a scanned **`field_settle_time`** (eddy-current decay) before a
+  **full-power spectroscopy pulse at the normal setpoint**. Default scan
+  `field_angle_deg` -90..90 deg; also scan `field_settle_time`.
+
+Live checks (do both variants; they cross-check each other):
+
+1. **theta=0 reproduces nominal.** At `field_angle_deg=0` confirm a normal clock
+   excitation (>90% excitation, >100k counts) - the field must equal the normal
+   clock-spec operating field, with the applied z held at the pure Earth-comp value.
+2. **Field rotation acts where intended.** Approach 1: scope the comp-coil currents
+   to confirm the field rotates _in-trap_ (during `dipole_trap_evaporation_hook_ramper`,
+   after the nominal ramp) and is **not** reset before the pulse. Approach 2: confirm
+   the rotation happens _after_ the velocity slice and that `field_settle_time` is
+   honoured before the pulse.
+3. **Approach 1 adiabaticity.** Vary `field_rotation_ramp_time` (and
+   `_N_ROTATION_STEPS` if needed); confirm the signal is insensitive to slower
+   rotation. If it depends on ramp time, raise the default until it plateaus.
+4. **Approach 2 eddy-current settle.** At a fixed angle (e.g. 90 deg) scan
+   `field_settle_time`; confirm the excitation plateaus once eddy currents have
+   decayed, and pick a default on the plateau.
+5. **Pulse area.** Approach 1: confirm the pi/4 pulse on the unsliced cloud gives a
+   sensible (unsaturated) excitation; tune `pulse_area_fraction`. Approach 2: the
+   full pulse at the normal setpoint should behave like a normal velocity-sliced
+   clock pulse at theta=0.
+6. **Modulation + axis.** Confirm excitation modulates with angle (period 180 deg)
    and that `polarization_axis_deg` / `polarization_contrast` land in the dataset
-   and match the plotted modulation.
-6. Only once 1-5 pass: remove the FIXME in `diag_clock_polarization.py`.
+   and match the plotted modulation. The two variants should agree on the axis.
+7. Only once 1-6 pass for at least one variant: remove the FIXME in
+   `diag_clock_polarization.py`.
 
 ## 5. Compile check (cheap, do anytime)
 

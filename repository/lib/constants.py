@@ -1103,6 +1103,15 @@ def calc_new_field_defaults(param_x, param_y, param_z):
     )
 
 
+# Bias-coil current->field calibration from Zeeman spectroscopy (lab notes, 2026-03).
+# Axes: +X toward the Matisse (South, cavity axis), +Y away from the lab PC (East,
+# MOT axis), +Z up. These are sensitivity magnitudes; only the per-axis ratio
+# matters for rotating the bias field at fixed FIELD magnitude.
+COIL_SENSITIVITY_X_G_PER_A = 0.2762
+COIL_SENSITIVITY_Y_G_PER_A = 0.7656
+COIL_SENSITIVITY_Z_G_PER_A = 0.2238
+
+
 if USE_SR87:
     # With 6A gradient
     _B_FIELD_BIAS_LATTICE_X = 1.1  # A
