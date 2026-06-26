@@ -39,7 +39,6 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.master.worker_impl import CCB
 
-from repository.lib import pulse_intent as pi_intent
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
@@ -53,6 +52,9 @@ from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.lmt_sequence import pi2
+from repository.lib.physics import lmt_resonance as pi_intent
+from repository.lib.physics.lmt_resonance import EXCITED
+from repository.lib.physics.lmt_resonance import GROUND
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +71,7 @@ _RECORD_KEYS = (
 )
 
 #: Released from the trap in the ground state with no kicks.
-_INITIAL_POPULATION = {("g", 0)}
+_INITIAL_POPULATION = {(GROUND, 0)}
 
 #: Dark-time default baked into the declared Wait events; the real value is
 #: substituted per run when the compiled events are laid out in time.
@@ -128,8 +130,8 @@ def _append_recombine(sequence):
     ``(e, m_hi)``. This is the real reconvergence trick - no swapping pi pulse.
     """
     arms = sorted(_populated(sequence), key=lambda sm: sm[1])
-    ground = next(sm for sm in arms if sm[0] == "g")
-    excited = next(sm for sm in arms if sm[0] == "e")
+    ground = next(sm for sm in arms if sm[0] == GROUND)
+    excited = next(sm for sm in arms if sm[0] == EXCITED)
     beam = Beam.UP if excited[1] == ground[1] + 1 else Beam.DOWN
     sequence.append(pi2(beam, m=ground[1], label="recombine"))
     sequence.append(Clearout(label="recombine-blast"))
@@ -137,16 +139,16 @@ def _append_recombine(sequence):
 
 def _raise_pulse(state, m):
     """A pi pulse raising a single arm by one recoil; returns (pulse, state, m)."""
-    if state == "g":
-        return pi(Beam.UP, m=m), "e", m + 1
-    return pi(Beam.DOWN, m=m), "g", m + 1
+    if state == GROUND:
+        return pi(Beam.UP, m=m), EXCITED, m + 1
+    return pi(Beam.DOWN, m=m), GROUND, m + 1
 
 
 def _lower_pulse(state, m):
     """A pi pulse lowering a single arm by one recoil; returns (pulse, state, m)."""
-    if state == "g":
-        return pi(Beam.DOWN, m=m), "e", m - 1
-    return pi(Beam.UP, m=m), "g", m - 1
+    if state == GROUND:
+        return pi(Beam.DOWN, m=m), EXCITED, m - 1
+    return pi(Beam.UP, m=m), GROUND, m - 1
 
 
 def _append_interferometer(sequence, *, state, m, n_lmt, symmetric):
@@ -165,11 +167,11 @@ def _append_interferometer(sequence, *, state, m, n_lmt, symmetric):
             f"N_LMT must be >= 1 (got {n_lmt}); 0 is not an interferometer"
         )
 
-    beam = Beam.DOWN if state == "e" else Beam.UP
+    beam = Beam.DOWN if state == EXCITED else Beam.UP
     sequence.append(pi2(beam, m=m, label="bs1"))
     # bs1 forks (state, m) into a lower arm a and an upper arm b one recoil up.
     a = [state, m]
-    b = ["g" if state == "e" else "e", m + 1]
+    b = [GROUND if state == EXCITED else EXCITED, m + 1]
 
     def widen(label):
         for _ in range(n_lmt - 1):
@@ -243,7 +245,7 @@ def _build_sequence(
     # 3. Optional launch: accelerate the cloud(s) up together.
     state, m_now = _top_pair(sequence)
     if do_launch and n_launch > 0:
-        first_beam = Beam.UP if state == "g" else Beam.DOWN
+        first_beam = Beam.UP if state == GROUND else Beam.DOWN
         sequence += ladder(start_m=m_now, n=n_launch, first_beam=first_beam)
         state, m_now = _top_pair(sequence)
 
@@ -282,16 +284,22 @@ def _events_from_compiled(compiled, *, pulse_duration, interrogation_time):
             events.append(_clearout(t, clearout_duration))
             t += clearout_duration
         elif ce.kind == EVENT_CALLBACK:
-            events.append(
-                _pulse(
-                    t,
-                    pulse_duration,
-                    ce.state_effect,
-                    ce.addressed_state,
-                    ce.addressed_m,
-                    ce.delta_m,
+            # A callback flattens to one ordinary pulse intent row per declared
+            # action (addressed_state, addressed_m, delta_m, state_effect), all
+            # sharing one t_start - exactly as register_intent_action records it.
+            for addressed_state, addressed_m, delta_m, state_effect in (
+                ce.callback_actions
+            ):
+                events.append(
+                    _pulse(
+                        t,
+                        pulse_duration,
+                        state_effect,
+                        addressed_state,
+                        addressed_m,
+                        delta_m,
+                    )
                 )
-            )
             t += pulse_duration
         elif ce.kind == EVENT_WAIT:
             t += interrogation_time

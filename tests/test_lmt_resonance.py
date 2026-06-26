@@ -20,6 +20,8 @@ from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import ladder
 from repository.lib.physics import lmt_resonance
+from repository.lib.physics.lmt_resonance import EXCITED
+from repository.lib.physics.lmt_resonance import GROUND
 
 KICK = constants.MOMENTUM_KICK_DETUNING
 START = 80e6  # OPLL offset DDS centre frequency
@@ -52,9 +54,9 @@ def test_addressed_class_round_trip(m, k_sign):
 @pytest.mark.parametrize("beam_sign", [1, -1])
 def test_pair_ground_class(beam_sign):
     # Driving a ground state addresses the pair rooted at that state
-    assert lmt_resonance.pair_ground_class(3, "g", beam_sign) == 3
+    assert lmt_resonance.pair_ground_class(3, GROUND, beam_sign) == 3
     # Driving an excited state |e, m> addresses |g, m - s> <-> |e, m>
-    assert lmt_resonance.pair_ground_class(3, "e", beam_sign) == 3 - beam_sign
+    assert lmt_resonance.pair_ground_class(3, EXCITED, beam_sign) == 3 - beam_sign
 
 
 def test_invalid_arguments():
@@ -127,7 +129,7 @@ def test_launch_ladder_matches_legacy(doppler, n_previous):
         start_m=n_previous,
         n=n,
         first_beam=Beam.DOWN,
-        initial_population={("e", n_previous)},
+        initial_population={(EXCITED, n_previous)},
     )
     legacy = legacy_launch_series(doppler, n_previous, n)
     assert len(pulses) == len(legacy)
@@ -148,7 +150,7 @@ def test_ground_start_ladder_matches_legacy(doppler, n_previous):
         start_m=n_previous,
         n=n,
         first_beam=Beam.UP,
-        initial_population={("g", n_previous)},
+        initial_population={(GROUND, n_previous)},
     )
     legacy = legacy_series_start_up(doppler, n_previous, n)
     assert len(pulses) == len(legacy)
@@ -165,12 +167,12 @@ def test_single_pulses_match_legacy_helpers():
     doppler = 0.7e6
     # up_pulse fires on ground atoms at m = N
     for n in [0, 3, 12]:
-        m_term = lmt_resonance.opll_m_term_hz(n, "g", 1)
+        m_term = lmt_resonance.opll_m_term_hz(n, GROUND, 1)
         f_new = START + doppler - m_term
         assert f_new == pytest.approx(legacy_up_pulse(doppler, n) - KICK / 2.0)
     # down_pulse fires on excited atoms at m = N
     for n in [1, 4, 13]:
-        m_term = lmt_resonance.opll_m_term_hz(n, "e", -1)
+        m_term = lmt_resonance.opll_m_term_hz(n, EXCITED, -1)
         f_new = START - doppler - m_term
         assert f_new == pytest.approx(legacy_down_pulse(doppler, n) + KICK / 2.0)
 
@@ -218,12 +220,12 @@ def test_first_beam_splitter_anchor():
     launch from the single shelving kick) used an OPLL m-term of
     +(N_launch + 1) * kick; the new formula gives the same up to +kick/2.
 
-    This pins the initial-population anchor {("e", 1)} after shelving.
+    This pins the initial-population anchor {(EXCITED, 1)} after shelving.
     """
     n_launch = 12
     # After the launch the atoms are excited at m = 1 + n_launch
     m = 1 + n_launch
-    m_term = lmt_resonance.opll_m_term_hz(m, "e", -1)
+    m_term = lmt_resonance.opll_m_term_hz(m, EXCITED, -1)
     # Legacy: calculate_frequency_for_first_pi_by_2_pulse contributes
     # (-chirp + kick) and first_beam_splitter adds n_launch * kick.
     legacy_m_contribution = (1 + n_launch) * KICK

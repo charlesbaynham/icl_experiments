@@ -1,16 +1,18 @@
 """
-Tests for the pulse-intent vocabulary: enum coercion/validation and the shared
-``IntentEvent.addresses_pair`` predicate used by both the dynamic-ROI predictor
-and the spacetime diagram.
+Tests for the recorded-intent vocabulary: enum coercion/validation and the
+shared ``IntentEvent.addresses_pair`` predicate used by both the dynamic-ROI
+predictor and the spacetime diagram.
+
+The vocabulary lives in :mod:`repository.lib.physics.lmt_resonance`.
 """
 
 import pytest
 
-from repository.lib.pulse_intent import M_AUTO
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics.lmt_resonance import M_AUTO
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 
 
 def _event(

@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 import scipy.constants
 
-from repository.lib import pulse_intent
+from repository.lib.physics import lmt_resonance as pulse_intent
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
 from repository.lib.physics.trajectory import live_times_to_seconds_since_release

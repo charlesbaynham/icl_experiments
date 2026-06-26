@@ -11,7 +11,7 @@ and the basic shape invariants the applet relies on.
 import numpy as np
 import pytest
 
-from repository.lib import pulse_intent as pi
+from repository.lib.physics import lmt_resonance as pi
 from repository.lib.physics import lmt_spacetime as st
 
 

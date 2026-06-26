@@ -10,15 +10,15 @@ import numpy as np
 import pytest
 import scipy.constants
 
-from repository.lib import pulse_intent
+from repository.lib.physics import lmt_resonance as pulse_intent
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
 from repository.lib.physics.ballistic import recoil_velocity
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import intent_events_from_arrays
 from repository.lib.physics.trajectory import predict_port_pixels
 from repository.lib.physics.trajectory import rebase_record_times_mu
 from repository.lib.physics.trajectory import walk_intent_events
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import intent_events_from_arrays
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -384,19 +384,20 @@ def test_double_split_flags_multiplicity():
     assert out["excited"].multiplicity == 2
 
 
-def test_callback_applies_declared_effect():
-    """A callback (e.g. Jesse pulse) applies its declared delta_m to every
-    branch at its centre time."""
+def test_flattened_callback_flip_action_transfers_with_delta_m():
+    """A callback flattens to ordinary ``Kind.PULSE`` rows. A FLIP action with
+    delta_m=2 transfers the single ground branch to the excited port two recoils
+    up at its centre time - exactly as the equivalent ordinary pulse row would."""
     t_cb, d_cb, t_img = 2e-3, 200e-6, 15e-3
     tc = t_cb + d_cb / 2
     events = [
         IntentEvent(
             t_start_s=t_cb,
             duration_s=d_cb,
-            kind=pulse_intent.Kind.CALLBACK,
+            kind=pulse_intent.Kind.PULSE,
             state_effect=pulse_intent.StateEffect.FLIP,
-            addressed_state=pulse_intent.AddressedState.AUTO,
-            addressed_m=pulse_intent.M_AUTO,
+            addressed_state=pulse_intent.AddressedState.GROUND,
+            addressed_m=0,
             delta_m=2,
         )
     ]
@@ -405,6 +406,30 @@ def test_callback_applies_declared_effect():
     assert np.isclose(out["excited"].y_pixel, expected)
     assert out["excited"].multiplicity == 1
     assert out["ground"].multiplicity == 0
+
+
+def test_flattened_callback_none_action_is_pure_kick():
+    """A NONE action is a pure momentum kick on the single declared population:
+    the addressed ground branch gains delta_m recoils with its internal state
+    unchanged (stays in the ground port)."""
+    t_cb, d_cb, t_img = 2e-3, 200e-6, 15e-3
+    tc = t_cb + d_cb / 2
+    events = [
+        IntentEvent(
+            t_start_s=t_cb,
+            duration_s=d_cb,
+            kind=pulse_intent.Kind.PULSE,
+            state_effect=pulse_intent.StateEffect.NONE,
+            addressed_state=pulse_intent.AddressedState.GROUND,
+            addressed_m=0,
+            delta_m=2,
+        )
+    ]
+    out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
+    expected = _free_fall_y(t_img) + 2 * V_R * (t_img - tc) * _scale()
+    assert np.isclose(out["ground"].y_pixel, expected)
+    assert out["ground"].multiplicity == 1
+    assert out["excited"].multiplicity == 0
 
 
 # ── Error handling and decoding ───────────────────────────────────────────────

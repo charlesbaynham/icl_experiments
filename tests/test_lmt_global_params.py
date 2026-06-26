@@ -15,6 +15,7 @@ from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
+from repository.lib.physics.lmt_resonance import GROUND
 
 
 def _make(n_launch, n_recoils):
@@ -35,7 +36,7 @@ def test_generated_symmetric_mach_zehnder_closes(n_launch, n_recoils):
     """For any launch/recoil count the interferometer closes to a single
     adjacent momentum pair."""
     sequence = _make(n_launch, n_recoils)
-    compiled = compile_sequence(sequence, initial_population={("g", 0)})
+    compiled = compile_sequence(sequence, initial_population={(GROUND, 0)})
     final = compiled.final_population
     assert len(final) == 2
     ms = sorted(m for _, m in final)
@@ -61,7 +62,7 @@ def test_event_count_scales_with_counts():
 
 def test_structure_and_labels():
     sequence = _make(n_launch=4, n_recoils=0)
-    compiled = compile_sequence(sequence, initial_population={("g", 0)})
+    compiled = compile_sequence(sequence, initial_population={(GROUND, 0)})
     kinds = [e.kind for e in compiled.events]
     # slice setpoint, slice pulse, full setpoint, post-slice clearout, launch...
     assert kinds[0] == EVENT_SETPOINT
@@ -88,7 +89,7 @@ def test_odd_launch_skips_post_launch_clearout():
     """An odd launch ends in the ground state, where a post-launch clearout
     would remove the packet, so it is omitted."""
     compiled = compile_sequence(
-        _make(n_launch=3, n_recoils=0), initial_population={("g", 0)}
+        _make(n_launch=3, n_recoils=0), initial_population={(GROUND, 0)}
     )
     clearouts = [e for e in compiled.events if e.kind == EVENT_CLEAROUT]
     assert len(clearouts) == 1  # only the post-slice clearout
@@ -96,7 +97,7 @@ def test_odd_launch_skips_post_launch_clearout():
 
 def test_dark_waits_reference_global_params():
     compiled = compile_sequence(
-        _make(n_launch=2, n_recoils=1), initial_population={("g", 0)}
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
     )
     waits = [e for e in compiled.events if e.kind == EVENT_WAIT]
     assert [w.duration_param_ref for w in waits] == [
@@ -136,7 +137,7 @@ def _hooks():
 def test_binding_hooks_map_slots_to_global_handles():
     hooks = _hooks()
     compiled = compile_sequence(
-        _make(n_launch=2, n_recoils=1), initial_population={("g", 0)}
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
     )
     events = compiled.events
 
