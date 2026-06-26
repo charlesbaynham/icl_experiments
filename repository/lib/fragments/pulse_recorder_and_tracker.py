@@ -139,7 +139,7 @@ class PulseDMARecording(Fragment):
     @kernel
     def record_pulse_sequence(self):
         # Wipe the buffers; register_pulse() / register_clearout() /
-        # register_intent_callback() repopulate them during recording
+        # register_intent_action() repopulate them during recording
         self._pulse_record_num_pulses = 0
         self._intent_record_num_events = 0
         with self.core_dma.record(self.dma_name):
@@ -406,27 +406,34 @@ class PulseDMARecording(Fragment):
         )
 
     @portable
-    def register_intent_callback(
+    def register_intent_action(
         self,
         duration_s: float,
         state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
         delta_m: int32,
     ):
         """
-        Register the declared effect of a non-standard pulse (shaped/Jesse
-        pulses, anything fired outside the square-pulse path).
+        Register one elementary addressed-action of a callback (a shaped pulse
+        fired outside the square-pulse path).
 
-        ``delta_m`` and ``state_effect`` are applied to every populated
-        branch at prediction time (matching the declarative language's
-        ``Callback`` semantics), assumed 100 % efficient.
+        A callback declares its effect as a list of addressed-actions, each
+        acting exclusively on one momentum class; this records ONE of them as a
+        normal pulse intent row (``Kind.PULSE``) - identical to an ordinary
+        pulse, so the trajectory predictor needs no callback-specific logic.
+        Like :meth:`register_clearout` it appends only an intent row and records
+        NO pulse facts (the shaped pulse is not a tracked square clock pulse).
+
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
         self._append_intent(
             t_start_mu=now_mu(),
             duration_mu=self.core.seconds_to_mu(duration_s),
-            kind=Kind.CALLBACK,
+            kind=Kind.PULSE,
             state_effect=state_effect,
-            addressed_state=AddressedState.AUTO,
-            addressed_m=M_AUTO,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
             delta_m=delta_m,
         )
 

@@ -48,8 +48,10 @@ field               type     meaning
 ==================  =======  ====================================================
 ``t_start_mu``      int64    timeline position when the event starts
 ``duration_mu``     int64    event duration
-``kind``            int32    ``Kind.PULSE``, ``Kind.CLEAROUT`` or
-                             ``Kind.CALLBACK``
+``kind``            int32    ``Kind.PULSE`` or ``Kind.CLEAROUT``. (``Kind.CALLBACK``
+                             is reserved but no longer emitted: a callback
+                             records one ordinary ``Kind.PULSE`` row per
+                             declared action.)
 ``state_effect``    int32    ``StateEffect.FLIP`` (pi-like full transfer),
                              ``StateEffect.SUPERPOSE`` (pi/2-like split: both
                              pair members populated) or ``StateEffect.NONE``
@@ -61,10 +63,7 @@ field               type     meaning
                              :data:`M_AUTO`
 ``delta_m``         int32    recoils given to the transferred component in the
                              ground->excited direction (the excited->ground
-                             direction gets the negative). For
-                             ``Kind.CALLBACK`` with ``state_effect``
-                             ``StateEffect.NONE``, applied to every populated
-                             branch as-is.
+                             direction gets the negative).
 ==================  =======  ====================================================
 
 The atomic-frame resonance detuning (relative to the unperturbed transition, for
@@ -278,6 +277,9 @@ def opll_m_term_hz(
 class Kind(IntEnum):
     PULSE = 0
     CLEAROUT = 1
+    # No longer emitted: callbacks self-describe as PULSE rows (one ordinary
+    # pulse intent row per declared callback action). Kept to document the
+    # record schema and preserve the IntEnum numbering.
     CALLBACK = 2
 
 

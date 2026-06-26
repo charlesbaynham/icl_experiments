@@ -68,9 +68,10 @@ Principles
   points must be calibrated on atoms when porting tuned values.
 - Every atom-affecting event self-describes to the pulse recorder as it
   fires: pulses register their build-time intent (pi transfer or
-  superposition of the resolved pair), clearouts and callbacks register
-  theirs too, so the recorded intent stream always matches what actually ran
-  (see :mod:`repository.lib.physics.lmt_resonance`).
+  superposition of the resolved pair), clearouts register theirs, and each
+  callback action registers one ordinary pulse intent row, so the recorded
+  intent stream always matches what actually ran (see
+  :mod:`repository.lib.physics.lmt_resonance`).
 """
 
 import abc
@@ -264,7 +265,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             if not self.lmt_initial_population:
                 raise TypeError(
                     f"{type(self).__name__} must declare a non-empty "
-                    "'lmt_initial_population' class attribute, e.g. {('e', 1)}"
+                    "'lmt_initial_population' class attribute, e.g. {(EXCITED, 1)}"
                 )
             self._lmt_build_sequence_arrays()
 
@@ -280,6 +281,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_intent_addressed_m",
             "_lmt_intent_delta_m",
             "_lmt_intent_duration_s",
+            "_lmt_cb_action_addressed_state",
+            "_lmt_cb_action_addressed_m",
+            "_lmt_cb_action_delta_m",
+            "_lmt_cb_action_state_effect",
+            "_lmt_cb_action_start",
+            "_lmt_cb_action_count",
         }
 
     def lmt_make_sequence(self) -> list:
@@ -316,6 +323,16 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_intent_addressed_m = []
         self._lmt_intent_delta_m = []
         self._lmt_intent_duration_s = []
+        # Callback actions, flattened across all events into parallel arrays
+        # with a per-event (start, count) slice index. A callback emits one
+        # ordinary pulse intent row per action at fire time; an empty callback
+        # has count 0 and registers nothing.
+        self._lmt_cb_action_addressed_state = []
+        self._lmt_cb_action_addressed_m = []
+        self._lmt_cb_action_delta_m = []
+        self._lmt_cb_action_state_effect = []
+        self._lmt_cb_action_start = []
+        self._lmt_cb_action_count = []
         # (slot index, fragment attribute name) pairs resolved in host_setup,
         # because the referenced parameter may be created by a mixin that builds
         # after this one in the MRO, or (global mode) be a shared global handle.
@@ -366,6 +383,18 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_intent_addressed_m.append(int32(event.addressed_m))
             self._lmt_intent_delta_m.append(int32(event.delta_m))
             self._lmt_intent_duration_s.append(float(event.declared_duration_s))
+
+            # Flatten the callback's actions into the shared action arrays and
+            # record this event's slice into them.
+            self._lmt_cb_action_start.append(int32(len(self._lmt_cb_action_delta_m)))
+            self._lmt_cb_action_count.append(int32(len(event.callback_actions)))
+            for addressed_state, addressed_m, delta_m, state_effect in (
+                event.callback_actions
+            ):
+                self._lmt_cb_action_addressed_state.append(int32(addressed_state))
+                self._lmt_cb_action_addressed_m.append(int32(addressed_m))
+                self._lmt_cb_action_delta_m.append(int32(delta_m))
+                self._lmt_cb_action_state_effect.append(int32(state_effect))
 
             self._bind_offset_slot(event)
             self._bind_duration_slot(event)
@@ -622,13 +651,13 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 else:
                     raise ValueError("Unknown LMT sequence callback id")
 
-        The engine registers the Callback's declared intent (its
-        ``state_effect``/``delta_m``/``duration``) with the pulse recorder
-        immediately BEFORE dispatching here, so the fired pulse
-        self-describes even though it bypasses the square-pulse path. The
-        implementation must therefore NOT also call ``register_pulse`` /
-        ``register_pulse_with_intent`` / ``register_intent_callback`` -
-        doing so would double-count the event in the intent stream.
+        The engine registers each of the Callback's declared actions (one
+        ordinary pulse intent row apiece) with the pulse recorder immediately
+        BEFORE dispatching here, so the fired pulse self-describes even though
+        it bypasses the square-pulse path. The implementation must therefore
+        NOT also call ``register_pulse`` / ``register_pulse_with_intent`` /
+        ``register_intent_action`` - doing so would double-count the event in
+        the intent stream.
         """
         raise ValueError(
             "Unhandled LMT sequence Callback - override lmt_sequence_callback() "
@@ -652,8 +681,8 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         Every atom-affecting event registers its intent with the pulse
         recorder as it fires: pulses via
         :meth:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording.register_pulse_with_intent`,
-        clearouts via ``register_clearout`` and callbacks via
-        ``register_intent_callback``.
+        clearouts via ``register_clearout`` and each callback action via
+        ``register_intent_action`` (one ordinary pulse intent row per action).
         """
         t_ref_mu = self.get_doppler_t_ref_mu()
 
@@ -720,14 +749,21 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 delay(self.clock_delivery_preempt_time.get())
 
             else:  # EVENT_CALLBACK
-                # Register the declared intent first, so the custom pulse
-                # self-describes; the callback implementation must not also
-                # call register_* (see lmt_sequence_callback)
-                self.dma_recording_fragment.register_intent_callback(
-                    duration_s=self._lmt_intent_duration_s[i],
-                    state_effect=self._lmt_intent_state_effect[i],
-                    delta_m=self._lmt_intent_delta_m[i],
-                )
+                # Register each declared action as one ordinary pulse intent
+                # row (all at this timeline point, time not advanced between
+                # them), so the custom pulse self-describes; the callback
+                # implementation must not also call register_* (see
+                # lmt_sequence_callback_hook). Count 0 => no rows registered.
+                start = self._lmt_cb_action_start[i]
+                count = self._lmt_cb_action_count[i]
+                for j in range(start, start + count):
+                    self.dma_recording_fragment.register_intent_action(
+                        duration_s=self._lmt_intent_duration_s[i],
+                        state_effect=self._lmt_cb_action_state_effect[j],
+                        addressed_state=self._lmt_cb_action_addressed_state[j],
+                        addressed_m=self._lmt_cb_action_addressed_m[j],
+                        delta_m=self._lmt_cb_action_delta_m[j],
+                    )
                 self.lmt_sequence_callback_hook(self._lmt_callback_id[i])
 
     @kernel

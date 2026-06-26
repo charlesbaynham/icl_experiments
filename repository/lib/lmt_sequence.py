@@ -61,6 +61,7 @@ pulse durations - durations are independent parameters.
 import logging
 import math
 from dataclasses import dataclass
+from dataclasses import field
 from enum import Enum
 
 from repository.lib.physics.lmt_resonance import EXCITED
@@ -69,6 +70,7 @@ from repository.lib.physics.lmt_resonance import M_AUTO
 from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import InternalState
 from repository.lib.physics.lmt_resonance import StateEffect
+from repository.lib.physics.lmt_resonance import _ground_class_of_pair
 from repository.lib.physics.lmt_resonance import opll_m_term_hz
 
 logger = logging.getLogger(__name__)
@@ -84,15 +86,6 @@ EVENT_CALLBACK = 4
 
 class SequenceError(ValueError):
     """A declared LMT sequence is invalid."""
-
-
-# Mapping from the Callback declaration's state_effect strings to the integer
-# intent codes recorded at fire time (repository.lib.physics.lmt_resonance).
-_CALLBACK_STATE_EFFECT_CODES = {
-    "none": StateEffect.NONE,
-    "flip": StateEffect.FLIP,
-    "superpose": StateEffect.SUPERPOSE,
-}
 
 
 class Beam(Enum):
@@ -226,47 +219,71 @@ class SetPoint:
 
 
 @dataclass(frozen=True)
+class CallbackAction:
+    """One elementary addressed-action of a :class:`Callback`.
+
+    Describes what a callback does to a single addressed momentum class
+    ``(state, m)``, exactly as an ordinary pulse intent row would (see
+    :mod:`repository.lib.physics.lmt_resonance`). The pairing rule is the shared
+    one: ``delta_m`` plays the beam sign, so the action addresses the pair
+    ``|g, m_g> <-> |e, m_g + delta_m>``.
+
+    Args:
+        state: Internal state (:data:`GROUND` or :data:`EXCITED`) of the
+            addressed population.
+        m: Momentum class of the addressed population.
+        delta_m: Recoils given in the ground->excited direction (the
+            excited->ground direction gets the negative); plays the beam sign
+            for the pairing.
+        state_effect: :data:`StateEffect.FLIP` (swap the pair's populated
+            side), :data:`StateEffect.SUPERPOSE` (populate both) or
+            :data:`StateEffect.NONE` (pure momentum kick, internal state
+            unchanged).
+    """
+
+    state: InternalState
+    m: int
+    delta_m: int
+    state_effect: StateEffect = StateEffect.FLIP
+
+
+@dataclass(frozen=True)
 class Callback:
     """Escape hatch: dispatch to a kernel method provided by the subclass.
 
     The event itself is not expressed in the sequence language; the kernel
-    calls ``self.lmt_sequence_callback(callback_id)``, which the experiment
-    class overrides with an ``if``/``elif`` dispatch on the id (e.g. to fire
-    a shaped pulse). The declared effect on the atoms keeps the compiler's
-    population bookkeeping - and therefore the resonance prediction of all
-    subsequent pulses - correct.
+    calls ``self.lmt_sequence_callback_hook(callback_id)``, which the
+    experiment class overrides with an ``if``/``elif`` dispatch on the id (e.g.
+    to fire a shaped pulse). The declared effect on the atoms keeps the
+    compiler's population bookkeeping - and therefore the resonance prediction
+    of all subsequent pulses - correct.
+
+    The effect on the atoms is modelled as an explicit list of elementary
+    :class:`CallbackAction` items, taken to act **simultaneously and
+    exclusively** on the listed momentum classes (no off-resonant leakage -
+    that exclusivity is exactly what shaped pulses need). At fire time the
+    callback emits one ordinary pulse intent row per action, sharing one
+    ``t_start``; the analysis consumers therefore see a callback as N ordinary
+    pulse rows and need no callback-specific logic.
+
+    The action list may be **empty**: a callback that only triggers external
+    hardware and touches no atoms. It leaves NO intent record and makes NO
+    change to the population walk.
 
     Args:
-        callback_id: Integer id passed to ``lmt_sequence_callback``.
-        delta_m: Momentum change applied to every populated state listed.
-                Ground state atoms receive +delta_m, excited state receive -delta_m.
-        m_states: List of addressed m-states. These will received kicks
-                according to delta_m and whether they are ground / excited.
-        state_effect: ``"none"`` (internal states unchanged), ``"flip"``
-            (ground <-> excited) or ``"superpose"`` (populate both).
+        callback_id: Integer id passed to ``lmt_sequence_callback_hook``.
+        actions: List of :class:`CallbackAction` describing the addressed
+            momentum classes and what happens to each. Empty for a pure
+            external trigger.
         duration: Nominal duration in seconds, for documentation only (the
             callback advances the timeline however it likes).
         label: Optional tag for documentation.
     """
 
-    # FIXME This needs to be more expressive. See comments below:
-
     callback_id: int
-    delta_m: int
-    # FIXME we need to be able to specify which states this pulse addresses as a *list*. For example, as described in docstring above:
-    m_states: list[int]
-    # FIXME state_effect should be a IntEnum, not a string. We should always prefer IntEnums over strings. In fact we already have this: StateEffect in repository.lib.physics.lmt_resonance. Use that
-    state_effect: str = "none"
+    actions: list = field(default_factory=list)
     duration: float = 0.0
     label: str = ""
-
-    # FIXME If state_effect was an enum, this check would be automatic
-    def __post_init__(self):
-        if self.state_effect not in ("none", "flip", "superpose"):
-            raise ValueError(
-                "Callback state_effect must be 'none', 'flip' or 'superpose', "
-                f"got {self.state_effect!r}"
-            )
 
 
 def pi(
@@ -453,13 +470,20 @@ class CompiledEvent:
     :class:`SetPoint` event whose parameter governs their delivery set point.
 
     ``state_effect``, ``addressed_state``, ``addressed_m`` and ``delta_m``
-    carry the event's *intent* - what it is meant to do to the atomic
+    carry a *pulse* event's *intent* - what it is meant to do to the atomic
     populations - encoded with the integer codes of
-    :mod:`repository.lib.physics.lmt_resonance`. For pulses these are filled by
+    :mod:`repository.lib.physics.lmt_resonance`. They are filled by
     :func:`_compile_pulse` from the resolved transition (``EFFECT_FLIP`` for a
-    pi pulse, ``EFFECT_SUPERPOSE`` otherwise); for :class:`Callback` events
-    they come from the declaration. ``declared_duration_s`` is the
-    :class:`Callback`'s nominal duration (0.0 for everything else).
+    pi pulse, ``EFFECT_SUPERPOSE`` otherwise).
+
+    ``callback_actions`` carries a :class:`Callback`'s declared actions, each
+    encoded as an integer 4-tuple
+    ``(addressed_state, addressed_m, delta_m, state_effect)`` where
+    ``addressed_state`` is an :class:`AddressedState` code. At fire time each
+    action is registered as one ordinary pulse intent row, so a callback
+    contributes N pulse-like columns to the on-disk record.
+    ``declared_duration_s`` is the :class:`Callback`'s nominal duration (0.0
+    for everything else).
     """
 
     index: int
@@ -479,6 +503,7 @@ class CompiledEvent:
     addressed_m: int = M_AUTO
     delta_m: int = 0
     declared_duration_s: float = 0.0
+    callback_actions: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -676,15 +701,27 @@ def compile_sequence(
                 )
             )
         elif isinstance(event, Callback):
-            population = _apply_callback(population, event)
+            _apply_callback(population, event)
+            actions = tuple(
+                (
+                    int(
+                        AddressedState.GROUND
+                        if action.state == GROUND
+                        else AddressedState.EXCITED
+                    ),
+                    int(action.m),
+                    int(action.delta_m),
+                    int(action.state_effect),
+                )
+                for action in event.actions
+            )
             compiled.append(
                 CompiledEvent(
                     index=index,
                     kind=EVENT_CALLBACK,
                     callback_id=event.callback_id,
-                    state_effect=_CALLBACK_STATE_EFFECT_CODES[event.state_effect],
-                    delta_m=event.delta_m,
                     declared_duration_s=event.duration,
+                    callback_actions=actions,
                 )
             )
         else:
@@ -739,7 +776,7 @@ def _compile_pulse(
     elif len(populated_states) == 2:
         raise SequenceError(
             f"Event {index}: both |g, m={event.m}> and |e, m={event.m}> are "
-            "populated - give Pulse(..., state='g' or 'e') to disambiguate"
+            "populated - give Pulse(..., state=GROUND or EXCITED) to disambiguate"
         )
     else:
         # No population at this m and no explicit state: the transition is
@@ -747,35 +784,23 @@ def _compile_pulse(
         raise SequenceError(
             f"Event {index}: pulse addresses m={event.m} but no population is "
             f"there (populated: {', '.join(map(_format_state, sorted(population)))})"
-            " - give Pulse(..., state='g' or 'e') to fire it anyway"
+            " - give Pulse(..., state=GROUND or EXCITED) to fire it anyway"
         )
 
     s = event.beam.sign
     m_term = opll_m_term_hz(event.m, input_state, s)
 
     # The addressed pair |g, m_g> <-> |e, m_g + s>
-    if input_state == GROUND:
-        m_g = event.m
-    else:
-        m_g = event.m - s
+    m_g = _ground_class_of_pair(event.m, input_state == GROUND, s)
     ground = (GROUND, m_g)
     excited = (EXCITED, m_g + s)
 
     # Update the population walk: a pi pulse swaps the populated sides of the
     # pair; any other area populates both sides.
-    had_ground = ground in population
-    had_excited = excited in population
-    population.discard(ground)
-    population.discard(excited)
-    if math.isclose(event.area, 1.0):
-        if had_ground:
-            population.add(excited)
-        if had_excited:
-            population.add(ground)
-    else:
-        if had_ground or had_excited:
-            population.add(ground)
-            population.add(excited)
+    pulse_effect = (
+        StateEffect.FLIP if math.isclose(event.area, 1.0) else StateEffect.SUPERPOSE
+    )
+    _apply_addressed_action(population, input_state, event.m, s, pulse_effect)
 
     tag = _pulse_tag(event)
     name = _event_name(index, tag, event.label)
@@ -801,9 +826,7 @@ def _compile_pulse(
         # Intent: a pi pulse swaps the addressed pair's populations; any
         # other area populates both sides. delta_m is the beam sign (recoils
         # given in the ground->excited direction).
-        state_effect=(
-            StateEffect.FLIP if math.isclose(event.area, 1.0) else StateEffect.SUPERPOSE
-        ),
+        state_effect=pulse_effect,
         addressed_state=(
             AddressedState.GROUND if input_state == GROUND else AddressedState.EXCITED
         ),
@@ -829,16 +852,71 @@ def _compile_pulse(
     )
 
 
-def _apply_callback(population: set, event: Callback) -> set:
-    """Apply a Callback's declared effect to every populated state."""
-    new_population = set()
-    for state, m in population:
-        m_new = m + event.delta_m
-        if event.state_effect == "none":
-            new_population.add((state, m_new))
-        elif event.state_effect == "flip":
-            new_population.add((EXCITED if state == GROUND else GROUND, m_new))
-        else:  # superpose
-            new_population.add((GROUND, m_new))
-            new_population.add((EXCITED, m_new))
-    return new_population
+def _apply_addressed_action(
+    population: set,
+    addressed_state: InternalState,
+    addressed_m: int,
+    delta_m: int,
+    state_effect: StateEffect,
+) -> None:
+    """Apply one elementary addressed-action to ``population`` in place.
+
+    The action addresses the pair ``|g, m_g> <-> |e, m_g + delta_m>`` (the
+    pairing rule shared with the intent walkers, ``delta_m`` playing the beam
+    sign) and acts exclusively on its two members:
+
+    - :data:`StateEffect.FLIP`: swap the pair's populated side(s),
+    - :data:`StateEffect.SUPERPOSE`: populate both members if either was,
+    - :data:`StateEffect.NONE`: shift the addressed population's ``m`` by
+      ``delta_m`` with its internal state unchanged (a pure momentum kick).
+
+    This is the single source of the compiler's population walk for both pulses
+    (:func:`_compile_pulse`) and callback actions (:func:`_apply_callback`), so
+    a flattened callback walks identically to the equivalent pulse intent rows
+    in :mod:`repository.lib.physics.trajectory`.
+    """
+    m_g = _ground_class_of_pair(addressed_m, addressed_state == GROUND, delta_m)
+    ground = (GROUND, m_g)
+    excited = (EXCITED, m_g + delta_m)
+
+    if state_effect == StateEffect.NONE:
+        # Pure momentum kick: shift the addressed population by delta_m,
+        # internal state unchanged.
+        addressed = (addressed_state, addressed_m)
+        if addressed in population:
+            population.discard(addressed)
+            population.add((addressed_state, addressed_m + delta_m))
+        return
+
+    had_ground = ground in population
+    had_excited = excited in population
+    population.discard(ground)
+    population.discard(excited)
+    if state_effect == StateEffect.FLIP:
+        if had_ground:
+            population.add(excited)
+        if had_excited:
+            population.add(ground)
+    else:  # SUPERPOSE
+        if had_ground or had_excited:
+            population.add(ground)
+            population.add(excited)
+
+
+def _apply_callback(population: set, event: Callback) -> None:
+    """Apply a Callback's declared actions to ``population`` in place.
+
+    Each :class:`CallbackAction` is applied through the same
+    :func:`_apply_addressed_action` helper used for pulses, so the compiler's
+    population walk for a callback action is identical to walking the
+    equivalent pulse intent row. An empty action list leaves the population
+    unchanged.
+    """
+    for action in event.actions:
+        _apply_addressed_action(
+            population,
+            action.state,
+            action.m,
+            action.delta_m,
+            action.state_effect,
+        )
