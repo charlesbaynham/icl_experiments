@@ -111,6 +111,13 @@ class InternalState(Enum):
     GROUND = "g"
     EXCITED = "e"
 
+    def __lt__(self, other):
+        # Orderable so populations of (state, m) pairs can be sorted for
+        # deterministic log/error messages (ordered by the "g"/"e" value).
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
 
 GROUND = InternalState.GROUND
 EXCITED = InternalState.EXCITED

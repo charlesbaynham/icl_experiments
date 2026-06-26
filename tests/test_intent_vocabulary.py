@@ -8,6 +8,8 @@ The vocabulary lives in :mod:`repository.lib.physics.lmt_resonance`.
 
 import pytest
 
+from repository.lib.physics.lmt_resonance import EXCITED
+from repository.lib.physics.lmt_resonance import GROUND
 from repository.lib.physics.lmt_resonance import M_AUTO
 from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import IntentEvent
@@ -95,3 +97,18 @@ def test_addresses_pair_both_declared_excited_resolves_same_pair():
     assert e.addresses_pair(is_ground=False, m=6)
     assert e.addresses_pair(is_ground=True, m=5)
     assert not e.addresses_pair(is_ground=True, m=6)
+
+
+def test_internal_state_population_is_sortable():
+    # A mixed-state population (e.g. the open arms of a Mach-Zehnder) must be
+    # sortable: the compiler logs sorted(final_population), which crashed when
+    # InternalState was not orderable.
+    population = {(GROUND, 3), (EXCITED, 2), (GROUND, 0), (EXCITED, 5)}
+    assert sorted(population) == sorted(population)  # deterministic, no TypeError
+    # Ordered by the "g"/"e" value, then m: excited ("e") sorts before ground.
+    assert sorted(population) == [
+        (EXCITED, 2),
+        (EXCITED, 5),
+        (GROUND, 0),
+        (GROUND, 3),
+    ]
