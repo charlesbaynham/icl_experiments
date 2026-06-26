@@ -14,6 +14,10 @@ gives the down-vs-up offset; fit the Rabi (``detuned_square_pulse``) lineshape.
 Both build on :class:`ClockSpecPulseRatioFrag` (loading, gravity-compensated clock
 delivery, normalised fast-kinetics readout). EM gain is enabled via the
 experiment's own flag; ``DISABLE_EM_GAIN`` is never touched.
+
+Each keeps its live ``OnlineFit`` *and* a paired ``make_dataset_fit_analysis`` that
+writes the fitted line centre (and width) into result datasets - the diagnosed
+numbers must persist for logging/trending, not just draw on the applet.
 """
 
 import logging
@@ -31,6 +35,8 @@ from numpy import int64
 from repository.clock_spectroscopy.clock_spectroscopy_pulse_ratio import (
     ClockSpecPulseRatioFrag,
 )
+from repository.diagnostics.dataset_fit_analysis import FitOutput
+from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
 from repository.lib import constants
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
@@ -130,6 +136,8 @@ class ClockCavityOffsetFrag(ClockSpecPulseRatioFrag):
         delay(self.delay_after_spectroscopy.get())
 
     def get_default_analyses(self):
+        # OnlineFit draws the live Gaussian; make_dataset_fit_analysis additionally
+        # writes the fitted line centre (and width) to result datasets.
         return [
             OnlineFit(
                 "gaussian",
@@ -138,7 +146,25 @@ class ClockCavityOffsetFrag(ClockSpecPulseRatioFrag):
                     "y": self.excitation_fraction,
                 },
             )
-        ]
+        ] + make_dataset_fit_analysis(
+            fit_type="gaussian",
+            x=self.clock_delivery_handles.frequency_handle,
+            y=self.excitation_fraction,
+            outputs=[
+                FitOutput(
+                    "line_centre_aom",
+                    "Fitted clock line centre on the delivery-AOM axis",
+                    fit_key="x0",
+                    unit="MHz",
+                ),
+                FitOutput(
+                    "line_fwhm",
+                    "Fitted Gaussian FWHM of the Doppler-broadened line",
+                    fit_key="fwhm",
+                    unit="kHz",
+                ),
+            ],
+        )
 
 
 class ClockDownVsUpOffsetFrag(ClockSpecPulseRatioFrag):
@@ -154,6 +180,8 @@ class ClockDownVsUpOffsetFrag(ClockSpecPulseRatioFrag):
         self.override_param("em_gain", 30.0)
 
     def get_default_analyses(self):
+        # OnlineFit draws the live lineshape; make_dataset_fit_analysis additionally
+        # writes the fitted down-beam line centre to a result dataset.
         return [
             OnlineFit(
                 "detuned_square_pulse",
@@ -162,7 +190,20 @@ class ClockDownVsUpOffsetFrag(ClockSpecPulseRatioFrag):
                     "y": self.excitation_fraction,
                 },
             )
-        ]
+        ] + make_dataset_fit_analysis(
+            fit_type="detuned_square_pulse",
+            x=self.extra_clock_detuning,
+            y=self.excitation_fraction,
+            outputs=[
+                FitOutput(
+                    "line_centre_detuning",
+                    "Fitted down-beam line centre (extra_clock_detuning at resonance; "
+                    "read against the up-beam cavity calibration for the down-vs-up offset)",
+                    fit_key="offset",
+                    unit="kHz",
+                ),
+            ],
+        )
 
 
 ClockCavityOffset = make_default_scan_exp(
