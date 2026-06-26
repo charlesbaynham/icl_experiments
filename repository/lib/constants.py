@@ -111,13 +111,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=25.0,
+        attenuation=0.0,
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=22.0,
+        attenuation=0.0,
         urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
@@ -865,7 +865,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "clock_up_small",
         frequency=200e6,
-        attenuation=10.0,
+        attenuation=0.0,
         suservo_device="suservo_aom_698_clock_small",
         servo_enabled=False,
         initial_amplitude=1.0,
