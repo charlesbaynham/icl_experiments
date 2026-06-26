@@ -259,12 +259,17 @@ class Callback:
     of all subsequent pulses - correct.
 
     The effect on the atoms is modelled as an explicit list of elementary
-    :class:`CallbackAction` items, taken to act **simultaneously and
-    exclusively** on the listed momentum classes (no off-resonant leakage -
-    that exclusivity is exactly what shaped pulses need). At fire time the
-    callback emits one ordinary pulse intent row per action, sharing one
-    ``t_start``; the analysis consumers therefore see a callback as N ordinary
-    pulse rows and need no callback-specific logic.
+    :class:`CallbackAction` items, all taken to act at one instant. Each action
+    is treated exactly like an ordinary declarative pulse - the trackers model
+    no off-resonant excitation, so every action (like every pulse) addresses
+    only its own ``(state, m)`` pair. What a callback adds over a single pulse
+    is therefore just what one clock pulse cannot express at one timestamp:
+    **several simultaneous actions** (e.g. push m up and m-1 down at once), a
+    **pure momentum kick** (:data:`StateEffect.NONE`, no internal-state flip),
+    or **no atomic effect at all**. At fire time the callback emits one ordinary
+    pulse intent row per action, sharing one ``t_start``; the analysis consumers
+    therefore see a callback as N ordinary pulse rows and need no
+    callback-specific logic.
 
     The action list may be **empty**: a callback that only triggers external
     hardware and touches no atoms. It leaves NO intent record and makes NO
