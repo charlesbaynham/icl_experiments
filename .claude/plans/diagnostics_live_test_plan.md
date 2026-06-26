@@ -1,4 +1,4 @@
-# Live-rig test plan: atom diagnostics (PR #28)
+# Live-rig test plan: atom diagnostics (PR #37)
 
 These diagnostics and the `default_scan` template build on machinery that has not
 been validated end-to-end on the rig. Two `FIXME` markers (in

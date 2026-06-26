@@ -1,7 +1,7 @@
 r"""
 Diagnostic 4 - Clock beam polarization (in-plane x-y field-angle scan).
 
-FIXME: This module was rewritten from the reviewer's corrected physics (PR #28)
+FIXME: This module was rewritten from the reviewer's corrected physics (PR #37)
 but has NOT been validated on the live rig. The reviewer expects it to need
 careful on-rig testing before it is trusted (see
 ``.claude/plans/diagnostics_live_test_plan.md``). This FIXME deliberately blocks
