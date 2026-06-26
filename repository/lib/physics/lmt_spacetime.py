@@ -9,7 +9,7 @@ simulator draws it: a two-panel space-time / momentum diagram.
 Unlike the simulator -- which only has the *pulse facts* (frequencies and
 durations) and must infer flip/drift/split from a Bordé Rabi-probability
 heuristic -- the declarative-LMT stack records the **intent stream** alongside
-the facts (see :mod:`repository.lib.pulse_intent`). Every atom-affecting event
+the facts (see :mod:`repository.lib.physics.lmt_resonance`). Every atom-affecting event
 self-describes what it is meant to do to the populations, assumed 100 %
 efficient. So here the trajectory is walked *exactly* from the recorded intent,
 with no Rabi guesswork: the branch bookkeeping is identical to the dynamic-ROI
@@ -32,11 +32,11 @@ import numpy as np
 import scipy.constants as _const
 
 from repository.lib import constants
-from repository.lib import pulse_intent
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics import lmt_resonance
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -153,10 +153,20 @@ def _append_transfer(cloud: Cloud, t: float, dt: float, delta_m: int, label: str
     cloud.labels.append(label)
 
 
+def _append_kick(cloud: Cloud, t: float, dt: float, delta_m: int, label: str):
+    """Append a pure momentum kick (NONE: internal state unchanged)."""
+    new_m = cloud.m[-1] + delta_m
+    cloud.times.append(t)
+    cloud.z.append(cloud.z[-1] + new_m * RECOIL_VELOCITY * dt)
+    cloud.m.append(new_m)
+    cloud.is_ground.append(cloud.is_ground[-1])
+    cloud.labels.append(label)
+
+
 def walk_intent_to_trajectory(events):
     """Walk an intent stream into ``(sequence, clouds, clearout_times)``.
 
-    ``events`` is a list of :class:`~repository.lib.pulse_intent.IntentEvent` in
+    ``events`` is a list of :class:`~repository.lib.physics.lmt_resonance.IntentEvent` in
     firing order. Returns the contiguous drawing ``sequence`` (list of
     :class:`Pulse`/:class:`Drift`/:class:`Clearout`), the list of
     :class:`Cloud` branches, and an array of clearout times (seconds). Times are
@@ -164,8 +174,9 @@ def walk_intent_to_trajectory(events):
 
     The branch semantics are exactly those of the recorded intent (and of
     :mod:`repository.lib.physics.trajectory`): a flip transfers the addressed
-    pair, a superpose splits it, a clearout removes the addressed internal
-    state, and a callback applies its declared effect to every branch.
+    pair, a superpose splits it, and a clearout removes the addressed internal
+    state. Callbacks carry no special record kind - each callback action is an
+    ordinary ``Kind.PULSE`` row and flows through the pulse path here.
     """
     events = sorted(events, key=lambda e: e.t_centre_s)
     if not events:
@@ -206,24 +217,28 @@ def walk_intent_to_trajectory(events):
                     cloud.alive = False
             continue
 
-        # KIND_PULSE or KIND_CALLBACK: an atom-affecting kick drawn as a Pulse.
+        # KIND_PULSE: an atom-affecting kick drawn as a Pulse.
         t_cursor += dt
         k = -1 if event.delta_m < 0 else +1
 
-        if event.kind == Kind.CALLBACK:
-            new_clouds, band = _apply_callback(clouds, event, t_cursor, dt)
-            clouds = new_clouds
-            sequence.append(
-                Pulse(k=k, duration=dt, label="callback", m_low=band[0], m_high=band[1])
-            )
-            # callbacks never fork, so no colour bookkeeping is needed
-            continue
-
-        addressed = [
-            c
-            for c in clouds
-            if c.alive and event.addresses_pair(c.is_ground[-1], c.m[-1])
-        ]
+        # A NONE pulse is a pure momentum kick on the single declared
+        # population (the pure-kick callback action); FLIP/SUPERPOSE act on the
+        # whole addressed pair.
+        if event.state_effect == StateEffect.NONE:
+            clear_excited = event.addressed_state == AddressedState.EXCITED
+            addressed = [
+                c
+                for c in clouds
+                if c.alive
+                and c.is_ground[-1] == (not clear_excited)
+                and c.m[-1] == event.addressed_m
+            ]
+        else:
+            addressed = [
+                c
+                for c in clouds
+                if c.alive and event.addresses_pair(c.is_ground[-1], c.m[-1])
+            ]
         if not addressed and event.state_effect != StateEffect.NONE:
             logger.warning(
                 "Intent pulse at t=%.6f s addresses (state=%s, m=%s) but no live "
@@ -257,8 +272,9 @@ def walk_intent_to_trajectory(events):
                 _append_transfer(flipper, t_cursor, dt, event.delta_m, "pulse")
                 m_involved.append(flipper.m[-1])
                 new_clouds.extend([drifter, flipper])
-            else:  # EFFECT_NONE: pulse fired but does nothing
-                _append_drift(cloud, t_cursor, dt, "pulse")
+            else:  # StateEffect.NONE: pure momentum kick, internal state unchanged
+                _append_kick(cloud, t_cursor, dt, event.delta_m, "pulse")
+                m_involved.append(cloud.m[-1])
                 new_clouds.append(cloud)
         clouds = new_clouds
 
@@ -268,35 +284,6 @@ def walk_intent_to_trajectory(events):
         )
 
     return sequence, clouds, np.asarray(clearout_times)
-
-
-def _apply_callback(clouds, event: IntentEvent, t: float, dt: float):
-    """Apply a declared callback effect to every live branch.
-
-    Mirrors :func:`repository.lib.physics.trajectory._apply_callback`:
-    ``delta_m`` is added to every branch as declared (no ground/excited sign
-    flip), with the internal state changed per ``state_effect``.
-    """
-    out: list = []
-    m_involved: list = []
-    for cloud in clouds:
-        if not cloud.alive:
-            out.append(cloud)
-            continue
-        m_involved.append(cloud.m[-1])
-        new_m = cloud.m[-1] + event.delta_m
-        cloud.times.append(t)
-        cloud.z.append(cloud.z[-1] + new_m * RECOIL_VELOCITY * dt)
-        cloud.m.append(new_m)
-        if event.state_effect == StateEffect.FLIP:
-            cloud.is_ground.append(not cloud.is_ground[-1])
-        else:  # NONE or SUPERPOSE collapse to a single drawn arm
-            cloud.is_ground.append(cloud.is_ground[-1])
-        cloud.labels.append("callback")
-        m_involved.append(new_m)
-        out.append(cloud)
-    band = (min(m_involved), max(m_involved)) if m_involved else (None, None)
-    return out, band
 
 
 # --- Drawing trace (identical convention to lmt_sim / lmt_trajectory) --------
@@ -413,7 +400,7 @@ def intent_events_from_record(record):
     addressed_m, delta_m]``.
     """
     kinds, start_s, dur_s, effects, states, addr_m, delta_m = record
-    return pulse_intent.intent_events_from_arrays(
+    return lmt_resonance.intent_events_from_arrays(
         t_start_s=start_s,
         duration_s=dur_s,
         kinds=[int(round(x)) for x in kinds],

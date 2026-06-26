@@ -103,6 +103,7 @@ from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
@@ -182,7 +183,7 @@ class RedMOTSlicedSpecDynamicROIFrag(
     """
 
     # Atoms are released from the red MOT in the ground state with no kicks
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
         # Velocity slice: a normal pulse, just longer and at a lower delivery
@@ -252,7 +253,7 @@ def _make_launch_frag(n):
             "that class and the module-level audit."
         )
 
-        lmt_initial_population = {("g", 0)}
+        lmt_initial_population = {(GROUND, 0)}
 
         lmt_sequence = [
             SetPoint(

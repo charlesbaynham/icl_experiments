@@ -2,9 +2,10 @@
 Probe: does the ARTIQ kernel compiler accept a Python ``IntEnum`` member where
 we currently use bare ``int`` constants?
 
-``repository.lib.pulse_intent`` defines the intent-record vocabulary as a flat
-list of module-level ``int`` constants (``KIND_PULSE = 0`` ...) plus hand-written
-``__post_init__`` validation. Those codes are consumed by ``@portable`` methods
+``repository.lib.physics.lmt_resonance`` defines the intent-record vocabulary as
+a flat list of module-level ``int`` constants (``KIND_PULSE = 0`` ...) plus
+hand-written ``__post_init__`` validation. Those codes are consumed by
+``@portable`` methods
 on ``PulseDMARecording`` (``register_pulse`` and friends), so they cross into
 kernel code. The obvious tidy-up is to replace the loose ints with an
 ``IntEnum`` and let the type system do the checking - but only if the ARTIQ
@@ -16,7 +17,7 @@ how the intent codes are used.
 
 Result (confirmed on the vendored ARTIQ fork): it COMPILES. ``IntEnum`` members
 subclass ``int``, and the kernel compiler inlines them as ordinary int
-constants. So the flat module-level ``int`` constants in ``pulse_intent`` can be
+constants. So the flat module-level ``int`` constants in ``lmt_resonance`` can be
 replaced with an ``IntEnum`` and the hand-written ``__post_init__`` validation
 deleted. This test stays as a regression guard: if a future ARTIQ bump breaks
 ``IntEnum`` in kernels it will fail here, pointing straight at the cause.
@@ -63,6 +64,6 @@ def test_intenum_member_compiles_in_kernel(fragment_precompiler):
     Passes on the vendored ARTIQ fork: IntEnum members compile as int
     constants in kernels (see module docstring). If this ever starts failing,
     an ARTIQ bump has dropped IntEnum support and the flat-int encoding in
-    ``pulse_intent`` must stay.
+    ``lmt_resonance`` must stay.
     """
     fragment_precompiler(IntEnumInKernelFrag)

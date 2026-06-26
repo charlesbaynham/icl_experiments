@@ -1,28 +1,70 @@
 """
-LMT pulse resonance predictor
-=============================
+LMT pulse resonance predictor and recorded-intent vocabulary
+============================================================
 
 Pure host-side (no ARTIQ) physics for predicting the resonance of large momentum
-transfer (LMT) clock pulses on the 698 nm transition.
+transfer (LMT) clock pulses on the 698 nm transition, plus the shared vocabulary
+of the recorded *intent* stream.
 
-This is a minimal port of the Bordé-frame resonance bookkeeping from the
-``lmt_sim`` simulation package
-(https://github.com/charlesbaynham/LMT_sim_scratch), restricted to the single
-question the experiment needs answered at build time:
+This module has two responsibilities:
 
-    "Which OPLL offset frequency addresses momentum class m with the up or down
-    beam?"
+1. **Resonance physics** - a minimal port of the Bordé-frame resonance
+   bookkeeping from the ``lmt_sim`` simulation package
+   (https://github.com/charlesbaynham/LMT_sim_scratch), restricted to the single
+   question the experiment needs answered at build time:
+
+       "Which OPLL offset frequency addresses momentum class m with the up or
+       down beam?"
+
+2. **Recorded-intent vocabulary** - the enums (:class:`Kind`,
+   :class:`StateEffect`, :class:`AddressedState`), the :data:`M_AUTO` sentinel
+   and the :class:`IntentEvent` decoding helpers that describe the *intent*
+   stream recorded by
+   :class:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording`
+   alongside the pulse facts. Every atom-affecting event (clock pulses, 461 nm
+   clearouts and "callback" pulses) registers one entry describing **what it is
+   meant to do to the atomic populations, assumed 100 % efficient**. The stream
+   is consumed by the dynamic-ROI trajectory predictor
+   (:mod:`repository.lib.physics.trajectory`) and the spacetime diagram
+   (:mod:`repository.lib.physics.lmt_spacetime`).
 
 Conventions
 -----------
 
 - Momentum classes ``m`` are integer multiples of the single-photon recoil
   ``hbar * k``, counted **positive in the upward direction**.
-- Internal states are labelled ``"g"`` (ground) and ``"e"`` (excited).
-    (FIXME this should be changed to an IntEnum, as mentioned below)
+- Internal states are :class:`InternalState` members ``GROUND`` and ``EXCITED``.
 - Beam directions are described by ``beam_sign``: ``+1`` for the up beam and
   ``-1`` for the down beam.
 - A beam with sign ``s`` couples the pair ``|g, m_g> <-> |e, m_g + s>``.
+
+Intent record schema
+---------------------
+
+One entry per atom-affecting event, in firing order:
+
+==================  =======  ====================================================
+field               type     meaning
+==================  =======  ====================================================
+``t_start_mu``      int64    timeline position when the event starts
+``duration_mu``     int64    event duration
+``kind``            int32    ``Kind.PULSE`` or ``Kind.CLEAROUT``. (``Kind.CALLBACK``
+                             is reserved but no longer emitted: a callback
+                             records one ordinary ``Kind.PULSE`` row per
+                             declared action.)
+``state_effect``    int32    ``StateEffect.FLIP`` (pi-like full transfer),
+                             ``StateEffect.SUPERPOSE`` (pi/2-like split: both
+                             pair members populated) or ``StateEffect.NONE``
+``addressed_state`` int32    internal state of the population the event
+                             addresses: ``AddressedState.GROUND``,
+                             ``AddressedState.EXCITED`` or ``AddressedState.AUTO``
+                             (resolve from the population walk)
+``addressed_m``     int32    momentum class of the addressed population, or
+                             :data:`M_AUTO`
+``delta_m``         int32    recoils given to the transferred component in the
+                             ground->excited direction (the excited->ground
+                             direction gets the negative).
+==================  =======  ====================================================
 
 The atomic-frame resonance detuning (relative to the unperturbed transition, for
 an atom at rest) of the pair with ground class ``m_g`` driven by beam ``s`` is
@@ -55,12 +97,23 @@ pulse) and ``opll_m_term_hz`` is the static, m-dependent part computed here on
 the host, calculated for the pulse mid-point.
 """
 
+from dataclasses import dataclass
+from enum import Enum
+from enum import IntEnum
+from typing import Sequence
+
 import scipy.constants
 
 from repository.lib import constants
 
-GROUND = "g"
-EXCITED = "e"
+
+class InternalState(Enum):
+    GROUND = "g"
+    EXCITED = "e"
+
+
+GROUND = InternalState.GROUND
+EXCITED = InternalState.EXCITED
 
 #: Photon recoil energy of the 698 nm clock transition expressed as a
 #: frequency: f_rec = hbar * k^2 / (4 * pi * M) = h / (2 * M * lambda^2).
@@ -70,9 +123,9 @@ RECOIL_FREQUENCY_HZ = scipy.constants.h / (
 
 #: Doppler shift produced by a single photon recoil: v_rec / lambda. This is
 #: the frequency step between adjacent momentum classes and equals twice the
-#: recoil frequency. The empirically-used value in the experiment is
-#: ``constants.MOMENTUM_KICK_DETUNING`` (9.4 kHz); the two agree to < 0.1 %.
-DOPPLER_PER_KICK_HZ = 2 * RECOIL_FREQUENCY_HZ
+#: recoil frequency. ``constants.MOMENTUM_KICK_DETUNING`` is the same quantity
+#: derived from fundamental constants, so the two are identical.
+DOPPLER_PER_KICK_HZ = constants.MOMENTUM_KICK_DETUNING
 
 
 def v0_doppler_term_hz(
@@ -125,7 +178,7 @@ def transition_detuning_hz(
     Returns:
         Detuning in Hz.
     """
-    # FIXME needs to be validated by running a sequence with no atoms, extracting the reported pulse sequence and putting it through LMT_simulations to test it
+    # TODO: validate against LMT_simulations by running a no-atom sequence, extracting the reported pulse sequence and putting it through LMT_simulations to test it
     if k_sign not in (1, -1):
         raise ValueError(f"k_sign must be +1 or -1, got {k_sign!r}")
     return k_sign * m_ground * kick_hz + kick_hz / 2.0
@@ -156,7 +209,19 @@ def addressed_ground_class(
     return (effective_detuning_hz - kick_hz / 2.0) / (k_sign * kick_hz)
 
 
-def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
+def _ground_class_of_pair(m: int, is_ground: bool, beam_sign: int) -> int:
+    """Ground class ``m_g`` of the pair ``|g, m_g> <-> |e, m_g + beam_sign>``.
+
+    A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so the
+    populated state ``(is_ground, m)`` lies on the ground side at ``m_g = m`` or
+    on the excited side at ``m_g = m - s``. This is the single source of the
+    pairing rule, shared by :func:`pair_ground_class` and
+    :meth:`IntentEvent.addresses_pair`.
+    """
+    return m if is_ground else m - beam_sign
+
+
+def pair_ground_class(m: int, internal_state: InternalState, beam_sign: int) -> int:
     """Ground class of the pair addressed when driving state ``(internal_state, m)``.
 
     A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so driving a
@@ -165,7 +230,7 @@ def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
 
     Args:
         m: Momentum class of the populated state being addressed.
-        internal_state: ``"g"`` or ``"e"``.
+        internal_state: :data:`GROUND` or :data:`EXCITED`.
         beam_sign: Beam direction, +1 (up) or -1 (down).
 
     Returns:
@@ -174,15 +239,15 @@ def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
     if beam_sign not in (1, -1):
         raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
     if internal_state == GROUND:
-        return m
+        return _ground_class_of_pair(m, True, beam_sign)
     if internal_state == EXCITED:
-        return m - beam_sign
+        return _ground_class_of_pair(m, False, beam_sign)
     raise ValueError(f"internal_state must be 'g' or 'e', got {internal_state!r}")
 
 
 def opll_m_term_hz(
     m: int,
-    internal_state: str,
+    internal_state: InternalState,
     beam_sign: int,
     kick_hz: float = constants.MOMENTUM_KICK_DETUNING,
 ) -> float:
@@ -194,7 +259,8 @@ def opll_m_term_hz(
 
     Args:
         m:              Momentum class of the populated state being addressed.
-        internal_state: Internal state (``"g"`` or ``"e"``) of that population.
+        internal_state: Internal state (:data:`GROUND` or :data:`EXCITED`) of
+                        that population.
         beam_sign:      Beam direction, +1 (up) or -1 (down). kick_hz: Doppler shift
                         per photon recoil.
 
@@ -203,3 +269,149 @@ def opll_m_term_hz(
     """
     m_g = pair_ground_class(m, internal_state, beam_sign)
     return transition_detuning_hz(m_g, beam_sign, kick_hz=kick_hz)
+
+
+# ── Recorded-intent vocabulary ────────────────────────────────────────────────
+
+
+class Kind(IntEnum):
+    PULSE = 0
+    CLEAROUT = 1
+    # No longer emitted: callbacks self-describe as PULSE rows (one ordinary
+    # pulse intent row per declared callback action). Kept to document the
+    # record schema and preserve the IntEnum numbering.
+    CALLBACK = 2
+
+
+class StateEffect(IntEnum):
+    FLIP = 0  # pi-like: the addressed pair's population swaps sides
+    SUPERPOSE = 1  # pi/2-like: both members of the addressed pair populated
+    NONE = 2  # internal states unchanged
+
+
+class AddressedState(IntEnum):
+    AUTO = -1  # resolve from the population walk
+    GROUND = 0
+    EXCITED = 1
+
+
+#: "Resolve the addressed momentum class from the population walk". Far outside
+#: any physical recoil count so it can never collide with a real value.
+M_AUTO = -1048576
+
+
+@dataclass(frozen=True)
+class IntentEvent:
+    """One decoded entry of the intent stream, with times in seconds.
+
+    Times are in whatever frame the caller rebased them to (the trajectory
+    predictor expects seconds since atom release).
+
+    ``kind``/``state_effect``/``addressed_state`` may be given as raw ints or as
+    enum members; ``__post_init__`` coerces them to the enums, which also
+    validates them (the enum constructor raises ``ValueError`` on an unknown
+    code).
+    """
+
+    t_start_s: float
+    duration_s: float
+    kind: Kind
+    state_effect: StateEffect
+    addressed_state: AddressedState
+    addressed_m: int
+    delta_m: int
+
+    @property
+    def t_centre_s(self) -> float:
+        """Instantaneous-kick time: the centre of the event."""
+        return self.t_start_s + self.duration_s / 2.0
+
+    def __post_init__(self):
+        # Coerce to the enums; an unknown code raises ValueError here. Frozen
+        # dataclass, so assign through object.__setattr__.
+        object.__setattr__(self, "kind", Kind(self.kind))
+        object.__setattr__(self, "state_effect", StateEffect(self.state_effect))
+        object.__setattr__(
+            self, "addressed_state", AddressedState(self.addressed_state)
+        )
+
+    def addresses_pair(self, is_ground: bool, m: int) -> bool:
+        """Is the population ``(is_ground, m)`` addressed by this event?
+
+        Shared by the dynamic-ROI predictor
+        (:mod:`repository.lib.physics.trajectory`) and the spacetime diagram
+        (:mod:`repository.lib.physics.lmt_spacetime`) so they always agree on
+        which branches a pulse touches.
+
+        ``AddressedState.AUTO``/``M_AUTO`` (the legacy ``register_pulse``
+        default) address every populated branch through the pulse's own
+        coupling - correct for the single-chain sequences legacy code fires. An
+        explicitly declared pair ``|g, m_g> <-> |e, m_g + delta_m>`` (the
+        declarative engine) addresses only its two members, leaving e.g. a
+        parked interferometer arm untouched.
+        """
+        state_auto = self.addressed_state == AddressedState.AUTO
+        m_auto = self.addressed_m == M_AUTO
+
+        if state_auto and m_auto:
+            return True
+        if m_auto:
+            # State declared, momentum class automatic: every branch in that state
+            return is_ground == (self.addressed_state == AddressedState.GROUND)
+        if state_auto:
+            # Momentum class declared, state automatic: every branch at that m
+            return m == self.addressed_m
+
+        # Both declared: the addressed pair is |g, m_g> <-> |e, m_g + delta_m>,
+        # and population on either side of the pair participates. The pairing
+        # rule is the shared one used at compile time (delta_m plays beam_sign).
+        m_g = _ground_class_of_pair(
+            self.addressed_m,
+            self.addressed_state == AddressedState.GROUND,
+            self.delta_m,
+        )
+        if is_ground:
+            return m == m_g
+        return m == m_g + self.delta_m
+
+
+def intent_events_from_arrays(
+    t_start_s: Sequence[float],
+    duration_s: Sequence[float],
+    kinds: Sequence[int],
+    state_effects: Sequence[int],
+    addressed_states: Sequence[int],
+    addressed_m: Sequence[int],
+    delta_m: Sequence[int],
+) -> list[IntentEvent]:
+    """Assemble parallel record arrays into a list of :class:`IntentEvent`.
+
+    All arrays must have the same length; validation of the field values
+    happens in :class:`IntentEvent`.
+    """
+    n = len(t_start_s)
+    for name, arr in (
+        ("duration_s", duration_s),
+        ("kinds", kinds),
+        ("state_effects", state_effects),
+        ("addressed_states", addressed_states),
+        ("addressed_m", addressed_m),
+        ("delta_m", delta_m),
+    ):
+        if len(arr) != n:
+            raise ValueError(
+                f"Intent record arrays must have equal lengths: "
+                f"t_start_s has {n}, {name} has {len(arr)}"
+            )
+    return [
+        IntentEvent(
+            t_start_s=float(t_start_s[i]),
+            duration_s=float(duration_s[i]),
+            kind=int(kinds[i]),
+            state_effect=int(state_effects[i]),
+            addressed_state=int(addressed_states[i]),
+            addressed_m=int(addressed_m[i]),
+            delta_m=int(delta_m[i]),
+        )
+        for i in range(n)
+    ]

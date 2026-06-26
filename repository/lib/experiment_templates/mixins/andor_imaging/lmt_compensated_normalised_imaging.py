@@ -27,7 +27,7 @@ from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 
 from repository.lib import constants
-from repository.lib import pulse_intent
+from repository.lib.physics import lmt_resonance
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsBase,
 )
@@ -350,7 +350,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
         # An empty stream (num_events == 0) is handled by predict_port_pixels
         # as pure free fall.
-        events = pulse_intent.intent_events_from_arrays(
+        events = lmt_resonance.intent_events_from_arrays(
             t_start_s=t_start_s,
             duration_s=duration_s,
             kinds=intent_kinds[:num_events],

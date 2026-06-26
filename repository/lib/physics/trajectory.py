@@ -4,7 +4,7 @@ Intent-driven trajectory predictor
 
 Pure host-side (no ARTIQ) prediction of where the atom clouds appear on the
 camera sensor, computed from the **recorded intent stream** (see
-:mod:`repository.lib.pulse_intent`) rather than from any physical model of the
+:mod:`repository.lib.physics.lmt_resonance`) rather than from any physical model of the
 pulses: every event is assumed to do exactly what it declared, 100 %
 efficiently. This is deliberate - the full Bordé-frame simulation
 (LMT_sim_scratch) stays a desk-side sanity check and is never in the
@@ -32,8 +32,10 @@ Per intent event:
 - split (``EFFECT_SUPERPOSE``): both members of the addressed pair are
   populated; the new branch inherits the kick history.
 - clearout: branches in the addressed internal state are removed.
-- callback: the declared ``delta_m``/``state_effect`` applied to every branch
-  (matching the declarative language's ``Callback`` semantics).
+
+Callbacks carry no special record kind: each declared callback action is
+recorded as an ordinary ``Kind.PULSE`` intent row and flows through the pulse
+path above, so this walker needs no callback-specific branch.
 
 At an imaging time, the *ground port* is the set of ground-state branches and
 the *excited port* the rest. A port with more than one branch (e.g. an open
@@ -52,10 +54,10 @@ import numpy as np
 
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import recoil_velocity
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import IntentEvent
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import IntentEvent
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -127,8 +129,6 @@ def walk_intent_events(
             branches = _apply_pulse(branches, event, t_c, v_r, direction)
         elif event.kind == Kind.CLEAROUT:
             branches = _apply_clearout(branches, event)
-        elif event.kind == Kind.CALLBACK:
-            branches = _apply_callback(branches, event, t_c, v_r, direction)
         else:  # pragma: no cover - IntentEvent already validates
             raise ValueError(f"Unknown intent event kind {event.kind!r}")
 
@@ -149,6 +149,19 @@ def _transferred(
     )
 
 
+def _kicked(
+    branch: _Branch, event: IntentEvent, t_c: float, v_r: float, direction: np.ndarray
+) -> _Branch:
+    """The branch after a pure momentum kick (NONE: internal state unchanged)."""
+    advanced = branch.advanced(t_c, v_r, direction)
+    return _Branch(
+        is_ground=advanced.is_ground,
+        m=advanced.m + event.delta_m,
+        displacement_m=advanced.displacement_m,
+        t_last_s=advanced.t_last_s,
+    )
+
+
 def _apply_pulse(
     branches: list[_Branch],
     event: IntentEvent,
@@ -157,8 +170,20 @@ def _apply_pulse(
     direction: np.ndarray,
 ) -> list[_Branch]:
     # Compare by identity: _Branch carries an ndarray, so value equality is
-    # both meaningless here and unsafe in `in` checks.
-    addressed_ids = {id(b) for b in branches if event.addresses_pair(b.is_ground, b.m)}
+    # both meaningless here and unsafe in `in` checks. A NONE pulse is a pure
+    # momentum kick on the single declared population (the pure-kick callback
+    # action); FLIP/SUPERPOSE act on the whole addressed pair.
+    if event.state_effect == StateEffect.NONE:
+        addressed_ids = {
+            id(b)
+            for b in branches
+            if b.is_ground == (event.addressed_state != AddressedState.EXCITED)
+            and b.m == event.addressed_m
+        }
+    else:
+        addressed_ids = {
+            id(b) for b in branches if event.addresses_pair(b.is_ground, b.m)
+        }
     if not addressed_ids and event.state_effect != StateEffect.NONE:
         logger.warning(
             "Intent pulse at t=%.6f s addresses (state=%s, m=%s) but no "
@@ -171,14 +196,17 @@ def _apply_pulse(
 
     out: list[_Branch] = []
     for branch in branches:
-        if id(branch) not in addressed_ids or event.state_effect == StateEffect.NONE:
+        if id(branch) not in addressed_ids:
             out.append(branch)
             continue
         if event.state_effect == StateEffect.FLIP:
             out.append(_transferred(branch, event, t_c, v_r, direction))
-        else:  # EFFECT_SUPERPOSE: both members of the pair populated
+        elif event.state_effect == StateEffect.SUPERPOSE:
+            # both members of the pair populated
             out.append(branch.advanced(t_c, v_r, direction))
             out.append(_transferred(branch, event, t_c, v_r, direction))
+        else:  # StateEffect.NONE: pure momentum kick, internal state unchanged
+            out.append(_kicked(branch, event, t_c, v_r, direction))
     return out
 
 
@@ -191,34 +219,6 @@ def _apply_clearout(branches: list[_Branch], event: IntentEvent) -> list[_Branch
             event.t_start_s,
         )
     return survivors
-
-
-def _apply_callback(
-    branches: list[_Branch],
-    event: IntentEvent,
-    t_c: float,
-    v_r: float,
-    direction: np.ndarray,
-) -> list[_Branch]:
-    """Apply a declared callback effect to every branch.
-
-    Mirrors :func:`repository.lib.lmt_sequence._apply_callback`: ``delta_m``
-    is added to every branch as declared (no ground/excited sign flip).
-    """
-    out: list[_Branch] = []
-    for branch in branches:
-        advanced = branch.advanced(t_c, v_r, direction)
-        m_new = advanced.m + event.delta_m
-        if event.state_effect == StateEffect.NONE:
-            out.append(_Branch(advanced.is_ground, m_new, advanced.displacement_m, t_c))
-        elif event.state_effect == StateEffect.FLIP:
-            out.append(
-                _Branch(not advanced.is_ground, m_new, advanced.displacement_m, t_c)
-            )
-        else:  # EFFECT_SUPERPOSE
-            out.append(_Branch(True, m_new, advanced.displacement_m, t_c))
-            out.append(_Branch(False, m_new, advanced.displacement_m, t_c))
-    return out
 
 
 def _port_position_lab(

@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
+from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
@@ -68,7 +69,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     """
 
     # Atoms are released from the trap in the ground state with no kicks
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
         # Velocity selection: a normal pulse, just longer and with a lower
@@ -126,9 +127,12 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Wait(t=1e-3, label="dark2"),
         # pi2(Beam.DOWN, m=M_TOP, label="bs2"),
         # Escape-hatch example (v2): a shaped pulse implemented by an
-        # overridden lmt_sequence_callback, declaring its momentum effect so
-        # the bookkeeping of later pulses stays correct:
-        # Callback(callback_id=1, delta_m=1, state_effect="flip"),
+        # overridden lmt_sequence_callback_hook, declaring its momentum effect
+        # as a list of addressed actions so the bookkeeping of later pulses
+        # stays correct:
+        # Callback(callback_id=1, actions=[
+        #     CallbackAction(state=EXCITED, m=M_TOP, delta_m=1),  # FLIP by default
+        # ]),
     ]
 
     @kernel

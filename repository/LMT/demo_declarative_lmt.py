@@ -13,7 +13,9 @@ frequency offset (p0N_..._offset); those are calibrations, not needed to run.
 
 import logging
 
+from artiq.language import delay
 from artiq.language import kernel
+from numpy import int32
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib import constants
@@ -44,8 +46,13 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Callback
+from repository.lib.lmt_sequence import CallbackAction
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
+from repository.lib.physics.lmt_resonance import EXCITED
+from repository.lib.physics.lmt_resonance import GROUND
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +87,7 @@ class DemoDeclarativeLMTFrag(
 ):
     """A minimal declarative-LMT launch with the repumped fast-kinetics readout."""
 
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
         SetPoint(
@@ -118,3 +125,65 @@ class DemoDeclarativeLMTFrag(
 
 
 DemoDeclarativeLMT = make_fragment_scan_exp(DemoDeclarativeLMTFrag)
+
+
+# Callback id dispatched by the demo callback below.
+_DEMO_CALLBACK_PI = 1
+
+
+class DemoDeclarativeLMTCallbackFrag(DemoDeclarativeLMTFrag):
+    """Demo of the new :class:`Callback` API firing a clock pulse by hand.
+
+    After the velocity slice leaves the selected class in ``(EXCITED, 1)``, a
+    :class:`Callback` declares the equivalent of a single normal up-beam pi
+    pulse on that class and fires it through the RAW, UNTRACKED switch-DDS path
+    in :meth:`lmt_sequence_callback_hook`.
+
+    The action's intent (an up-beam pi transfer of the pair
+    ``(GROUND, 0) <-> (EXCITED, 1)``) is registered by the engine via
+    ``register_intent_action`` immediately before dispatch, so the predictor
+    already has a faithful pulse intent row. Firing the pulse through the
+    tracked wrappers (``fire_lmt_pulse`` / ``set_clock_up_dds``) would register
+    a SECOND intent row for the same pulse and double-count it in the pulse
+    recorder - hence the deliberate raw ``clock_up_dds.sw.on()/off()`` path.
+    """
+
+    lmt_initial_population = {(GROUND, 0)}
+
+    lmt_sequence = [
+        SetPoint(
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        pi(Beam.UP, m=0, label="slice"),  # leaves (EXCITED, 1)
+        Callback(
+            callback_id=_DEMO_CALLBACK_PI,
+            # Equivalent of a normal up-beam pi pulse on the launched class:
+            # an up-beam (delta_m=+1) pi (FLIP) addressing (EXCITED, 1), i.e.
+            # the pair (GROUND, 0) <-> (EXCITED, 1).
+            actions=[
+                CallbackAction(
+                    state=EXCITED, m=1, delta_m=1, state_effect=StateEffect.FLIP
+                )
+            ],
+            duration=constants.CLOCK_PI_TIME,
+            label="callback_pi",
+        ),
+    ]
+
+    @kernel
+    def lmt_sequence_callback_hook(self, callback_id: int32):
+        if callback_id == _DEMO_CALLBACK_PI:
+            # RAW, UNTRACKED firing on purpose: the engine already registered
+            # this pulse's intent via register_intent_action, so going through
+            # the tracked wrappers (fire_lmt_pulse / set_clock_up_dds) would
+            # double-count it in the pulse recorder.
+            self.clock_up_dds.sw.on()
+            delay(constants.CLOCK_PI_TIME)
+            self.clock_up_dds.sw.off()
+        else:
+            raise ValueError("Unknown LMT sequence callback id")
+
+
+DemoDeclarativeLMTCallback = make_fragment_scan_exp(DemoDeclarativeLMTCallbackFrag)

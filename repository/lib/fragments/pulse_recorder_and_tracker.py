@@ -53,10 +53,10 @@ from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
-from repository.lib.pulse_intent import M_AUTO
-from repository.lib.pulse_intent import AddressedState
-from repository.lib.pulse_intent import Kind
-from repository.lib.pulse_intent import StateEffect
+from repository.lib.physics.lmt_resonance import M_AUTO
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
 BUFFER_DEPTH = 300
 
 # The intent vocabulary (and the archive schema) is defined in
-# repository.lib.pulse_intent. The Kind/StateEffect/AddressedState IntEnum
+# repository.lib.physics.lmt_resonance. The Kind/StateEffect/AddressedState IntEnum
 # members are int-valued, so the kernel compiler inlines them as compile-time
 # integer constants (see tests/test_intenum_kernel_compile.py).
 
@@ -115,7 +115,7 @@ class PulseDMARecording(Fragment):
 
         # Preallocate the intent stream: one entry per atom-affecting event
         # (clock pulses, clearouts, callbacks), appended at fire time next to
-        # the facts. Schema in repository.lib.pulse_intent.
+        # the facts. Schema in repository.lib.physics.lmt_resonance.
         self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
@@ -139,7 +139,7 @@ class PulseDMARecording(Fragment):
     @kernel
     def record_pulse_sequence(self):
         # Wipe the buffers; register_pulse() / register_clearout() /
-        # register_intent_callback() repopulate them during recording
+        # register_intent_action() repopulate them during recording
         self._pulse_record_num_pulses = 0
         self._intent_record_num_events = 0
         with self.core_dma.record(self.dma_name):
@@ -342,7 +342,7 @@ class PulseDMARecording(Fragment):
         intent (what the pulse is meant to do to the atomic populations,
         assumed 100 % efficient) are appended by this single call, so they
         can never misalign - even for conditional or per-shot-varying
-        sequences. Field semantics: :mod:`repository.lib.pulse_intent`.
+        sequences. Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
 
         if self._pulse_record_num_pulses >= BUFFER_DEPTH:
@@ -406,27 +406,34 @@ class PulseDMARecording(Fragment):
         )
 
     @portable
-    def register_intent_callback(
+    def register_intent_action(
         self,
         duration_s: float,
         state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
         delta_m: int32,
     ):
         """
-        Register the declared effect of a non-standard pulse (shaped/Jesse
-        pulses, anything fired outside the square-pulse path).
+        Register one elementary addressed-action of a callback (a shaped pulse
+        fired outside the square-pulse path).
 
-        ``delta_m`` and ``state_effect`` are applied to every populated
-        branch at prediction time (matching the declarative language's
-        ``Callback`` semantics), assumed 100 % efficient.
+        A callback declares its effect as a list of addressed-actions, each
+        acting exclusively on one momentum class; this records ONE of them as a
+        normal pulse intent row (``Kind.PULSE``) - identical to an ordinary
+        pulse, so the trajectory predictor needs no callback-specific logic.
+        Like :meth:`register_clearout` it appends only an intent row and records
+        NO pulse facts (the shaped pulse is not a tracked square clock pulse).
+
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
         self._append_intent(
             t_start_mu=now_mu(),
             duration_mu=self.core.seconds_to_mu(duration_s),
-            kind=Kind.CALLBACK,
+            kind=Kind.PULSE,
             state_effect=state_effect,
-            addressed_state=AddressedState.AUTO,
-            addressed_m=M_AUTO,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
             delta_m=delta_m,
         )
 
@@ -489,7 +496,7 @@ class PulseDMARecording(Fragment):
         Writes ``pulse_intent_record_flat`` / ``pulse_intent_record_offsets``;
         each regular record is ``[num_events, kind_0, …, start_0, …, dur_0, …,
         effect_0, …, addressed_state_0, …, addressed_m_0, …, delta_m_0, …]``.
-        Field semantics: :mod:`repository.lib.pulse_intent`.
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
         self._archive_flat_encoded("pulse_intent_record", "pulse_intent_record")
 
