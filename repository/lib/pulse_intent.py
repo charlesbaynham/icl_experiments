@@ -1,3 +1,6 @@
+# FIXME This module seems to completely duplicate the functionality of lmt_resonance.py. We need to consolidate these. Let's go with lmt_resonance as the default choice, it's more complete.
+
+
 """
 Pulse-intent record vocabulary
 ==============================

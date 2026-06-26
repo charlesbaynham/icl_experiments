@@ -247,11 +247,11 @@ class Callback:
         label: Optional tag for documentation.
     """
 
-    # FIXME This needs to be more expressive
+    # FIXME This needs to be more expressive. See comments below:
 
     callback_id: int
     delta_m: int
-    # FIXME we need to be able to specify which states this pulse addresses as a list. For example:
+    # FIXME we need to be able to specify which states this pulse addresses as a *list*. For example, as described in docstring above:
     m_states: list[int]
     # FIXME state_effect should be a IntEnum, not a string. We should always prefer IntEnums over strings. In fact we already have this: StateEffect in pulse_intent. Use that
     state_effect: str = "none"
