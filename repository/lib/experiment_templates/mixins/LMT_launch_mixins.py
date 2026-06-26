@@ -249,7 +249,9 @@ class LMTBase(
 
             # Clear out the ground state
             if pulse_type == "up":
-                self.register_clearout(duration_s=self.clearout_duration.get())
+                self.dma_recording_fragment.register_clearout(
+                    duration_s=self.clearout_duration.get()
+                )
                 self.fluorescence_pulse.do_clearout_pulse(
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
@@ -342,7 +344,7 @@ class LMTBase(
             # pulse the down beam
 
             d = self.down_pulses_duration.get()
-            self.register_pulse(duration_s=d, is_up=False)
+            self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
             self.clock_down_dds.sw.on()
             delay(d)
             self.clock_down_dds.sw.off()
@@ -361,7 +363,7 @@ class LMTBase(
             # pulse the up beam
 
             d = self.spectroscopy_pulse_time.get()
-            self.register_pulse(duration_s=d, is_up=True)
+            self.dma_recording_fragment.register_pulse(duration_s=d, is_up=True)
             self.clock_up_dds.sw.on()
             delay(d)
             self.clock_up_dds.sw.off()
@@ -393,7 +395,7 @@ class LMTBase(
         delay_mu(8)
 
         d = duration
-        self.register_pulse(duration_s=d, is_up=True)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=True)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -430,7 +432,7 @@ class LMTBase(
         delay_mu(8)
 
         d = duration
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -517,7 +519,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        self.register_clearout(duration_s=50e-6)
+        self.dma_recording_fragment.register_clearout(duration_s=50e-6)
         self.fluorescence_pulse.do_clearout_pulse(
             duration=50e-6,  # self.clearout_duration.get(),
             ignore_final_shutters=True,
@@ -657,7 +659,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down / 2
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -707,7 +709,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
 
         d = t_pi_up / 1.8
-        self.register_pulse(duration_s=d, is_up=True)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=True)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -783,7 +785,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # registered as a square pulse with the same duration and carrier
         # frequency. Extend the record format to describe the envelope (and
         # the OPLL ramp during the pulse) properly.
-        self.register_pulse(
+        self.dma_recording_fragment.register_pulse(
             duration_s=self.first_lmt_shaped_pulse.pulse_duration.get(),
             is_up=True,
         )
@@ -1206,7 +1208,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pulse / 2
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1237,7 +1239,7 @@ class LMTInterferometryMixin(
         )
         at_mu(t_start_mirror_pulse_mu)
         d = t_pulse
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1286,7 +1288,7 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
         d = t_pulse / 2
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1359,7 +1361,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)  # / 2)
         self.clock_down_dds.sw.off()
@@ -1449,7 +1451,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         )
         at_mu(t_start_mirror_pulse_mu)
         d = t_pi_down
-        self.register_pulse(duration_s=d, is_up=False)
+        self.dma_recording_fragment.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()

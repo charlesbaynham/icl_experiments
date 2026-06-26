@@ -44,9 +44,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 from repository.lib.lmt_sequence import Beam
-from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
-from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 
 logger = logging.getLogger(__name__)
@@ -91,14 +89,17 @@ class DemoDeclarativeLMTFrag(
             label="slice",
         ),
         pi(Beam.UP, m=0, label="slice"),
-        SetPoint(
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
-            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        ),
-        Clearout(),  # clears the unselected atoms, still in |g>
-        *ladder(start_m=1, n=_DEMO_LAUNCH_RECOILS, first_beam=Beam.DOWN),
-        Clearout(),  # clears |g> residual from imperfect pulses (launch is in |e>)
+        # FIXME: everything after the velocity slice disabled to scan the slice
+        # pulse frequency in isolation (velocity-selective spectroscopy).
+        # Restore before merging.
+        # SetPoint(
+        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        # ),
+        # Clearout(),  # clears the unselected atoms, still in |g>
+        # *ladder(start_m=1, n=_DEMO_LAUNCH_RECOILS, first_beam=Beam.DOWN),
+        # Clearout(),  # clears |g> residual from imperfect pulses (launch is in |e>)
     ]
 
     @kernel

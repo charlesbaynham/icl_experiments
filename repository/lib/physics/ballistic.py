@@ -17,9 +17,9 @@ Usage example::
     from repository.lib.physics.ballistic import BallisticConfig, CameraGeometry
 
     camera = CameraGeometry(
-        optical_axis=constants.ANDOR_OPTICAL_AXIS_DEFAULT,
-        sensor_x_axis=constants.ANDOR_SENSOR_X_AXIS_DEFAULT,
-        sensor_y_axis=constants.ANDOR_SENSOR_Y_AXIS_DEFAULT,
+        optical_axis=constants.ANDOR_OPTICAL_AXIS,
+        sensor_x_axis=constants.ANDOR_SENSOR_X_AXIS,
+        sensor_y_axis=constants.ANDOR_SENSOR_Y_AXIS,
         centre_pixel=(256.0, 256.0),
         pixel_size_m=constants.ANDOR_CAMERA_FACTS["pixel_size"],
         magnification=constants.ANDOR_CAMERA_FACTS["magnification"],
@@ -32,8 +32,6 @@ Usage example::
         camera=camera,
     )
 """
-
-from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -64,10 +62,8 @@ class CameraGeometry:
     magnification: float = 1.0
 
     def __post_init__(self):
-        # Normalise the axes and re-orthogonalise by Gram-Schmidt rather than
-        # rejecting near-miss inputs: the axis components are exposed as
-        # freely-editable ndscan parameters for small tilt corrections, and a
-        # hand-entered tilt (e.g. optical_axis_y = 0.999) must not blow up an
+        # Re-orthogonalise/normalise the configured axes by Gram-Schmidt so a
+        # slightly off hand-entered geometry constant can't blow up an
         # experiment mid-shot. Genuinely degenerate inputs still raise.
         def _unit(v: np.ndarray, name: str) -> np.ndarray:
             norm = np.linalg.norm(v)
