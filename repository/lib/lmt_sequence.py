@@ -64,14 +64,14 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 
+from repository.lib.physics.lmt_resonance import _ground_class_of_pair
+from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
-from repository.lib.physics.lmt_resonance import M_AUTO
-from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import InternalState
-from repository.lib.physics.lmt_resonance import StateEffect
-from repository.lib.physics.lmt_resonance import _ground_class_of_pair
+from repository.lib.physics.lmt_resonance import M_AUTO
 from repository.lib.physics.lmt_resonance import opll_m_term_hz
+from repository.lib.physics.lmt_resonance import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -618,6 +618,14 @@ class CompiledEvent:
     ``addressed_state`` is an :class:`AddressedState` code. At fire time each
     action is registered as one ordinary pulse intent row, so a callback
     contributes N pulse-like columns to the on-disk record.
+    ``callback_action_m_term_hz`` runs parallel to ``callback_actions`` and
+    carries each action's static recoil m-term (:func:`opll_m_term_hz`), so the
+    engine can reconstruct each addressed cloud's resonance - and the same probe
+    Stark shift an ordinary pulse at the governing set point would see - when a
+    shaped-pulse callback places the OPLL itself. For a callback ``beam_sign``,
+    ``rabi_hz`` and ``governing_setpoint_index`` describe the single beam its
+    actions drive and the Rabi frequency of that set point (all zero / -1 for an
+    empty callback, which drives no beam).
     ``declared_duration_s`` is the :class:`Callback`'s nominal duration (0.0
     for everything else).
     """
@@ -643,6 +651,7 @@ class CompiledEvent:
     delta_m: int = 0
     declared_duration_s: float = 0.0
     callback_actions: tuple = ()
+    callback_action_m_term_hz: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -881,13 +890,27 @@ def compile_sequence(
                 )
                 for action in event.actions
             )
+            # A shaped-pulse callback places the OPLL itself, so it needs the
+            # same resonance ingredients an ordinary pulse gets: the recoil
+            # m-term of each addressed cloud, and the Rabi frequency of the
+            # governing set point (which fixes the probe Stark shift).
+            beam_sign, rabi_hz, setpoint_index = _resolve_callback_drive(
+                index, event, current_setpoint
+            )
+            action_m_terms = tuple(
+                _callback_action_m_term_hz(action) for action in event.actions
+            )
             compiled.append(
                 CompiledEvent(
                     index=index,
                     kind=EVENT_CALLBACK,
+                    beam_sign=beam_sign,
+                    rabi_hz=rabi_hz,
+                    governing_setpoint_index=setpoint_index,
                     callback_id=event.callback_id,
                     declared_duration_s=event.duration,
                     callback_actions=actions,
+                    callback_action_m_term_hz=action_m_terms,
                 )
             )
         else:
@@ -1064,6 +1087,79 @@ def _apply_addressed_action(
         if had_ground or had_excited:
             population.add(ground)
             population.add(excited)
+
+
+def _callback_action_m_term_hz(action: CallbackAction) -> float:
+    """Static recoil m-term of one callback action's addressed cloud.
+
+    The engine reconstructs a cloud's resonance from this term the same way it
+    does for an ordinary pulse (:func:`opll_m_term_hz`). That resonance is only
+    defined for a single-recoil action (``|delta_m| == 1``, like a clock pulse);
+    a multi-recoil or zero-recoil action has no single-photon OPLL resonance, so
+    it gets ``0.0`` and the hook must not ask the engine for its centre
+    frequency (:meth:`...declarative_lmt.DeclarativeLMTBase.lmt_callback_action_centre_freq`).
+    """
+    if abs(action.delta_m) == 1:
+        return opll_m_term_hz(action.m, action.state, action.delta_m)
+    return 0.0
+
+
+def _resolve_callback_drive(
+    index: int,
+    event: Callback,
+    current_setpoint: "tuple[int, SetPoint] | None",
+) -> "tuple[int, float, int]":
+    """Resolve the single beam a callback's actions drive and that beam's Rabi.
+
+    A callback whose actions touch atoms drives one clock beam (the actions'
+    shared ``delta_m`` sign), exactly as an ordinary pulse does. The engine
+    reproduces each addressed cloud's resonance - including the probe Stark
+    shift ``-alpha * rabi**2`` - from the governing :class:`SetPoint`'s declared
+    Rabi frequency, never from the pulse duration. This resolves that
+    ``(beam_sign, rabi_hz, governing_setpoint_index)``.
+
+    An empty callback drives no beam and needs no set point: returns
+    ``(0, 0.0, -1)``.
+
+    Raises:
+        SequenceError: if the actions span both beams (no single beam to place
+            the OPLL on), if there is no governing set point, or if that set
+            point declares no Rabi for the driven beam.
+    """
+    if not event.actions:
+        return 0, 0.0, -1
+
+    signs = {int(math.copysign(1, a.delta_m)) for a in event.actions if a.delta_m != 0}
+    if len(signs) > 1:
+        raise SequenceError(
+            f"Event {index}: callback actions drive both beams (delta_m signs "
+            f"{sorted(signs)}); the engine needs a single beam to place the OPLL "
+            "and pick the Rabi frequency. Split into one Callback per beam."
+        )
+    if not signs:
+        raise SequenceError(
+            f"Event {index}: callback actions all have delta_m=0, so no beam "
+            "can be resolved to place the OPLL. Declare the driven beam via a "
+            "non-zero delta_m."
+        )
+    beam_sign = signs.pop()
+    beam = Beam.UP if beam_sign > 0 else Beam.DOWN
+
+    if current_setpoint is None:
+        raise SequenceError(
+            f"Event {index}: callback with atom-affecting actions before any "
+            "SetPoint - declare the delivery set point first"
+        )
+    setpoint_index, setpoint = current_setpoint
+    rabi_frequency = setpoint.rabi_for(beam)
+    if rabi_frequency is None:
+        raise SequenceError(
+            f"Event {index}: callback drives the {beam.name.lower()} beam, but "
+            f"the governing SetPoint (event {setpoint_index}) declares no "
+            f"rabi_{beam.name.lower()} - declare the Rabi frequency of this beam "
+            "at the current set point"
+        )
+    return beam_sign, rabi_frequency, setpoint_index
 
 
 def _apply_callback(population: set, event: Callback) -> None:
