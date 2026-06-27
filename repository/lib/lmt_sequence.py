@@ -64,14 +64,14 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 
-from repository.lib.physics.lmt_resonance import _ground_class_of_pair
-from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
-from repository.lib.physics.lmt_resonance import InternalState
 from repository.lib.physics.lmt_resonance import M_AUTO
-from repository.lib.physics.lmt_resonance import opll_m_term_hz
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import InternalState
 from repository.lib.physics.lmt_resonance import StateEffect
+from repository.lib.physics.lmt_resonance import _ground_class_of_pair
+from repository.lib.physics.lmt_resonance import opll_m_term_hz
 
 logger = logging.getLogger(__name__)
 

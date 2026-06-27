@@ -4,27 +4,27 @@ Tests for the declarative LMT sequence language and compiler.
 
 import pytest
 
-from repository.lib.lmt_sequence import Beam
-from repository.lib.lmt_sequence import Callback
-from repository.lib.lmt_sequence import CallbackAction
-from repository.lib.lmt_sequence import Clearout
-from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
-from repository.lib.lmt_sequence import ladder
-from repository.lib.lmt_sequence import pi
-from repository.lib.lmt_sequence import pi2
+from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Callback
+from repository.lib.lmt_sequence import CallbackAction
+from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
+from repository.lib.lmt_sequence import compile_sequence
+from repository.lib.lmt_sequence import ladder
+from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import pi2
 from repository.lib.physics import lmt_resonance as pulse_intent
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
-from repository.lib.physics.lmt_resonance import opll_m_term_hz
 from repository.lib.physics.lmt_resonance import StateEffect
+from repository.lib.physics.lmt_resonance import opll_m_term_hz
 
 
 def setpoints(rabi_up=9e3, rabi_down=7e3):
