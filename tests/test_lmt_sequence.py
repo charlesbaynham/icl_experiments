@@ -491,10 +491,9 @@ def test_callback_bakes_setpoint_rabi_and_m_terms():
     )
     cb = compiled.events[1]
     assert cb.kind == EVENT_CALLBACK
-    # Up-beam actions -> up-beam Rabi and beam sign, from the governing set point.
-    assert cb.beam_sign == 1
-    assert cb.rabi_hz == pytest.approx(9.1e3)
     assert cb.governing_setpoint_index == 0
+    # Both up-beam actions -> the up-beam Rabi of the governing set point.
+    assert cb.callback_action_rabi_hz == pytest.approx((9.1e3, 9.1e3))
     # One m-term per action, identical to what opll_m_term_hz gives for each.
     assert cb.callback_action_m_term_hz == pytest.approx(
         (
@@ -525,7 +524,7 @@ def test_callback_drive_matches_equivalent_pulse():
         [*setpoints(rabi_up=8.3e3), pi(Beam.UP, m=2)],
         initial_population={(GROUND, 2)},
     ).events[1]
-    assert cb.rabi_hz == pytest.approx(pulse.rabi_hz)
+    assert cb.callback_action_rabi_hz[0] == pytest.approx(pulse.rabi_hz)
     assert cb.callback_action_m_term_hz[0] == pytest.approx(pulse.m_term_hz)
 
 
@@ -544,8 +543,7 @@ def test_callback_down_beam_uses_rabi_down():
         ],
         initial_population={(EXCITED, 1)},
     ).events[1]
-    assert cb.beam_sign == -1
-    assert cb.rabi_hz == pytest.approx(7.4e3)
+    assert cb.callback_action_rabi_hz == pytest.approx((7.4e3,))
 
 
 def test_empty_callback_has_no_drive():
@@ -555,31 +553,32 @@ def test_empty_callback_has_no_drive():
         [Callback(callback_id=9, actions=[])],
         initial_population={(EXCITED, 5)},
     ).events[0]
-    assert cb.beam_sign == 0
-    assert cb.rabi_hz == 0.0
     assert cb.governing_setpoint_index == -1
+    assert cb.callback_action_rabi_hz == ()
     assert cb.callback_action_m_term_hz == ()
 
 
-def test_callback_mixed_beams_rejected():
-    with pytest.raises(SequenceError, match="drive both beams"):
-        compile_sequence(
-            [
-                *setpoints(),
-                Callback(
-                    callback_id=1,
-                    actions=[
-                        CallbackAction(
-                            state=EXCITED, m=1, delta_m=1, state_effect=StateEffect.FLIP
-                        ),
-                        CallbackAction(
-                            state=GROUND, m=2, delta_m=-1, state_effect=StateEffect.FLIP
-                        ),
-                    ],
-                ),
-            ],
-            initial_population={(EXCITED, 1), (GROUND, 2)},
-        )
+def test_callback_mixed_beams_resolve_per_action():
+    """A callback may mix beams: each action takes its own beam's Rabi from the
+    governing set point (up action -> rabi_up, down action -> rabi_down)."""
+    cb = compile_sequence(
+        [
+            *setpoints(rabi_up=9.1e3, rabi_down=7.4e3),
+            Callback(
+                callback_id=1,
+                actions=[
+                    CallbackAction(
+                        state=GROUND, m=0, delta_m=1, state_effect=StateEffect.FLIP
+                    ),
+                    CallbackAction(
+                        state=EXCITED, m=1, delta_m=-1, state_effect=StateEffect.FLIP
+                    ),
+                ],
+            ),
+        ],
+        initial_population={(GROUND, 0)},
+    ).events[1]
+    assert cb.callback_action_rabi_hz == pytest.approx((9.1e3, 7.4e3))
 
 
 def test_callback_with_actions_before_setpoint_rejected():

@@ -301,6 +301,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_cb_action_delta_m",
             "_lmt_cb_action_state_effect",
             "_lmt_cb_action_m_term_hz",
+            "_lmt_cb_action_rabi_hz",
             "_lmt_cb_action_start",
             "_lmt_cb_action_count",
         }
@@ -354,9 +355,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_cb_action_addressed_m = []
         self._lmt_cb_action_delta_m = []
         self._lmt_cb_action_state_effect = []
-        # Per-action recoil m-term, so a shaped-pulse callback can reconstruct
+        # Per-action recoil m-term and the governing set point's Rabi for the
+        # beam each action drives, so a shaped-pulse callback can reconstruct
         # each addressed cloud's resonance (Stark shift included) on the OPLL.
         self._lmt_cb_action_m_term_hz = []
+        self._lmt_cb_action_rabi_hz = []
         self._lmt_cb_action_start = []
         self._lmt_cb_action_count = []
         # Set per callback as it fires, so the hook-facing helpers below can
@@ -436,14 +439,21 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             # record this event's slice into them.
             self._lmt_cb_action_start.append(int32(len(self._lmt_cb_action_delta_m)))
             self._lmt_cb_action_count.append(int32(len(event.callback_actions)))
-            for (addressed_state, addressed_m, delta_m, state_effect), m_term_hz in zip(
-                event.callback_actions, event.callback_action_m_term_hz
+            for (
+                (addressed_state, addressed_m, delta_m, state_effect),
+                m_term_hz,
+                rabi_hz,
+            ) in zip(
+                event.callback_actions,
+                event.callback_action_m_term_hz,
+                event.callback_action_rabi_hz,
             ):
                 self._lmt_cb_action_addressed_state.append(int32(addressed_state))
                 self._lmt_cb_action_addressed_m.append(int32(addressed_m))
                 self._lmt_cb_action_delta_m.append(int32(delta_m))
                 self._lmt_cb_action_state_effect.append(int32(state_effect))
                 self._lmt_cb_action_m_term_hz.append(float(m_term_hz))
+                self._lmt_cb_action_rabi_hz.append(float(rabi_hz))
 
             self._bind_offset_slot(event)
             self._bind_duration_slot(event)
@@ -725,16 +735,19 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         Each addressed cloud carries the governing set point's probe Stark shift
         (see :meth:`_pulse_freq_centre`). A shaped pulse covering several clouds
         combines these itself - e.g. the midpoint of the two clouds left by a
-        pi/2 - and programs that single frequency on the OPLL. Valid only inside
+        pi/2 - and programs that single frequency on the OPLL. Each action is
+        resolved on its own beam (the sign of its ``delta_m``), so this is
+        correct even when a callback mixes beams. Valid only inside
         :meth:`lmt_sequence_callback_hook`.
         """
         i = self._lmt_active_cb_event
         j = self._lmt_cb_action_start[i] + action_index
+        beam_sign = 1.0 if self._lmt_cb_action_delta_m[j] > 0 else -1.0
         return self._pulse_freq_centre(
             t_centre_mu,
-            self._lmt_beam_sign[i],
+            beam_sign,
             self._lmt_cb_action_m_term_hz[j],
-            self._lmt_rabi_hz[i],
+            self._lmt_cb_action_rabi_hz[j],
             0.0,
         )
 
