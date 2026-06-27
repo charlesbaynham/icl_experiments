@@ -52,9 +52,9 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Callback
 from repository.lib.lmt_sequence import CallbackAction
+from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
 from repository.lib.lmt_sequence import pi2
-from repository.lib.lmt_sequence import SetPoint
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
 from repository.lib.physics.lmt_resonance import StateEffect
