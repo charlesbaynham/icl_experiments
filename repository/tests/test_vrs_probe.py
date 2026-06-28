@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.coredevice.urukul import CPLD
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import host_only
@@ -57,16 +58,18 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
 
-    # def prepare(self) -> None:
+    @host_only
+    def host_setup(self):
+        super().host_setup()
 
-    #     # Set the CPLD
-    #     self.cpld: CPLD = self.dds.cpld
+        # Set the CPLD
+        self.cpld: CPLD = self.dds.cpld
 
     @kernel
     def device_setup(self) -> None:
         self.core.break_realtime()
         delay(200e-3)
-        self.dds.cpld.init()
+        self.cpld.init()
         self.dds.init()
         delay(1e-3)
         self.dds.sw.set_o(True)
