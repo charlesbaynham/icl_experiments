@@ -66,7 +66,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
     @kernel
     def device_setup(self) -> None:
         self.core.break_realtime()
-        # self.core.reset()  # FIXME Ideally don't do this - ndscan does it for you and it can erase previous work. Here it's fine, but it's a bad habit
         delay(200e-3)
         self.cpld.init()
         self.dds.init()
@@ -75,7 +74,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.dds.set_att(float(self.attenuation.get()))
         self.core.break_realtime()
 
-        # FIXME You have fallen for the classic ndscan gotcha. You need:
         self.device_setup_subfragments()
 
     @kernel
