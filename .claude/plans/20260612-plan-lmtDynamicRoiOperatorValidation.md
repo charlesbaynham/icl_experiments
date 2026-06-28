@@ -17,13 +17,13 @@ has occurred in a shot. The feature has never been run in the lab. It contains:
 
 ## 1. Where the code lives
 
-| Component | Location |
-|---|---|
-| Ballistic trajectory predictor (host-side physics) | `repository/lib/physics/ballistic.py` |
-| Dynamic camera config + imaging mixin | `repository/lib/experiment_templates/mixins/andor_imaging/lmt_compensated_normalised_imaging.py` (`LMTCompensatedCameraConfig`, `NormalisedFastKineticsLMTCorrectedMixin`) |
-| Pulse sequence recording (feeds the predictor) | `repository/lib/fragments/pulse_recorder_and_tracker.py` (`PulseDMARecording.register_pulse`), called from the LMT mixins in `repository/lib/experiment_templates/mixins/LMT_launch_mixins.py` and `clock_interferometry.py` |
-| Predictor unit tests | `tests/test_ballistic_predictor.py` (13 tests, all currently `xfail`) |
-| Grabber ROI programming | `repository/lib/fragments/cameras/andor_camera.py` (`AndorCameraControl.device_setup`) |
+| Component                                          | Location                                                                                                                                                                                                                     |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ballistic trajectory predictor (host-side physics) | `repository/lib/physics/ballistic.py`                                                                                                                                                                                        |
+| Dynamic camera config + imaging mixin              | `repository/lib/experiment_templates/mixins/andor_imaging/lmt_compensated_normalised_imaging.py` (`LMTCompensatedCameraConfig`, `NormalisedFastKineticsLMTCorrectedMixin`)                                                   |
+| Pulse sequence recording (feeds the predictor)     | `repository/lib/fragments/pulse_recorder_and_tracker.py` (`PulseDMARecording.register_pulse`), called from the LMT mixins in `repository/lib/experiment_templates/mixins/LMT_launch_mixins.py` and `clock_interferometry.py` |
+| Predictor unit tests                               | `tests/test_ballistic_predictor.py` (13 tests, all currently `xfail`)                                                                                                                                                        |
+| Grabber ROI programming                            | `repository/lib/fragments/cameras/andor_camera.py` (`AndorCameraControl.device_setup`)                                                                                                                                       |
 
 Intended data flow per shot:
 
@@ -60,9 +60,10 @@ Ordered roughly by severity. F1–F6 are hard blockers; the feature cannot work
 at all until they are fixed.
 
 ### F1 — Predictor unimplemented / physics model wrong (blocker)
+
 `ballistic.py:171`. As above. Note the dead code below the `raise` models
 "ground = no kicks, excited = all kicks". That is not how an LMT sequence's
-output ports work: in an interferometer/launch sequence *both* detected ports
+output ports work: in an interferometer/launch sequence _both_ detected ports
 receive most of the momentum kicks; the ports typically differ by ~1 photon
 recoil, and atoms swap internal state at each π pulse (so "is_up" alone does
 not determine the kick sign experienced by a given port). The model must be
@@ -70,6 +71,7 @@ re-derived against the actual sequences in `LMT_launch_mixins.py` before
 implementation. This is presumably what the author's TODO means.
 
 ### F2 — `LMTCompensatedCameraConfig` cannot be constructed (blocker)
+
 `lmt_compensated_normalised_imaging.py:52–53` sets
 `fast_kinetics_height_default` / `fast_kinetics_offset_default`, but the base
 class `FastKineticsCameraConfig.__init__` (`andor_camera.py:140–145`) requires
@@ -78,6 +80,7 @@ raises `ValueError` when they are `None`. Nothing reads the `*_default` names.
 Instantiating the fragment crashes immediately.
 
 ### F3 — `get_rois` is `@kernel` but is called from the host (blocker)
+
 The base contract (`AndorCameraConfig.get_rois`) is `@portable`; the sibling
 configs (`NormalisedFKConfig`, `NormalisedFKDoubleTrapConfig`) honour that. The
 LMT version is decorated `@kernel`, yet it is called from host context in at
@@ -86,15 +89,16 @@ least three places: `AndorCameraConfig.host_setup` (`andor_camera.py:76–84`),
 `normalised_fast_kinetics_base.py:371`) and the `@host_only`
 `do_gauss_fit_hook`. Calling a `@kernel` from host triggers a separate
 core-device kernel run per call. Worse, `roi_buffer`, `gnd_x` etc. are only
-assigned *after* `super().host_setup()` returns
+assigned _after_ `super().host_setup()` returns
 (`lmt_compensated_normalised_imaging.py:194–202`), so the very first host call
 references attributes that don't exist yet. Fix: decorate `@portable`,
 allocate `roi_buffer` in `build_fragment` (as the siblings do), and initialise
 `gnd_*`/`excited_*` before calling `super().host_setup()`.
 
 ### F4 — Timebase mismatch between pulse record and image times (blocker)
+
 `t_dipole_beams_off` and all `_pulse_record_*_mu` timestamps are captured
-*inside* `core_dma.record()`. ARTIQ's `DMARecordContextManager.__enter__`
+_inside_ `core_dma.record()`. ARTIQ's `DMARecordContextManager.__enter__`
 resets `now` to **zero** for the duration of the recording
 (`vendor/artiq/artiq/coredevice/dma.py`), so these are recording-relative
 times (t₀ ≈ 0). But `do_imaging_hook_andor`
@@ -110,11 +114,12 @@ times in the same recording-relative frame, e.g.
 event times offset by `now_mu()` at the playback call.
 
 ### F5 — Grabber ROIs are programmed before the positions are computed (blocker)
+
 `AndorCameraControl.device_setup` (`andor_camera.py:515–533`) writes the
 grabber ROI registers at the start of each shot using `get_rois()`.
 `calculate_atom_positions` only runs later, inside the imaging hook. Updating
 `gnd_*`/`excited_*` at that point does **not** reprogram the grabber, so the
-ROIs actually in effect are those computed in the *previous* shot (trap centre
+ROIs actually in effect are those computed in the _previous_ shot (trap centre
 on the first shot). In a scan over LMT parameters every point is measured with
 the previous point's ROIs. Since `DMA_record_hook` runs at the very start of
 `run_once`, the pulse record is already complete before playback: compute the
@@ -123,49 +128,55 @@ the calculation so it precedes `device_setup`'s ROI programming). This also
 resolves F8.
 
 ### F6 — Fast-kinetics readout geometry ignored in `get_rois` (blocker)
+
 Sibling configs subtract `fast_kinetics_offset` from the y coordinates and add
 `(fast_kinetics_height − excited_shift)` to the second shot's ROI
 (`normalised_fast_kinetics_base.py:129–147`), because in FK mode the second
 exposure is shifted down the readout frame by the FK subarea height. The LMT
 `get_rois` uses raw sensor coordinates for both ROIs: the ground ROI is
 misplaced by `−offset` and the excited ROI is additionally missing the
-`+height` FK row shift (the *physical* inter-shot movement is handled by the
-predictor; the *readout* shift is not). The `2 × sensor_height` y-clamp shows
+`+height` FK row shift (the _physical_ inter-shot movement is handled by the
+predictor; the _readout_ shift is not). The `2 × sensor_height` y-clamp shows
 the double-height FK frame was considered, but the shift itself was never
 applied.
 
 ### F7 — Camera tilt parameters are unusable as exposed
+
 `build_fragment` exposes the nine axis components as freely-editable
 `FloatParam`s "so that small unknown tilts can be corrected without code
 changes", but `CameraGeometry.__post_init__` (`ballistic.py:82–104`)
-*validates* (unit norm and pairwise orthogonality to 1e-6) rather than
+_validates_ (unit norm and pairwise orthogonality to 1e-6) rather than
 normalising/orthogonalising. Almost any hand-entered tilt (e.g. nudging
 `optical_axis_y` to 0.999) makes the mid-experiment RPC raise `ValueError`.
 Fix: normalise and re-orthogonalise (Gram–Schmidt) in `__post_init__`, or
 re-parameterise as two tilt angles.
 
 ### F8 — Synchronous RPC at imaging time risks RTIOUnderflow
+
 `calculate_atom_positions` is a blocking RPC issued immediately before the
-first fluorescence pulse, which itself writes events *into the past* (camera
+first fluorescence pulse, which itself writes events _into the past_ (camera
 pre-trigger + FK shift time, `andor_camera.py:617–624`). No slack is added.
 A millisecond-scale RPC round trip right at that point is a realistic
 underflow source. Moving the calculation to just after DMA recording (per F5)
 hides the latency in the MOT-loading part of the shot.
 
 ### F9 — No compile coverage
+
 Nothing uses the mixin, so `test_compile_all.py` never compiles it. Add a
 concrete test fragment under `repository/tests/` so kernel compilation of the
 whole chain (mixin + config + RPC signatures) is checked in CI.
 
 ### F10 — Degenerate ROIs not guarded (minor)
+
 If a predicted position falls off-sensor, `min`/`max` clamping can produce
 `x1 < x0` (negative area; `calculate_area_from_roi` goes negative and the
 means flip sign). Clamp so `x0 ≤ x1`, `y0 ≤ y1` and surface a flag/warning
 when an ROI was clipped — during validation this is a key diagnostic.
 
 ### F11 — Magnification placeholder (calibration risk, not a code bug)
+
 `ANDOR_CAMERA_FACTS["magnification"] = 1` (`constants.py:41`) is the
-metres→pixels scale for *all* predicted displacements. If the real imaging
+metres→pixels scale for _all_ predicted displacements. If the real imaging
 magnification differs, every prediction is scaled wrongly. Stage 4 below
 calibrates this empirically before any LMT validation is attempted.
 
@@ -252,8 +263,8 @@ the metres→pixels scale before any recoil physics is involved.
 
 1. Still `num pulses = 0`. Enable `do_gauss_fit` and `save_raw_andor_image`.
    Scan the drop time (dipole release → imaging) from ~2 ms to ~25 ms.
-2. For each point compare the *fitted* cloud centre (`x_pos_0_ground`,
-   `y_pos_0_ground` channels, plus the raw-image fits) with the *predicted*
+2. For each point compare the _fitted_ cloud centre (`x_pos_0_ground`,
+   `y_pos_0_ground` channels, plus the raw-image fits) with the _predicted_
    ROI centre (from the Stage-1 logging).
 3. Fit the measured centre-vs-t² slope to extract the empirical pixels-per-
    metre scale and the apparent gravity direction on the sensor. Update
@@ -276,8 +287,8 @@ the metres→pixels scale before any recoil physics is involved.
    FK shots correspond to the two ports.
 2. Compare the fitted positions of both ports against prediction. The
    excited-port image must be displaced along the clock beam direction by
-   v_r·(t_image − t_pulse) relative to the unkicked trajectory; check the
-   *sign* on the sensor matches.
+   v*r·(t_image − t_pulse) relative to the unkicked trajectory; check the
+   \_sign* on the sensor matches.
 3. Repeat with a single **down**-beam pulse: displacement must flip sign.
 4. Move the pulse earlier/later in the drop and confirm the displacement
    scales as (t_image − t_pulse).
@@ -293,10 +304,10 @@ confirm the ROIs actually capture the clouds where static ROIs would fail.
    recoils) with full-frame saving and Gaussian fits on. Compare fitted vs
    predicted centres for both ports.
 2. Step N up progressively (2 → 4 → 8 → maximum routinely used). At each N:
-   - predicted vs fitted centre for both ports;
-   - capture fraction (ROI sum vs full-frame fit) — must not degrade with N;
-   - excitation fraction vs the static-ROI experiment at the largest N where
-     static ROIs are still usable — values must agree.
+    - predicted vs fitted centre for both ports;
+    - capture fraction (ROI sum vs full-frame fit) — must not degrade with N;
+    - excitation fraction vs the static-ROI experiment at the largest N where
+      static ROIs are still usable — values must agree.
 3. Scan `delay_between_imaging_pulses` (t₂ handling) at fixed N and confirm
    the second-shot prediction tracks.
 4. Deliberately push one port near the sensor edge (large N / long drop) and
@@ -341,7 +352,7 @@ confirm the ROIs actually capture the clouds where static ROIs would fail.
 Question raised after review: is this code unsalvageable — would implementing
 from scratch be cheaper than fixing it? Assessment: **no, but only because the
 salvage value is very uneven across components.** Recommended approach:
-*rewrite the two broken leaves, keep the tree.*
+_rewrite the two broken leaves, keep the tree._
 
 ### Worth keeping (battle-tested or close to it)
 
@@ -354,7 +365,7 @@ salvage value is very uneven across components.** Recommended approach:
   → timings known in advance → host-side RPC predicts positions → camera
   config builds ROIs. The `actions_after_drop` docstring states this design
   exists specifically so ROIs can be computed in advance — the architecture
-  *anticipates* the fix for F5; the implementation just didn't follow through.
+  _anticipates_ the fix for F5; the implementation just didn't follow through.
 - **The scaffolding in `ballistic.py`**: `CameraGeometry`, `BallisticConfig`,
   the mu-conversion wrapper, and the 13 unit tests with sensible expected
   values. The dataclasses and projection code are fine.
@@ -374,7 +385,7 @@ salvage value is very uneven across components.** Recommended approach:
 Either way one must (a) derive the correct port-trajectory physics for the
 actual LMT sequences — the hard, irreducible part, identical in both
 scenarios — and (b) write a correct ~350 lines of predictor + camera config.
-A true from-scratch rewrite would *additionally* redo the pulse recorder and
+A true from-scratch rewrite would _additionally_ redo the pulse recorder and
 the test suite, i.e. throw away the best parts. The timebase mismatch (F4)
 looks architectural but is a few-line fix (capture `now_mu()` immediately
 before `playback()` and rebase) — it only looks scary because the lab symptom

@@ -53,8 +53,6 @@ Relative to the legacy loop formulas (which omit the recoil energy term),
 tests in ``tests/test_lmt_resonance.py``.
 """
 
-from __future__ import annotations
-
 import scipy.constants
 
 from repository.lib import constants

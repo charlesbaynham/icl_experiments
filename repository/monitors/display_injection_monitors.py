@@ -75,3 +75,13 @@ class DisplayInjectionMonitors(ExpFragment):
 
 
 DisplayInjectionMonitors = make_fragment_scan_exp(DisplayInjectionMonitors)
+
+# Default dashboard submission priority. The background injection/relock monitors
+# should sit BELOW agent scans (which, by convention, submit at negative priority)
+# and below human experiments (priority >= 0), so they yield the rig to both. A
+# user who deliberately submits this at >= 0 from the dashboard still takes
+# precedence, as that is then a human-driven run.
+DisplayInjectionMonitors.scheduler_defaults = {
+    **getattr(DisplayInjectionMonitors, "scheduler_defaults", {}),
+    "priority": -50,
+}

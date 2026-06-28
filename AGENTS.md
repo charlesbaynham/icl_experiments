@@ -101,6 +101,18 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Use `pre-commit install` for automatic formatting on commits
 - All style rules are enforced by CI
 
+### Calibration values & constants
+
+- **Calibration/position values are magic numbers → they live in
+  `repository/lib/constants.py`** (trap/ROI anchors, pixel positions, pulse
+  durations, setpoints, …) and are sourced as the **default** of the relevant
+  experiment parameter.
+- **Do not tune them via per-experiment ndscan parameter overrides.** ndscan keys
+  overrides by experiment FQN, so an override set on one experiment class silently
+  fails to propagate to the others — this is exactly what derailed the 2026-06-18
+  dynamic-ROI work (an ROI anchor "fixed" on one experiment, wrong and unseen
+  everywhere else). Found the right value experimentally? **Update the constant.**
+
 ### ARTIQ-Specific Patterns
 
 #### Experiment Classes
