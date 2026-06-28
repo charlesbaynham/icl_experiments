@@ -67,7 +67,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
     def device_setup(self) -> None:
         self.core.break_realtime()
         delay(200e-3)
-        self.cpld.init()
+        # self.cpld.init()
         self.dds.init()
         delay(1e-3)
         self.dds.sw.set_o(True)
