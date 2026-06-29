@@ -160,3 +160,130 @@ def test_successful_fit_still_pushes_real_values():
     (centre,) = channels["line_centre"].pushed
     assert not np.isnan(centre)
     assert abs(centre - 200.0) < 100.0
+
+
+# --- Inverted clock-Rabi flop fit (the diag_clock_rabi pipeline) ------------
+#
+# The clock readout is inverted: excitation_fraction is the surviving ground
+# population, so the flop starts HIGH (~1) and DIPS at the pi pulse. The flop
+# also starts after a real ~10 us dead-time (OPLL ramp still settling). The
+# diag_clock_rabi analysis fits 1 - excitation with t_dead free, averaging the
+# num_repeats duplicates and dropping unphysical survival > 1 outliers. These
+# tests gate that LOGIC on a *synthetic* clean flop with a known pi-time, rather
+# than on contrast-starved real data (whose physics, not the fit, is the limiter).
+
+_TRUE_TPI = 55e-6
+_TRUE_TDEAD = 10e-6
+
+
+def _synthetic_inverted_flop(pulse_times, tpi=_TRUE_TPI, t_dead=_TRUE_TDEAD):
+    """Survival (excitation_fraction) of a clean inverted Rabi flop with dead-time.
+
+    survival = 1 for t <= t_dead (flop has not started), then
+    survival = cos^2(pi*(t - t_dead)/(2*tpi)) so it dips to its minimum at the
+    pi pulse t = t_dead + tpi. (Inverting -> 1 - survival -> a normal rise-from-
+    zero flop whose first maximum / t_max_transfer is at t_dead + tpi.)
+    """
+    t = np.asarray(pulse_times, dtype=float)
+    driven = np.clip(t - t_dead, 0.0, None)
+    survival = np.cos(np.pi * driven / (2 * tpi)) ** 2
+    return np.where(t <= t_dead, 1.0, survival)
+
+
+def _rabi_analysis():
+    """The exact diag_clock_rabi persisted-analysis config."""
+    return make_dataset_fit_analysis(
+        fit_type="decaying_sinusoid",
+        x=_X_KEY,
+        y=_Y_KEY,
+        y_transform=lambda ys: 1.0 - ys,
+        y_valid_range=(0.0, 1.05),
+        average_repeats=True,
+        outputs=[
+            FitOutput("pi_time", "pi", fit_key="t_max_transfer", unit="us"),
+            FitOutput(
+                "rabi_frequency",
+                "rabi",
+                derive=lambda r, e: (
+                    1.0 / (2.0 * r["t_max_transfer"]),
+                    e.get("t_max_transfer", float("nan"))
+                    / (2.0 * r["t_max_transfer"] ** 2),
+                ),
+                unit="kHz",
+            ),
+        ],
+    )
+
+
+def test_inverted_rabi_recovers_pi_from_the_dip():
+    """On a clean inverted flop with a real dead-time, the persisted pi_time
+    lands on the dip (t_dead + tpi), not the spurious early rise-from-zero
+    maximum a t_dead=0 fit of the un-inverted data would report."""
+    # num_repeats=2 duplicates + a couple of unphysical survival>1 outliers, just
+    # like the real readout, to exercise average_repeats + y_valid_range together.
+    base = np.linspace(5e-6, 200e-6, 40)
+    x = np.repeat(base, 2)
+    y = _synthetic_inverted_flop(x)
+    rng = np.random.default_rng(0)
+    y = y + rng.normal(0, 0.01, size=y.shape)
+    y[3] = 1.32  # unphysical survival-norm outliers that must be dropped
+    y[17] = 1.18
+
+    channels = {
+        name: _CapturingChannel()
+        for name in ("pi_time", "pi_time_err", "rabi_frequency", "rabi_frequency_err")
+    }
+    (custom_analysis,) = _rabi_analysis()
+    custom_analysis._analyze_fn({_X_KEY: x}, {_Y_KEY: y}, channels)
+
+    (pi_time,) = channels["pi_time"].pushed
+    expected_dip = _TRUE_TDEAD + _TRUE_TPI  # 65 us
+    assert not np.isnan(pi_time)
+    assert abs(pi_time - expected_dip) < 8e-6, f"pi_time={pi_time * 1e6:.1f} us"
+
+    (rabi,) = channels["rabi_frequency"].pushed
+    assert abs(rabi - 1.0 / (2.0 * expected_dip)) < 2e3
+
+
+def test_average_repeats_avoids_the_duplicate_x_crash():
+    """With average_repeats=True the duplicate-x decaying_sinusoid fit succeeds
+    (real pi_time), where the un-averaged fit would hit the int(inf) crash and
+    push NaN."""
+    base = np.linspace(5e-6, 200e-6, 40)
+    x = np.repeat(base, 2)
+    y = _synthetic_inverted_flop(x)
+
+    channels = {
+        name: _CapturingChannel()
+        for name in ("pi_time", "pi_time_err", "rabi_frequency", "rabi_frequency_err")
+    }
+    (custom_analysis,) = _rabi_analysis()
+    custom_analysis._analyze_fn({_X_KEY: x}, {_Y_KEY: y}, channels)
+
+    (pi_time,) = channels["pi_time"].pushed
+    assert not np.isnan(pi_time)
+
+
+def test_y_valid_range_drops_unphysical_points():
+    """y_valid_range removes survival>1 outliers before the fit; a fit dominated
+    by them (kept) would land somewhere very different."""
+    x = np.linspace(-100e3, 100e3, 41)
+    # a clean inverted-Lorentzian-ish dip line plus a couple of >1 spikes
+    y = 0.85 - 0.2 / (1 + ((x - (-37e3)) / 17e3) ** 2)
+    y[5] = 1.4
+    y[30] = 1.3
+
+    analysis = make_dataset_fit_analysis(
+        fit_type="lorentzian",
+        x=_X_KEY,
+        y=_Y_KEY,
+        y_valid_range=(0.0, 1.05),
+        outputs=[FitOutput("centre", "c", fit_key="x0", unit="Hz")],
+    )
+    (custom_analysis,) = analysis
+    channels = {"centre": _CapturingChannel(), "centre_err": _CapturingChannel()}
+    custom_analysis._analyze_fn({_X_KEY: x}, {_Y_KEY: y}, channels)
+
+    (centre,) = channels["centre"].pushed
+    assert not np.isnan(centre)
+    assert abs(centre - (-37e3)) < 15e3

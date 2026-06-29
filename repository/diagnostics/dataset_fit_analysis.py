@@ -89,6 +89,9 @@ def make_dataset_fit_analysis(
     outputs: list[FitOutput],
     fit_constants: dict | None = None,
     fit_initial_values: dict | None = None,
+    y_transform: Callable[[np.ndarray], np.ndarray] | None = None,
+    y_valid_range: tuple[float, float] | None = None,
+    average_repeats: bool = False,
 ):
     r"""Build a :class:`CustomAnalysis` that fits ``y`` vs ``x`` into a dataset.
 
@@ -105,6 +108,24 @@ def make_dataset_fit_analysis(
         ``{"t_dead": 0}``), forwarded to ``oitg.fitting``.
     :param fit_initial_values: Initial fit-parameter guesses, forwarded to
         ``oitg.fitting``.
+    :param y_transform: Optional ``f(ys) -> ys`` applied to the y data before
+        fitting. Used by the clock-Rabi diagnostics to fit ``1 - excitation`` so an
+        *inverted* readout (survival, which dips at the pi pulse) is fitted as a
+        normal rise-from-zero flop and ``t_max_transfer`` lands on the pi-pulse. The
+        paired ``OnlineFit`` must apply the *same* transform (e.g. via a transformed
+        result channel) so the online and persisted fits agree.
+    :param y_valid_range: Optional ``(lo, hi)``; points whose *original* y falls
+        outside it are dropped before fitting. The normalised-survival readout
+        occasionally emits unphysical values (>1) when the atom-number reference is
+        noisy; dropping them stops a few outliers from dominating the fit. Applied
+        to the y data as read, before ``y_transform``.
+    :param average_repeats: If ``True``, average the y values sharing each x before
+        fitting. ``num_repeats > 1`` scans repeat every x value, which leaves
+        duplicate x points; ``decaying_sinusoid``'s initialiser takes ``0.5 /
+        min(diff(x))`` and a zero minimum spacing makes that ``inf`` -> ``int(inf)``
+        raises (the RID 75720 crash). Averaging repeats removes the duplicates (and
+        denoises) so the fit is well-posed; the crash-guard still covers any other
+        failure.
     :return: ``[CustomAnalysis(...)]`` - a one-element list, ready to concatenate onto
         the diagnostic's ``OnlineFit`` list.
     """
@@ -127,6 +148,21 @@ def make_dataset_fit_analysis(
 
         xs = np.array(axis_values[x], dtype=float)
         ys = np.array(result_values[y], dtype=float)
+
+        if y_valid_range is not None:
+            lo, hi = y_valid_range
+            keep = (ys >= lo) & (ys <= hi)
+            xs = xs[keep]
+            ys = ys[keep]
+
+        if y_transform is not None:
+            ys = y_transform(ys)
+
+        if average_repeats and xs.size:
+            ux = np.unique(xs)
+            if ux.size != xs.size:
+                ys = np.array([ys[xs == u].mean() for u in ux])
+                xs = ux
 
         kwargs = {}
         if fit_constants:
