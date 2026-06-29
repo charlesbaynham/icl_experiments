@@ -78,6 +78,22 @@ class CompensatedClockSpecMixin(
         )
         self.pulse_ratio: FloatParamHandle
 
+        # When > 0, fixes the velocity-selection duration instead of deriving it
+        # from spectroscopy_pulse_time * pulse_ratio. A Rabi flop scans
+        # spectroscopy_pulse_time, so the proportional T_sel would change the
+        # selected velocity class at every point and wash out the flop; the Rabi
+        # diagnostics set this to hold the slice fixed. 0 keeps the proportional
+        # behaviour used by the spectroscopy/LMT experiments.
+        self.setattr_param(
+            "selection_time_override",
+            FloatParam,
+            "Fixed velocity-selection duration T_sel (0 = use spectroscopy_pulse_time * pulse_ratio)",
+            default=0.0,
+            min=0.0,
+            unit="us",
+        )
+        self.selection_time_override: FloatParamHandle
+
         self.setattr_param(
             "reference_pi_pulse_duration",
             FloatParam,
@@ -177,6 +193,20 @@ class CompensatedClockSpecMixin(
         at_mu(_t_start)
 
     @kernel
+    def _selection_time(self) -> float:
+        """Velocity-selection duration T_sel.
+
+        Fixed at ``selection_time_override`` when that is > 0 (the Rabi
+        diagnostics use this so the slice does not move as the interrogation
+        pulse is scanned); otherwise the proportional
+        ``spectroscopy_pulse_time * pulse_ratio`` used by spectroscopy/LMT.
+        """
+        override = self.selection_time_override.get()
+        if override > 0.0:
+            return override
+        return self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
+
+    @kernel
     def clock_shelving(self):
         """
         Override ClockShelvingAndClearoutBase.clock_shelving to use
@@ -185,7 +215,7 @@ class CompensatedClockSpecMixin(
         Also uses stop_clock_opll_ramp() (tracking wrapper) instead of calling
         the ramper directly.
         """
-        T_sel = self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
+        T_sel = self._selection_time()
         T_ref = self.reference_pi_pulse_duration.get()
         V_ref = self.reference_clock_setpoint.get()
 
@@ -251,7 +281,7 @@ class CompensatedClockSpecMixin(
         velocity-selection pulse, so that fire_lmt_pulse computes the correct
         gravity-compensation total_ramp_time.
         """
-        T_sel = self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
+        T_sel = self._selection_time()
         return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
             T_sel / 2
         )

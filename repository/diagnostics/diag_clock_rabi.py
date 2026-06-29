@@ -52,6 +52,7 @@ from repository.clock_spectroscopy.clock_spectroscopy_pulse_ratio import (
 )
 from repository.diagnostics.dataset_fit_analysis import FitOutput
 from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
+from repository.lib import constants
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
 
@@ -91,6 +92,17 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
         # Pick the clock beam for this diagnostic.
         self.override_param("use_down_beam", self._use_down_beam)
 
+        # Hold the velocity-selection slice FIXED across the scan. The default
+        # T_sel = spectroscopy_pulse_time * pulse_ratio co-scales the slice with the
+        # interrogation pulse, so a Rabi scan selects a different (and ever-narrower)
+        # velocity class at every point - washing out the flop. A fixed selection
+        # time (the nominal shelving duration) selects one velocity class so only the
+        # interrogation pulse varies, restoring a clean flop. (This is scan-code, not
+        # rig physics.)
+        self.override_param(
+            "selection_time_override", constants.CLOCK_SHELVING_PULSE_TIME
+        )
+
         # EM gain on by default so the diagnostic is genuinely default-runnable
         # (the normalised fast-kinetics clock readout needs it). Enabled only via
         # the experiment's own flag; the DISABLE_EM_GAIN safety interlock is never
@@ -99,10 +111,24 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
         self.override_param("em_gain", 30.0)
 
     def get_default_analyses(self):
-        # Excitation-fraction-from-zero Rabi flop; t_dead pinned to 0 (the WS1
-        # 689-spectroscopy convention). pi_time annotation = t_max_transfer.
-        # OnlineFit draws the live flop; make_dataset_fit_analysis additionally
-        # writes the fitted pi-time and the derived Rabi frequency to datasets.
+        # The clock readout is INVERTED: excitation_fraction is the surviving ground
+        # population, so the flop starts HIGH (~1) at short pulse and DIPS at the pi
+        # pulse. decaying_sinusoid expects a rise-from-zero flop whose t_max_transfer
+        # is the pi pulse, so we fit 1 - excitation_fraction (a normal rise-from-zero
+        # flop) and t_max_transfer then lands on the dip = the pi pulse.
+        #
+        # t_dead is left FREE (not pinned to 0): the flop genuinely starts after a
+        # ~10 us dead-time (the OPLL gravity-comp ramp is still settling onto
+        # resonance when the clock pulse begins), measured on RID 75720. Pinning
+        # t_dead=0 forces the fit onto the wrong feature. The persisted fit also
+        # averages the num_repeats duplicates (else decaying_sinusoid's initialiser
+        # divides by a zero x-spacing -> inf) and drops the unphysical survival >1
+        # outliers the normalised readout occasionally emits.
+        # The live OnlineFit draws over the raw excitation_fraction channel (the
+        # applet can only plot an existing result channel, not a transform). It is a
+        # convenience overlay; the persisted dataset fit below is the deliverable and
+        # fits 1 - excitation_fraction so its reported t_max_transfer is the physical
+        # pi pulse (the dip). Both locate the same physical pi.
         return [
             OnlineFit(
                 "decaying_sinusoid",
@@ -110,17 +136,18 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
                     "x": self.spectroscopy_pulse_time,
                     "y": self.excitation_fraction,
                 },
-                constants={"t_dead": 0},
             )
         ] + make_dataset_fit_analysis(
             fit_type="decaying_sinusoid",
             x=self.spectroscopy_pulse_time,
             y=self.excitation_fraction,
-            fit_constants={"t_dead": 0},
+            y_transform=lambda ys: 1.0 - ys,
+            y_valid_range=(0.0, 1.05),
+            average_repeats=True,
             outputs=[
                 FitOutput(
                     "pi_time",
-                    "Fitted clock pi-pulse time",
+                    "Fitted clock pi-pulse time (dip of the inverted survival flop)",
                     fit_key="t_max_transfer",
                     unit="us",
                 ),
