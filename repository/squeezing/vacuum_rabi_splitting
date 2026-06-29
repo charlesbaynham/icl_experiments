@@ -131,7 +131,6 @@ class SingleVRSSweepFrag(
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
         self.rtb.write_float("ACQ:POIN", 1e6)
-        # Setup a single shot
 
     @kernel
     def device_setup(self) -> None:
@@ -146,11 +145,14 @@ class SingleVRSSweepFrag(
         self.core.break_realtime()
 
     @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
+    def before_start_hook(self):
+        # Setup a single shot
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
         delay(1.5)
+
+    @kernel
+    def do_experiment_after_red_mot_hook(self):
         # Switch the ttl on without advancing the timeline
         self.ttl.on()
         # I think add a bit of delay to advance the timeline to prevent clashes, but also it'd be nice if it was simultaneous...
