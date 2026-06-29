@@ -250,10 +250,11 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         super().host_setup()
         if self.use_andor_driver.get():
             monitor_rois = np.array(self.get_monitor_rois()).tolist()
+            self.set_dataset("andor_monitor_roi_targets", monitor_rois, broadcast=True)
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{monitor_rois}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --rois_dataset andor_monitor_roi_targets --dataset_prefix 'andor_monitor'",
             )
 
             # Also make an applet for every image. Don't include the ROIs on
