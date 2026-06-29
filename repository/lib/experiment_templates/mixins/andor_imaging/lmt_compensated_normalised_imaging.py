@@ -609,7 +609,8 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
 
 class NormalisedFastKineticsLMTCorrectedMixin(
-    NormalisedFastKineticsClockPulseMixin, DynamicROIImagingMixin
+    DynamicROIImagingMixin,
+    NormalisedFastKineticsClockPulseMixin,
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
