@@ -101,6 +101,9 @@ from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
+from repository.lib.experiment_templates.mixins.lmt_trajectory_applet_mixin import (
+    LMTTrajectoryAppletMixin,
+)
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
@@ -776,7 +779,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.set_clock_opll(start_opll_offset)
 
 
-class DeclarativeLMTBase(DeclarativeLMTCoreBase, DipoleTrapWithExperimentBase):
+class DeclarativeLMTBase(
+    LMTTrajectoryAppletMixin, DeclarativeLMTCoreBase, DipoleTrapWithExperimentBase
+):
     """
     Runs a declared LMT sequence after release from the dipole trap.
 
