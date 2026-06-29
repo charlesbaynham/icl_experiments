@@ -31,7 +31,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsClockPulseMixin,
+    NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
@@ -609,7 +609,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
 
 class NormalisedFastKineticsLMTCorrectedMixin(
-    DynamicROIImagingMixin, NormalisedFastKineticsClockPulseMixin
+    DynamicROIImagingMixin,
+    NormalisedFastKineticsRepumpedMixin,
+    # NormalisedFastKineticsClockPulseMixin  FIXME Put back the clock pulse imaging
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
