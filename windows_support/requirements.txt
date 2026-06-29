@@ -4,7 +4,7 @@ anyio==3.7.1
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
 arrow==1.3.0
-artiq @ git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git@e98dbf5adb5e60835acbfbf0dd635fd54b6c3fc4
+artiq @ git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git@1e775d2b5e850b6524133ea502392696aef33ed7
 artiq-comtools @ git+https://github.com/m-labs/artiq-comtools.git@f522ef3dbc65961f17b2d3d41e927409d970fd79
 asttokens==2.4.0
 async-lru==2.0.4
