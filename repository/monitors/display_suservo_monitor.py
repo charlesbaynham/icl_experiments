@@ -333,3 +333,16 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
 DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
 DisplayAllSUServoMonitors = make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)
+
+# Default dashboard submission priority for the SUServo monitors (see
+# display_injection_monitors for the rationale): below agent scans (negative
+# priority) and human experiments (>= 0). A user can still submit at >= 0 from
+# the dashboard to take the rig.
+DisplaySingleSUServoMonitor.scheduler_defaults = {
+    **getattr(DisplaySingleSUServoMonitor, "scheduler_defaults", {}),
+    "priority": -40,
+}
+DisplayAllSUServoMonitors.scheduler_defaults = {
+    **getattr(DisplayAllSUServoMonitors, "scheduler_defaults", {}),
+    "priority": -40,
+}

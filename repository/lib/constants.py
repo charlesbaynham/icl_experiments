@@ -94,7 +94,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.657e6,
+        frequency=364.636e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -220,20 +220,20 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=373e-3,
-        window_low=367e-3,
-        relock_step=3e-3,
-    ),
-    "blue_IJD3_controller": IJDSettings(
-        temperature=8200,
         window_high=371e-3,
         window_low=365e-3,
         relock_step=3e-3,
     ),
+    "blue_IJD3_controller": IJDSettings(
+        temperature=8200,
+        window_high=373e-3,
+        window_low=367e-3,
+        relock_step=3e-3,
+    ),
     "red_IJD1_controller": IJDSettings(
         temperature=9380,
-        window_high=174.0e-3,
-        window_low=169.0e-3,
+        window_high=173.0e-3,
+        window_low=170.5e-3,
         relock_step=3e-3,
         associated_beams=["red_doublepass_injection"],
     ),
@@ -806,7 +806,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=2.6,
+        setpoint=2.0,
         kI_loop_constant=-100000.0,
     ),
     SUServoedBeam(
@@ -872,6 +872,15 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=0.5,
+        setpoint=0.25,
+    ),
+    SUServoedBeam(
+        "clock_up_small",
+        frequency=200e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_698_clock_small",
+        servo_enabled=False,
+        initial_amplitude=1.0,
         setpoint=0.25,
     ),
 ]
@@ -1127,11 +1136,9 @@ else:
     _B_FIELD_BIAS_LATTICE_Z = -1.01  # A
 
 # Default fields in chamber 2 for optimising transfer into broadband red MOT
-B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
-B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
-B_FIELD_BIAS_BLUE_MOT_Z = (
-    FIELD_COMP_Y - 1.1
-)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
+B_FIELD_BIAS_BLUE_MOT_X = 0.50
+B_FIELD_BIAS_BLUE_MOT_Y = 0.40
+B_FIELD_BIAS_BLUE_MOT_Z = -2.26
 
 # Use the lattice bias fields if the bodgy USE_LATTICE variable is set
 # TODO: Get rid of this once we're shifting lattices
@@ -1231,7 +1238,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.019, -0.31)
+) = add_field_offset(0.188, 0.019, -0.28)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
