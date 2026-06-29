@@ -82,7 +82,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.657e6,
+        frequency=364.636e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -1124,11 +1124,9 @@ else:
     _B_FIELD_BIAS_LATTICE_Z = -1.01  # A
 
 # Default fields in chamber 2 for optimising transfer into broadband red MOT
-B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
-B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
-B_FIELD_BIAS_BLUE_MOT_Z = (
-    FIELD_COMP_Y - 1.1
-)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
+B_FIELD_BIAS_BLUE_MOT_X = 0.50
+B_FIELD_BIAS_BLUE_MOT_Y = 0.40
+B_FIELD_BIAS_BLUE_MOT_Z = -2.26
 
 # Use the lattice bias fields if the bodgy USE_LATTICE variable is set
 # TODO: Get rid of this once we're shifting lattices
@@ -1228,7 +1226,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.019, -0.31)
+) = add_field_offset(0.188, 0.019, -0.28)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
