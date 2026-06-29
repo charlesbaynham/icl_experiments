@@ -22,12 +22,12 @@ class VRS_Probe_Ramper(Fragment):
         self.probe_ramper: AD9910Ramper
 
         self.setattr_param(
-            "dF_dt",
+            "sweep_time",
             FloatParam,
-            description="Rate of change of frequency",
-            default=20e3,
-            min=1,
-            unit="kHz",
+            description="Probe sweep duration",
+            default=1e-3,
+            min=1e-6,
+            unit="ms",
         )
 
         self.setattr_param(
@@ -50,7 +50,7 @@ class VRS_Probe_Ramper(Fragment):
         # set the maximum frequency, this needs to be larger than the VRS as we
         # plan on overshooting this value.
 
-        self.dF_dt: FloatParamHandle
+        self.sweep_time: FloatParamHandle
         self.max_f: FloatParamHandle
         self.min_f: FloatParamHandle
 
@@ -60,14 +60,15 @@ class VRS_Probe_Ramper(Fragment):
         Trigger a single sweep of the pulse
         """
 
-        T = (self.max_f.get() - self.min_f.get()) / self.dF_dt.get()
+        df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
+
         self.probe_ramper.start_ramp(
-            self.dF_dt.get(),
+            df_dt,
             self.min_f.get(),
             self.max_f.get(),
         )
         # Wait until we do one pulse
-        delay(T)
+        delay(self.sweep_time.get())
         self.probe_ramper.stop_ramp()
         # also wait until this operation is complete
         self.core.wait_until_mu(now_mu())
