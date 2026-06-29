@@ -83,13 +83,13 @@ class _DefaultScanArgumentInterface(ArgumentInterface):
     ``get_argument`` is called, so they become the argument default (still
     overridable from the dashboard).
 
-    FIXME: This re-implements ``ArgumentInterface.build`` (copying its body to
-    inject the default scan section) and so is tightly coupled to ndscan internals
-    that may shift under us. It has not yet been exercised end-to-end on the live
-    rig - submitting a diagnostic with ``arguments={}`` and confirming the seeded
-    scan axes / repeats actually take effect in the dashboard. See
-    ``.claude/plans/diagnostics_live_test_plan.md``. This FIXME deliberately blocks
-    merge to master until those live checks are done; remove it once confirmed.
+    This re-implements ``ArgumentInterface.build`` (copying its body to inject the
+    default scan section), so it is coupled to ndscan internals; the body is kept
+    in lock-step with the installed ndscan. The seeded default, a dashboard
+    override winning over it, and an emptied scan falling back to ``no_axes_mode``
+    are covered host-side by ``tests/test_default_scan_template.py``, and the
+    seeded scan plus its end-of-scan analyses have been exercised on the live rig
+    (e.g. RID 75718, ``ClockCavityOffset``).
     """
 
     # Overridden per-experiment in make_default_scan_exp's subclass body.
