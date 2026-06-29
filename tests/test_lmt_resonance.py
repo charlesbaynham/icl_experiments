@@ -177,27 +177,45 @@ def test_single_pulses_match_legacy_helpers():
         assert f_new == pytest.approx(legacy_down_pulse(doppler, n) + KICK / 2.0)
 
 
-def test_v0_doppler_term_sign_and_magnitude():
-    """The v0 Doppler term is opposite-signed up vs down and absorbs the
-    measured -20 kHz down-launch offset with the default v0.
+def test_v0_doppler_term_tethered_to_first_pulse():
+    """The v0 Doppler term is tethered to the first pulse: the reference (up)
+    pulse carries 0, the down pulse carries +2*v0/lambda (~+40 kHz at default v0).
 
-    Down launch (beam_sign = -1) must gain ~ +20 kHz so the empirical -20 kHz
-    offset becomes user-offset 0; the up beam must gain the opposite.
+    This is the corrected, differential form. The first pulse selects the
+    velocity class, so it cannot carry the v0 term itself; every other pulse is
+    corrected against it. With an up first pulse (reference_beam_sign = +1):
+    up reference -> 0, down -> +2*v0/lambda.
     """
     v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
     lam = constants.CLOCK_WAVELENGTH_M
-    down = lmt_resonance.v0_doppler_term_hz(-1, v0, lam)
-    up = lmt_resonance.v0_doppler_term_hz(+1, v0, lam)
-    assert down == pytest.approx(+v0 / lam)
-    assert up == pytest.approx(-v0 / lam)
-    assert down == pytest.approx(-up)
-    # ~ +20 kHz for the default v0 ~ 14 mm/s
-    assert down == pytest.approx(20.0e3, abs=0.2e3)
+    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=+1)
+    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=+1)
+    assert up == pytest.approx(0.0)
+    assert down == pytest.approx(+2.0 * v0 / lam)
+    # ~ +40 kHz for the default v0 ~ 14 mm/s (twice the old single-beam term)
+    assert down == pytest.approx(40.0e3, abs=0.4e3)
+    # Slope is 2/lambda = 2.865 kHz per mm/s on the down pulse
+    assert lmt_resonance.v0_doppler_term_hz(
+        -1, reference_beam_sign=+1, initial_velocity_m_s=1e-3
+    ) == pytest.approx(2.865e3, abs=10.0)
+
+
+def test_v0_doppler_term_down_reference_mirrors():
+    """If the first pulse were a down pulse (reference_beam_sign = -1) the roles
+    mirror: the down reference carries 0 and an up pulse carries -2*v0/lambda."""
+    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    lam = constants.CLOCK_WAVELENGTH_M
+    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=-1)
+    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=-1)
+    assert down == pytest.approx(0.0)
+    assert up == pytest.approx(-2.0 * v0 / lam)
 
 
 def test_v0_doppler_term_invalid_beam_sign():
     with pytest.raises(ValueError):
         lmt_resonance.v0_doppler_term_hz(0)
+    with pytest.raises(ValueError):
+        lmt_resonance.v0_doppler_term_hz(1, reference_beam_sign=0)
 
 
 def test_probe_stark_term_sign_and_scaling():

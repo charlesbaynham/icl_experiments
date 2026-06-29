@@ -88,13 +88,21 @@ velocity slice, the first pulse is always resonant at
 the OPLL should therefore be:
 
 ```
-    f_opll = START_OPLL + s * D(t) - opll_m_term_hz(...) + user_offset
+    f_opll = START_OPLL + s * D(t) - opll_m_term_hz(...) + v0_term + user_offset
 ```
 
 where ``D(t)`` is the gravity Doppler accumulated since release (computed at
 runtime in the kernel from the pulse's timestamp and ramped throughout the
 pulse) and ``opll_m_term_hz`` is the static, m-dependent part computed here on
 the host, calculated for the pulse mid-point.
+
+``v0_term`` corrects the atom's *initial-velocity* Doppler shift and is
+**tethered to the first pulse** (see :func:`v0_doppler_term_hz`): that pulse
+selects the velocity class, so it carries ``v0_term = 0`` and every other pulse
+carries ``(s_ref - s) * v0 / lambda`` where ``s_ref`` is the first pulse's beam
+sign. For the usual up-first sequence the up reference carries ``0`` and a down
+pulse carries ``+2*v0/lambda`` (i.e. the v0 term moves a down-beam resonance by
+``2/lambda = 2.865 kHz per mm/s`` and does not move the up reference).
 """
 
 from dataclasses import dataclass
@@ -137,17 +145,31 @@ DOPPLER_PER_KICK_HZ = constants.MOMENTUM_KICK_DETUNING
 
 def v0_doppler_term_hz(
     beam_sign: int,
+    reference_beam_sign: int = 1,
     initial_velocity_m_s: float = constants.DEFAULT_INITIAL_VELOCITY_M_S,
     wavelength_m: float = constants.CLOCK_WAVELENGTH_M,
 ) -> float:
     """OPLL correction (Hz) for the atom's initial-velocity Doppler shift.
 
-    ``beam_sign`` is +1 (up) or -1 (down); the correction is opposite-signed up
-    versus down.
+    The v0 term is **tethered to the first pulse of the sequence**: that pulse
+    selects the velocity class, so it carries no v0 term and every other pulse
+    is corrected differentially against it. With ``reference_beam_sign`` the
+    beam sign of the first pulse, the term for a pulse on beam ``beam_sign`` is
+
+        (reference_beam_sign - beam_sign) * v0 / lambda
+
+    For the usual up-first sequence (``reference_beam_sign = +1``): the up
+    reference carries ``0`` and a down pulse carries ``+2*v0/lambda``.
+
+    ``beam_sign`` and ``reference_beam_sign`` are each +1 (up) or -1 (down).
     """
     if beam_sign not in (1, -1):
         raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
-    return -beam_sign * initial_velocity_m_s / wavelength_m
+    if reference_beam_sign not in (1, -1):
+        raise ValueError(
+            f"reference_beam_sign must be +1 or -1, got {reference_beam_sign!r}"
+        )
+    return (reference_beam_sign - beam_sign) * initial_velocity_m_s / wavelength_m
 
 
 def probe_stark_term_hz(

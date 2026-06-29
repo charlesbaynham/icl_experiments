@@ -217,8 +217,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "lmt_initial_velocity",
             FloatParam,
             "Release z-velocity v0 (up positive)",
-            # Adds -beam_sign*v0/lambda to each pulse's OPLL centre freq
-            # (opposite sign up vs down).
+            # v0 Doppler term is tethered to the first pulse: it carries 0, every
+            # other pulse carries (s_ref - beam_sign)*v0/lambda. With an up first
+            # pulse: up -> 0, down -> 2*v0/lambda.
             default=constants.DEFAULT_INITIAL_VELOCITY_M_S,
             unit="mm/s",
             scale=1e-3,
@@ -276,6 +277,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_n_events",
             "_lmt_event_kind",
             "_lmt_beam_sign",
+            "_lmt_v0_reference_beam_sign",
             "_lmt_m_term_hz",
             "_lmt_rabi_hz",
             "_lmt_callback_id",
@@ -312,6 +314,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_n_events = 0
         self._lmt_event_kind = []
         self._lmt_beam_sign = []
+        # Beam sign of the first pulse: the v0 (initial-velocity) Doppler term is
+        # tethered to it (set in _lmt_assemble_event_arrays). Default +1.0 (up).
+        self._lmt_v0_reference_beam_sign = 1.0
         self._lmt_m_term_hz = []
         self._lmt_rabi_hz = []
         self._lmt_callback_id = []
@@ -375,6 +380,19 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     def _lmt_assemble_event_arrays(self, compiled: CompiledSequence):
         self._lmt_init_empty_arrays()
         self._lmt_n_events = len(compiled.events)
+        # Tether the initial-velocity (v0) Doppler term to the first pulse: that
+        # pulse selects the velocity class, so its OPLL must carry no v0 term and
+        # every other pulse carries the v0 term differentially against it (see
+        # the kernel formula and lmt_resonance.v0_doppler_term_hz). Default +1.0
+        # (up) when no pulse is present.
+        self._lmt_v0_reference_beam_sign = next(
+            (
+                float(event.beam_sign)
+                for event in compiled.events
+                if int(event.kind) == EVENT_PULSE
+            ),
+            1.0,
+        )
         for event in compiled.events:
             self._lmt_event_kind.append(int32(event.kind))
             self._lmt_beam_sign.append(float(event.beam_sign))
@@ -704,8 +722,13 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # Gravity Doppler evaluated at the pulse centre, accumulated
                 # since the release
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
+                # Initial-velocity Doppler term, tethered to the first pulse:
+                # the reference (first) pulse selects the velocity class and so
+                # carries no v0 term; every other pulse is corrected against it.
+                # up slice -> 0, down ladder pulse -> 2*v0/lambda (see
+                # lmt_resonance.v0_doppler_term_hz).
                 v0_doppler = (
-                    -self._lmt_beam_sign[i]
+                    (self._lmt_v0_reference_beam_sign - self._lmt_beam_sign[i])
                     * self.lmt_initial_velocity.get()
                     * inverse_clock_wavelength
                 )
