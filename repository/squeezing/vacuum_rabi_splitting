@@ -60,6 +60,7 @@ class SingleVRSSweepFrag(RedMOTWithExperimentBase):
         )
         self.attenuation: IntParamHandle
 
+        # TODO: Change this to automatically match the sweep time of the dds
         self.setattr_param(
             "acquisition_time",
             FloatParam,
