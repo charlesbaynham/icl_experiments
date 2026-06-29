@@ -64,8 +64,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     DipoleTrapWithExperimentBase,
 ):
     """
-    Velocity selection, launch and symmetric Mach-Zehnder from a declared pulse
-    sequence
+    Declarative symmetric LMT interferometry
     """
 
     # Atoms are released from the trap in the ground state with no kicks
