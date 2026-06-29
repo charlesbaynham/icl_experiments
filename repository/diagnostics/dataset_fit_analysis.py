@@ -134,10 +134,32 @@ def make_dataset_fit_analysis(
         if fit_initial_values:
             kwargs["initialise"] = fit_initial_values
 
-        fit_results, fit_errs = fit_obj.fit(xs, ys, **kwargs)
+        # A diagnostic fit can fail on real data - a degenerate scan (e.g. the
+        # num_repeats=2 duplicate x-values make decaying_sinusoid's initialiser
+        # divide by zero -> int(inf), RID 75720) makes oitg raise rather than
+        # return. That must not take down the whole scan's analyze stage (which
+        # would drop *every* persisted output, including sibling analyses); push
+        # NaN for this fit's channels and carry on. The live OnlineFit still draws
+        # what it can.
+        #
+        # Only the fit itself is guarded. A misconfigured FitOutput (wrong
+        # fit_key, missing derive/fit_key) is a programming bug in the diagnostic,
+        # not bad data: let out.extract raise so it stays a hard, fix-it failure
+        # rather than degrading to a silent NaN on every run.
+        try:
+            fit_results, fit_errs = fit_obj.fit(xs, ys, **kwargs)
+        except Exception:
+            logger.warning(
+                "dataset fit '%s' failed; pushing NaN for %s",
+                fit_type,
+                [out.name for out in outputs],
+                exc_info=True,
+            )
+            extracted = [(float("nan"), float("nan")) for _ in outputs]
+        else:
+            extracted = [out.extract(fit_results, fit_errs) for out in outputs]
 
-        for out in outputs:
-            value, error = out.extract(fit_results, fit_errs)
+        for out, (value, error) in zip(outputs, extracted):
             analysis_results[out.name].push(value)
             analysis_results[out.name + "_err"].push(error)
 
