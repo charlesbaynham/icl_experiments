@@ -1178,8 +1178,8 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 55e-6
-CLOCK_DOWN_PI_TIME = 68e-6
+CLOCK_PI_TIME = 58e-6  # up beam; refined 2026-06-29 post-rebuild (RID 75720+75721 dip, 58+-2us)
+CLOCK_DOWN_PI_TIME = 68e-6  # down beam; 2026-06-29 RID 75723 consistent (68+-3us) but data poor (survival-norm >1); rescan 45-95us to refine
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
