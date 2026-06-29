@@ -43,10 +43,10 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 
 
 class SingleVRSSweepFrag(
-    RedMOTWithExperimentBase,
     FLIRMeasurementMixin,
     SingleAndorImageMixin,
     ConstantBeamsMixin,
+    RedMOTWithExperimentBase,
 ):
     """
     Single sided RF sweep on the 689 VRS AM
@@ -135,6 +135,7 @@ class SingleVRSSweepFrag(
 
     @kernel
     def device_setup(self) -> None:
+        self.device_setup_subfragments()
         self.core.break_realtime()
         delay(200e-3)
         self.cpld.init()
@@ -143,8 +144,6 @@ class SingleVRSSweepFrag(
         self.dds.sw.set_o(True)
         self.dds.set_att(float(self.attenuation.get()))
         self.core.break_realtime()
-
-        self.device_setup_subfragments()
 
     @kernel
     def run_once(self) -> None:
