@@ -22,7 +22,7 @@ Timebase
 --------
 
 ``core_dma.record()`` resets the timeline cursor to zero, so every timestamp
-captured *inside* the recording - including everything the
+captured *inside* the recording - including the in-memory machine-unit buffers
 :class:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording`
 registers - is **recording-relative**. The live time of a recorded event is::
 
@@ -34,6 +34,14 @@ atoms' release time on the live timeline is stamped by :meth:`pre_expansion_hook
 fires). Both anchors are exposed via the :meth:`get_t_release_mu` /
 :meth:`get_t_playback_start_mu` portable getters, which the dynamic-ROI imaging
 mixins consume.
+
+The recording-relative offset of the release is
+:meth:`get_t_release_minus_playback_mu` (``+t_dipole_beams_off`` for the dipole
+path, ``-seconds_to_mu(expansion_time)`` for the red-MOT path). The dynamic-ROI
+predictor subtracts it from the in-memory buffers on the fly. The **saved**
+``pulse_record`` / ``pulse_intent_record`` datasets have it subtracted at save
+time, so their stored start times are **release-relative** (flight time since
+the drop) even though the in-memory buffers stay recording-relative.
 
 This mixin **consumes** the ``DMA_record_hook``, ``DMA_initialization_hook``,
 ``do_experiment_after_red_mot_hook`` and ``pre_expansion_hook`` hooks; in
