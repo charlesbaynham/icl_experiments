@@ -2,11 +2,14 @@
 
 A diagnostic's dataset-output fit can fail on real data. Concretely, every
 diagnostic seeds ``default_num_repeats = 2``, so each scan x-value appears twice;
-``oitg.fitting.decaying_sinusoid``'s initialiser then computes
-``int(f_max / f_min)`` with ``f_max = 0.5 / min_step`` and a zero ``min_step``
-(duplicate adjacent samples), raising ``OverflowError: cannot convert float
-infinity to integer`` (observed live, RID 75720 - the Rabi-up diagnostic, whose
-analyze stage crashed and persisted no ``pi_time``).
+the frequency-estimating oitg initialisers then compute ``int(.../min_step)``
+with ``min_step = 0`` (duplicate adjacent samples), giving ``int(inf)`` and
+raising ``OverflowError: cannot convert float infinity to integer``. Observed
+live on **both** frequency fits used by the diagnostics:
+``decaying_sinusoid`` (RID 75720/75721, Rabi up) and ``detuned_square_pulse``
+(RID 75722, down-vs-up line centre); each crashed its analyze stage and persisted
+nothing. The Gaussian line-centre fit has no such initialiser and survives
+(RID 75718).
 
 An unguarded fit in the ``CustomAnalysis`` would propagate that exception out of
 ``analyze()`` and drop *every* persisted output for the run (including any sibling
@@ -21,10 +24,17 @@ from repository.diagnostics.dataset_fit_analysis import FitOutput
 from repository.diagnostics.dataset_fit_analysis import make_dataset_fit_analysis
 
 
-# Repeated x-values reproduce RID 75720: num_repeats=2 -> zero min sample spacing
-# -> decaying_sinusoid initialiser does int(f_max/f_min) with f_max=inf.
+# Repeated x-values reproduce the num_repeats=2 failure: zero min sample spacing
+# -> the frequency-estimating initialisers do int(.../min_step) with f_max=inf.
 _X = np.array([5e-6, 5e-6, 12e-6, 12e-6, 20e-6, 20e-6, 55e-6, 55e-6])
 _Y = np.array([0.98, 0.99, 0.95, 0.97, 0.90, 0.92, 0.20, 0.21])
+
+# Both frequency-estimating fits the diagnostics use crash on the repeat-x data;
+# (fit_type, fit_constants, representative result key) for each.
+_CRASHING_FITS = [
+    ("decaying_sinusoid", {"t_dead": 0}, "t_max_transfer"),
+    ("detuned_square_pulse", None, "offset"),
+]
 
 # Sentinels used as the param-handle / result-channel keys into the analyse dicts.
 _X_KEY = object()
@@ -48,34 +58,39 @@ def _run_analyse(analysis_list, channels):
     return analyse_fn({_X_KEY: _X}, {_Y_KEY: _Y}, channels)
 
 
-def test_raw_decaying_sinusoid_fit_raises_on_this_data():
-    """Precondition: the raw oitg fit really does raise on the RID 75720 data,
-    so the guard below is exercising the real failure, not a strawman."""
+@pytest.mark.parametrize("fit_type, fit_constants, key", _CRASHING_FITS)
+def test_raw_fit_raises_on_this_data(fit_type, fit_constants, key):
+    """Precondition: the raw oitg fit really does raise on the repeat-x data,
+    so the guard below exercises the real failure, not a strawman. Covers both
+    frequency fits that crashed live (decaying_sinusoid 75720, detuned_square_pulse
+    75722)."""
     import oitg.fitting
 
+    fit_obj = getattr(oitg.fitting, fit_type)
+    kwargs = {"constants": fit_constants} if fit_constants else {}
     with pytest.raises(Exception):
-        oitg.fitting.decaying_sinusoid.fit(_X, _Y, constants={"t_dead": 0})
+        fit_obj.fit(_X, _Y, **kwargs)
 
 
-def test_fit_failure_pushes_nan_not_raise():
-    """The guarded analysis pushes NaN (value and error) instead of crashing."""
+@pytest.mark.parametrize("fit_type, fit_constants, key", _CRASHING_FITS)
+def test_fit_failure_pushes_nan_not_raise(fit_type, fit_constants, key):
+    """The guarded analysis pushes NaN (value and error) instead of crashing -
+    for every fit_type whose initialiser blows up on repeat-x data."""
     analysis = make_dataset_fit_analysis(
-        fit_type="decaying_sinusoid",
+        fit_type=fit_type,
         x=_X_KEY,
         y=_Y_KEY,
-        fit_constants={"t_dead": 0},
-        outputs=[
-            FitOutput("pi_time", "pi", fit_key="t_max_transfer", unit="us"),
-        ],
+        fit_constants=fit_constants,
+        outputs=[FitOutput("val", "v", fit_key=key)],
     )
-    channels = {"pi_time": _CapturingChannel(), "pi_time_err": _CapturingChannel()}
+    channels = {"val": _CapturingChannel(), "val_err": _CapturingChannel()}
 
     # Must not raise.
     _run_analyse(analysis, channels)
 
-    assert len(channels["pi_time"].pushed) == 1
-    assert np.isnan(channels["pi_time"].pushed[0])
-    assert np.isnan(channels["pi_time_err"].pushed[0])
+    assert len(channels["val"].pushed) == 1
+    assert np.isnan(channels["val"].pushed[0])
+    assert np.isnan(channels["val_err"].pushed[0])
 
 
 def test_sibling_outputs_all_get_nan_on_failure():
