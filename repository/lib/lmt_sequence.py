@@ -839,10 +839,7 @@ def _compile_pulse(
         delta_m=s,
         offset_param=ParamSpec(
             attr_name=name + "_offset",
-            description=(
-                f"{_event_prefix(index, event.label)}: {human} - detuning "
-                "offset added to the model-predicted resonance"
-            ),
+            description=f"{_event_prefix(index, event.label)}: {human} - detuning ",
             default=0.0,
             unit="kHz",
         ),
