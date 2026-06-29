@@ -2,6 +2,12 @@ import logging
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
+    SingleAndorImageMixin,
+)
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 from repository.lib.constants import VRS_URUKUL_CHANNEL, VRS_SCOPE_ADDRESS
 from artiq.coredevice.ad9910 import AD9910
@@ -27,8 +33,21 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
+from repository.lib.experiment_templates.mixins.constant_lattice import (
+    ConstantBeamsMixin,
+)
 
-class SingleVRSSweepFrag(RedMOTWithExperimentBase):
+from repository.lib.experiment_templates.mixins.flir_measurement import (
+    FLIRMeasurementMixin,
+)
+
+
+class SingleVRSSweepFrag(
+    RedMOTWithExperimentBase,
+    FLIRMeasurementMixin,
+    SingleAndorImageMixin,
+    ConstantBeamsMixin,
+):
     """
     Single sided RF sweep on the 689 VRS AM
     """
