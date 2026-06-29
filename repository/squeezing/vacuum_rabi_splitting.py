@@ -1,15 +1,5 @@
 import logging
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperimentBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImageMixin,
-)
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperimentBase,
-)
 
-from repository.lib.constants import VRS_URUKUL_CHANNEL, VRS_SCOPE_ADDRESS
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -29,6 +19,14 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
+from repository.lib.constants import VRS_SCOPE_ADDRESS
+from repository.lib.constants import VRS_URUKUL_CHANNEL
+from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
+    SingleAndorImageMixin,
+)
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
@@ -36,7 +34,6 @@ logger = logging.getLogger(__name__)
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
-
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
