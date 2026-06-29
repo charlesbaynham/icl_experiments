@@ -425,6 +425,7 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
     """
 
     def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        print("Hello from DynamicROIImagingMixin.get_andor_camera_config_hook")
         f = self.setattr_fragment("andor_camera_config", LMTCompensatedCameraConfig)
         self.andor_camera_config: LMTCompensatedCameraConfig
         return f
@@ -609,8 +610,7 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
 
 class NormalisedFastKineticsLMTCorrectedMixin(
-    DynamicROIImagingMixin,
-    NormalisedFastKineticsClockPulseMixin,
+    NormalisedFastKineticsClockPulseMixin, DynamicROIImagingMixin
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
