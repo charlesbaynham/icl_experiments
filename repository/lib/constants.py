@@ -1563,3 +1563,4 @@ LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 
 # Squeezing / Vacuum Rabi splitting stuff
 VRS_URUKUL_CHANNEL = "urukul9910_squeezing_probe"
+VRS_SCOPE_ADDRESS = "TCPIP::10.137.1.19::INSTR"
