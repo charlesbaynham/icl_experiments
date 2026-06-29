@@ -98,6 +98,9 @@ class SingleVRSSweepFrag(
         self.setattr_result("scope_data", OpaqueChannel)
         self.scope_data: ResultChannel
 
+        # Bind the sweep time to be the acquisition time of the scope
+        self.probe_ramper.bind_param("sweep_time", self.acquisition_time)
+
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
