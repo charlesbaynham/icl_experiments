@@ -82,7 +82,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.657e6,
+        frequency=364.636e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -1228,7 +1228,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.019, -0.31)
+) = add_field_offset(0.188, 0.019, -0.28)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
