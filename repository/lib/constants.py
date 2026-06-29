@@ -21,6 +21,7 @@ from dataclasses import field
 from typing import Optional
 
 import numpy as np
+from artiq.language import portable
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from scipy import constants as scipy_constants
@@ -1087,6 +1088,7 @@ FIELD_COMP_Y = -0.009
 FIELD_COMP_Z = -0.69
 
 
+@portable
 def add_field_offset(x, y, z):
     """
     Adds the field offset to the passed field
@@ -1110,6 +1112,19 @@ def calc_new_field_defaults(param_x, param_y, param_z):
         param_y - FIELD_COMP_Y,
         param_z - FIELD_COMP_Z,
     )
+
+
+# Bias-coil current->field calibration: SIGNED gradient dB/dI (Gauss/Amp). The
+# Zeeman-spectroscopy calibration (lab notes 2026-03) gives only the magnitudes
+# below. Axis convention: +X toward the Matisse (South, cavity axis), +Y away from
+# the lab PC (East, MOT axis), +Z up.
+# SIGNS ASSUMED POSITIVE (+current -> +axis field) in that convention - the labbook
+# is unclear and they are NOT yet confirmed. The produced field direction (and
+# hence the handedness of any rotated-field measurement) depends on these signs, so
+# confirm them on-rig / by atom calibration before trusting absolute field angles.
+COIL_SENSITIVITY_X_G_PER_A = 0.2762
+COIL_SENSITIVITY_Y_G_PER_A = 0.7656
+COIL_SENSITIVITY_Z_G_PER_A = 0.2238
 
 
 if USE_SR87:
@@ -1161,8 +1176,8 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 55e-6
-CLOCK_DOWN_PI_TIME = 68e-6
+CLOCK_PI_TIME = 58e-6  # up beam; refined 2026-06-29 post-rebuild (RID 75720+75721 dip, 58+-2us)
+CLOCK_DOWN_PI_TIME = 68e-6  # down beam; 2026-06-29 RID 75723 consistent (68+-3us) but data poor (survival-norm >1); rescan 45-95us to refine
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
