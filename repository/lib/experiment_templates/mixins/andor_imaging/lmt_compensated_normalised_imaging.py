@@ -618,7 +618,6 @@ class NormalisedFastKineticsLMTCorrectedMixin(
     (which still wins ``do_first_pulse``).
 
     ``DynamicROIImagingMixin`` is listed first so its precedence over the
-    static-config base hooks is explicit; the resolution is pinned by
-    ``tests/test_lmt_corrected_imaging_mro.py``. See
+    static-config base hooks is explicit. See
     :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract.
     """
