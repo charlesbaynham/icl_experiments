@@ -735,15 +735,6 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 rabi = self._lmt_rabi_hz[i]
                 stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
 
-                # FIXME
-                logger.warning(
-                    "LMT pulse %d: t_fall=%.6f s, v0_doppler=%.3f Hz, stark=%.3f Hz",
-                    i,
-                    t_fall,
-                    v0_doppler,
-                    stark,
-                )
-
                 freq_centre = (
                     start_opll_offset
                     + self._lmt_beam_sign[i] * t_fall * ramp_rate
