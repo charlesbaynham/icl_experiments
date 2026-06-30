@@ -159,10 +159,11 @@ class AbsorptionImagingBase(AndorImagingBase):
             )
         self.andor_camera_control.cam.start_acquisition()  # HACK base and andor cam frag should be changed so acq is only started once.
 
+        self.set_dataset("od_omage_roi_targets", self.get_abs_rois(), broadcast=True)
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_abs_rois()}' --dataset_prefix od_omage",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --rois_dataset od_omage_roi_targets --dataset_prefix od_omage",
         )
 
     def hook_setup_andor_results(self):
