@@ -108,7 +108,8 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         # Remove any ground-state population left behind by imperfect pulses
-        # Clearout(),  # FIXME
+        Clearout(),
+        pi(Beam.UP, m=M_TOP, label="spectroscopy"),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
         # GOTCHA: the interferometer must be symmetric about the mirror
