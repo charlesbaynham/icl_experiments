@@ -82,24 +82,24 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Full intensity for the launch and interferometer; the declared
         # Rabi frequencies set the default pulse durations
         # (pi time = 1 / (2 * Rabi))
-        SetPoint(
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
-            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        ),
+        # SetPoint(
+        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        # ),
         # Blast away the unselected ground-state atoms
         Clearout(),
         # # Launch: alternating pi pulses walking the atoms up the momentum
         # # ladder from |e, 1> to m = M_TOP
         # *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         # Clearout(),
-        # SetPoint(
-        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
-        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
-        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
-        # ),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        ),
         # Wait(t=1e-3, label="droptime"),
-        pi(Beam.UP, m=1, label="spectroscopy"),
+        pi(Beam.DOWN, m=1, label="spectroscopy"),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
         # GOTCHA: the interferometer must be symmetric about the mirror
