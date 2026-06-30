@@ -449,6 +449,10 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.get_grabber_data()
 
     @kernel
+    def after_save_andor_data_hook(self):
+        pass
+
+    @kernel
     def get_grabber_data(self):
         # Arrays to hold all the ROIs
         sums = (

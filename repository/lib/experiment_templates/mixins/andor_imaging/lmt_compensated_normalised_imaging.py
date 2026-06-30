@@ -591,12 +591,6 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.core.break_realtime()
         self.andor_camera_control.reprogram_rois()
 
-        # Keep the applet ROI overlay in step with the grabber: re-broadcast the
-        # roi_targets datasets, but only when the predicted ROIs actually moved.
-        rois = self.andor_camera_config.get_rois()
-        if self._rois_changed_since_last_broadcast(rois):
-            self._broadcast_dynamic_roi_targets(rois)
-
         self.predicted_gnd_x.push(float(self.andor_camera_config.gnd_x))
         self.predicted_gnd_y.push(float(self.andor_camera_config.gnd_y))
         self.predicted_excited_x.push(float(self.andor_camera_config.excited_x))
@@ -643,6 +637,14 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.set_dataset(
             ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, excited, broadcast=True
         )
+
+    @kernel
+    def after_save_andor_data_hook(self):
+        # Keep the applet ROI overlay in step with the grabber: re-broadcast the
+        # roi_targets datasets, but only when the predicted ROIs actually moved.
+        rois = self.andor_camera_config.get_rois()
+        if self._rois_changed_since_last_broadcast(rois):
+            self._broadcast_dynamic_roi_targets(rois)
 
     @kernel
     def do_imaging_hook_andor(self):

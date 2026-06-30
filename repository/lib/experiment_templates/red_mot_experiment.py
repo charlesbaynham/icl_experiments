@@ -333,6 +333,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
 
         # This one for the Andor
         self.save_andor_data_hook()
+        self.after_save_andor_data_hook()
 
         # Do extra functions at end of experiment
         self.host_functions_after_experiment_hook()
@@ -382,6 +383,12 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         Hook to save data from the Andor camera
 
         Runs in realtime after imaging is completed
+        """
+
+    @kernel
+    def after_save_andor_data_hook(self):
+        """
+        This one is a bit of a hack job. Sorry
         """
 
     @kernel
