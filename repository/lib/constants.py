@@ -86,7 +86,7 @@ DEFAULT_INITIAL_VELOCITY_M_S = 0.0
 # value (3.24e-7) plugged the angular-convention number straight into the
 # linear-rabi formula, under-counting the light shift by a factor 4*pi**2 (~39.5)
 # -- it produced ~17 Hz where the measurement gives ~1 kHz at a 55 us pi pulse.
-DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.25e-7 * 4 * scipy_constants.pi**2  # = 1.283e-5
+DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.25e-7 * 4 * scipy_constants.pi**2
 
 # Default ROI dimensions for dynamic-ROI imaging (pixels). Sized to enclose a
 # single fast-kinetics cloud with a little margin. The box must stay well inside
