@@ -206,17 +206,19 @@ def walk_intent_to_trajectory(events):
         t_start = event.t_start_s - t0
         dt = event.duration_s
 
+        if event.kind == Kind.PHASE:
+            # Zero-duration marker: record its time only. Handle it BEFORE the
+            # gap-fill so it does not split the surrounding free-evolution drift
+            # into two segments (and does not advance the cursor or touch the
+            # populations).
+            phase_times.append(t_start)
+            continue
+
         # Fill the gap since the previous event with a free-evolution drift.
         gap = t_start - t_cursor
         if gap > 1e-12:
             sequence.append(Drift(duration=gap))
             drift_all(gap, "drift")
-
-        if event.kind == Kind.PHASE:
-            # Zero-duration marker: record its time, but leave the branches and
-            # drawing sequence untouched (no cursor advance, no population change).
-            phase_times.append(t_cursor)
-            continue
 
         if event.kind == Kind.CLEAROUT:
             sequence.append(Clearout(duration=dt))

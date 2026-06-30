@@ -123,6 +123,14 @@ class DMAActionsAfterDropMixin(RedMOTWithExperimentBase):
             self._tracked_down_switch_freq = (
                 0.0  # Hz, last commanded down-beam switch DDS freq
             )
+        if not hasattr(self, "_tracked_up_switch_phase"):
+            self._tracked_up_switch_phase = (
+                0.0  # turns, last commanded up-beam switch DDS phase
+            )
+        if not hasattr(self, "_tracked_down_switch_phase"):
+            self._tracked_down_switch_phase = (
+                0.0  # turns, last commanded down-beam switch DDS phase
+            )
         # Delivery AOM tracking — overridden by ClockSpectroscopyBase to nominal values
         if not hasattr(self, "_tracked_delivery_aom_freq"):
             self._tracked_delivery_aom_freq = 0.0  # Hz, delivery AOM frequency
