@@ -382,15 +382,21 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             roi[1] -= self.andor_camera_config.fast_kinetics_height
             roi[3] -= self.andor_camera_config.fast_kinetics_height
 
+        self.set_dataset(
+            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+        )
+        self.set_dataset(
+            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+        )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois_ground}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois_excited}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
         )
 
     def fast_kinetics_setup_results(self):
@@ -665,15 +671,21 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
             roi[1] -= self.andor_camera_config.fast_kinetics_height
             roi[3] -= self.andor_camera_config.fast_kinetics_height
 
+        self.set_dataset(
+            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+        )
+        self.set_dataset(
+            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+        )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois_ground}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois_excited}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
         )
 
     def fast_kinetics_setup_results(self):
