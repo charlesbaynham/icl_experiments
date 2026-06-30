@@ -37,6 +37,14 @@ logger = logging.getLogger(__name__)
 
 ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
+ANDOR_MONITOR_ROI_TARGETS_DATASET = "andor_monitor_roi_targets"
+
+# Background-corrected ground/excited image datasets and their ROI-overlay
+# target datasets, shared by the fast-kinetics imaging modules.
+ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
+ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
+ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET = "g_bg_corrected_roi_targets"
+ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET = "e_bg_corrected_roi_targets"
 
 
 class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
@@ -246,15 +254,37 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
             self.andor_profile_ys.append(profile_y)  # type: ignore
             self.andor_images.append(image)  # type: ignore
 
+    @staticmethod
+    def _split_bg_corrected_roi_targets(
+        rois, fast_kinetics_height, ground_indices=(0,), excited_indices=(1,)
+    ):
+        """Map a get_rois() buffer to (ground_targets, excited_targets) lists
+        for the bg-corrected applets.
+
+        The excited ROIs are shifted up by the fast-kinetics height so they land
+        in the excited sub-frame's pixel coordinates (the applet shows each
+        fast-kinetics sub-frame separately). ``ground_indices`` /
+        ``excited_indices`` select the signal ROIs per trap (one pair for a
+        single trap, two pairs for a double trap).
+        """
+        ground = [list(rois[i]) for i in ground_indices]
+        excited = [list(rois[i]) for i in excited_indices]
+        for roi in excited:
+            roi[1] -= fast_kinetics_height
+            roi[3] -= fast_kinetics_height
+        return ground, excited
+
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():
             monitor_rois = np.array(self.get_monitor_rois()).tolist()
-            self.set_dataset("andor_monitor_roi_targets", monitor_rois, broadcast=True)
+            self.set_dataset(
+                ANDOR_MONITOR_ROI_TARGETS_DATASET, monitor_rois, broadcast=True
+            )
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --rois_dataset andor_monitor_roi_targets --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --rois_dataset {ANDOR_MONITOR_ROI_TARGETS_DATASET} --dataset_prefix 'andor_monitor'",
             )
 
             # Also make an applet for every image. Don't include the ROIs on

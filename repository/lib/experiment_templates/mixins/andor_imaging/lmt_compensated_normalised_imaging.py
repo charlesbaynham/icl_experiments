@@ -11,6 +11,7 @@ import logging
 
 import numpy as np
 from artiq.language import TArray
+from artiq.language import TBool
 from artiq.language import TFloat
 from artiq.language import TInt32
 from artiq.language import TInt64
@@ -27,6 +28,12 @@ from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsBase,
 )
@@ -499,6 +506,13 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         )
         self.excited_port_multiplicity: FloatChannel
 
+        # Last ROIs broadcast to the applet roi_targets datasets, so per-shot
+        # re-broadcasts are skipped when the predicted ROIs are unchanged.
+        # Seeded impossible so the first shot always broadcasts.
+        self._last_broadcast_rois = np.full(
+            (self.andor_camera_config.num_grabber_rois, 4), -1, dtype=np.int32
+        )
+
     @kernel
     def _predict_atom_positions(
         self, t_image_ground_s: TFloat, t_image_excited_s: TFloat
@@ -577,6 +591,12 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.core.break_realtime()
         self.andor_camera_control.reprogram_rois()
 
+        # Keep the applet ROI overlay in step with the grabber: re-broadcast the
+        # roi_targets datasets, but only when the predicted ROIs actually moved.
+        rois = self.andor_camera_config.get_rois()
+        if self._rois_changed_since_last_broadcast(rois):
+            self._broadcast_dynamic_roi_targets(rois)
+
         self.predicted_gnd_x.push(float(self.andor_camera_config.gnd_x))
         self.predicted_gnd_y.push(float(self.andor_camera_config.gnd_y))
         self.predicted_excited_x.push(float(self.andor_camera_config.excited_x))
@@ -591,6 +611,38 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.roi_clipped.push(float(self.andor_camera_config.roi_clipped))
 
         self.core.break_realtime()
+
+    @kernel
+    def _rois_changed_since_last_broadcast(
+        self, rois: TArray(TInt32, 2)  # pyright: ignore[reportInvalidTypeForm]
+    ) -> TBool:  # pyright: ignore[reportInvalidTypeForm]
+        """True if ``rois`` differs from the last broadcast, updating the cache.
+
+        Element-wise over the (num_grabber_rois x 4) buffer; cheap, and gates the
+        per-shot dataset re-broadcast so unchanged ROIs cost nothing.
+        """
+        changed = False
+        for i in range(self.andor_camera_config.num_grabber_rois):
+            for j in range(4):
+                if rois[i][j] != self._last_broadcast_rois[i][j]:
+                    changed = True
+                    self._last_broadcast_rois[i][j] = rois[i][j]
+        return changed
+
+    @rpc(flags={"async"})
+    def _broadcast_dynamic_roi_targets(
+        self, rois: TArray(TInt32, 2)  # pyright: ignore[reportInvalidTypeForm]
+    ) -> None:
+        """Re-broadcast the bg-corrected roi_targets datasets so the live applet
+        overlay tracks the per-shot predicted ROIs (ROI 0 = ground, ROI 1 =
+        excited)."""
+        ground, excited = self._split_bg_corrected_roi_targets(
+            rois, self.andor_camera_config.fast_kinetics_height
+        )
+        self.set_dataset(ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, ground, broadcast=True)
+        self.set_dataset(
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, excited, broadcast=True
+        )
 
     @kernel
     def do_imaging_hook_andor(self):

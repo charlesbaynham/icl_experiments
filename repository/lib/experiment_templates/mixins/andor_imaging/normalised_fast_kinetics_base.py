@@ -40,6 +40,18 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -52,8 +64,6 @@ from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConf
 
 logger = logging.getLogger(__name__)
 
-ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
-ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
 
@@ -368,35 +378,28 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     def host_setup(self):
         super().host_setup()
 
-        rois = self.andor_camera_config.get_rois()
-        default_rois_ground = [
-            list(rois[0]),
-        ]
-        default_rois_excited = [
-            list(rois[1]),
-        ]
-
-        # Subtract the fast kinetics height from the y coordinates of the
-        # excited state ROIs
-        for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height
-            roi[3] -= self.andor_camera_config.fast_kinetics_height
+        default_rois_ground, default_rois_excited = (
+            self._split_bg_corrected_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+            )
+        )
 
         self.set_dataset(
-            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, default_rois_ground, broadcast=True
         )
         self.set_dataset(
-            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, default_rois_excited, broadcast=True
         )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
     def fast_kinetics_setup_results(self):
@@ -655,37 +658,30 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     def host_setup(self):
         super().host_setup()
 
-        rois = self.andor_camera_config.get_rois()
-        default_rois_ground = [
-            list(rois[0]),
-            list(rois[2]),
-        ]
-        default_rois_excited = [
-            list(rois[1]),
-            list(rois[3]),
-        ]
-
-        # Subtract the fast kinetics height from the y coordinates of the
-        # excited state ROIs
-        for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height
-            roi[3] -= self.andor_camera_config.fast_kinetics_height
+        default_rois_ground, default_rois_excited = (
+            self._split_bg_corrected_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+                ground_indices=(0, 2),
+                excited_indices=(1, 3),
+            )
+        )
 
         self.set_dataset(
-            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, default_rois_ground, broadcast=True
         )
         self.set_dataset(
-            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, default_rois_excited, broadcast=True
         )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
     def fast_kinetics_setup_results(self):
