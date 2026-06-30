@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
@@ -107,13 +108,13 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # # Launch: alternating pi pulses walking the atoms up the momentum
         # # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
-        # Remove any ground-state population left behind by imperfect pulses
         Clearout(),
         SetPoint(
             setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
             rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
             rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
         ),
+        Wait(t=1e-3, label="droptime"),
         pi(Beam.UP, m=M_TOP, label="spectroscopy"),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
