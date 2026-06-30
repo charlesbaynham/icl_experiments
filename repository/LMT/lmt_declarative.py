@@ -150,5 +150,5 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
 
 
 DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
-    DeclarativeLMTSymmetricMachZehnderFrag
+    DeclarativeLMTSymmetricMachZehnderFrag, max_rtio_underflow_retries=0
 )
