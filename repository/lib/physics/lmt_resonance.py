@@ -328,6 +328,12 @@ class Kind(IntEnum):
     # pulse intent row per declared callback action). Kept to document the
     # record schema and preserve the IntEnum numbering.
     CALLBACK = 2
+    # A non-atom-affecting marker: an absolute switch-AOM phase change. It does
+    # NOT move the populations, so the intent walkers skip it for the trajectory;
+    # it is recorded only so the spacetime applet can draw a marker at its time.
+    # Its state_effect/addressed_state/addressed_m/delta_m columns carry neutral
+    # valid codes (NONE / AUTO / M_AUTO / 0).
+    PHASE = 3
 
 
 class StateEffect(IntEnum):

@@ -6,6 +6,7 @@ import pytest
 
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
+from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
@@ -13,6 +14,7 @@ from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Callback
 from repository.lib.lmt_sequence import CallbackAction
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
@@ -83,6 +85,46 @@ def test_symmetric_mach_zehnder_compiles_and_closes():
         EVENT_WAIT,
         EVENT_PULSE,
     ]
+
+
+def test_compiles_phase_event():
+    """A Phase event compiles to an EVENT_PHASE with a phase parameter and has no
+    effect on the population walk."""
+    without_phase = [
+        *setpoints(),
+        pi2(Beam.DOWN, m=1),
+        pi(Beam.DOWN, m=1),
+    ]
+    with_phase = [
+        setpoints()[0],
+        Phase(phase=0.25, label="bs"),
+        pi2(Beam.DOWN, m=1),
+        Phase(phase=0.5),
+        pi(Beam.DOWN, m=1),
+    ]
+
+    base = compile_sequence(without_phase, initial_population={(GROUND, 1)})
+    compiled = compile_sequence(with_phase, initial_population={(GROUND, 1)})
+
+    # Same final population: the Phase events are inert to the atoms.
+    assert compiled.final_population == base.final_population
+
+    phase_events = [e for e in compiled.events if e.kind == EVENT_PHASE]
+    assert len(phase_events) == 2
+    first = phase_events[0]
+    assert first.phase_param is not None
+    assert first.phase_param.default == 0.25
+    assert "bs" in first.phase_param.attr_name
+    assert first.phase_param.attr_name.endswith("phase_bs")
+
+
+def test_phase_event_allowed_before_setpoint():
+    """A Phase before any SetPoint is legal (it fires no pulse)."""
+    compiled = compile_sequence(
+        [Phase(phase=0.1), *setpoints(), pi(Beam.UP, m=0)],
+        initial_population={(GROUND, 0)},
+    )
+    assert compiled.events[0].kind == EVENT_PHASE
 
 
 def test_velocity_selective_slice_sequence():

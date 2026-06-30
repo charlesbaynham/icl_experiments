@@ -94,6 +94,19 @@ def clearout_event(t_start_s: float, duration_s: float = 50e-6) -> IntentEvent:
     )
 
 
+def phase_event(t_start_s: float) -> IntentEvent:
+    """A zero-duration phase-change marker, as register_phase records it."""
+    return IntentEvent(
+        t_start_s=t_start_s,
+        duration_s=0.0,
+        kind=pulse_intent.Kind.PHASE,
+        state_effect=pulse_intent.StateEffect.NONE,
+        addressed_state=pulse_intent.AddressedState.AUTO,
+        addressed_m=pulse_intent.M_AUTO,
+        delta_m=0,
+    )
+
+
 V_R = recoil_velocity(SIDE_VIEW_CFG)
 
 
@@ -284,6 +297,19 @@ def test_clearout_removes_ground_branch():
     assert len(branches) == 1
     assert not branches[0].is_ground
     assert branches[0].m == 1
+
+
+def test_phase_event_is_ignored_by_predictor():
+    """A Kind.PHASE marker must be skipped (not raise) and leave the branches
+    unchanged - the ROI predictor walks the same intent stream as the applet."""
+    without_phase = [pulse_event(1e-3, is_up=True)]
+    with_phase = [phase_event(5e-4), pulse_event(1e-3, is_up=True), phase_event(1.5e-3)]
+
+    base = walk_intent_events(without_phase, 5e-3, SIDE_VIEW_CFG)
+    got = walk_intent_events(with_phase, 5e-3, SIDE_VIEW_CFG)
+
+    assert len(got) == len(base)
+    assert [(b.is_ground, b.m) for b in got] == [(b.is_ground, b.m) for b in base]
 
 
 # ── Launch ladders ────────────────────────────────────────────────────────────
