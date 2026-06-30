@@ -695,9 +695,7 @@ def compile_sequence(
                     setpoint_param=ParamSpec(
                         attr_name=_event_name(index, "setpoint", event.label),
                         description=(
-                            f"{_event_prefix(index, event.label)}: delivery AOM "
-                            "set point from here until the next SetPoint "
-                            f"(declared Rabi: {', '.join(rabi_bits)})"
+                            f"{_event_prefix(index, event.label)}: delivery setpoint"
                         ),
                         default=event.setpoint,
                         unit="V",
