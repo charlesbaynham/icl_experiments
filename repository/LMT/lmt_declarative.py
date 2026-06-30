@@ -50,7 +50,7 @@ N_LAUNCH = 12
 M_TOP = 1 + N_LAUNCH
 
 
-class DeclarativeLMTMachZehnderFrag(
+class DeclarativeLMTSymmetricMachZehnderFrag(
     DeclarativeLMTBase,
     # Repositions the camera ROIs along the ballistic trajectory predicted
     # from the recorded pulse sequence, with t=0 at the dipole-trap drop
@@ -146,4 +146,6 @@ class DeclarativeLMTMachZehnderFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
-DeclarativeLMTMachZehnder = make_fragment_scan_exp(DeclarativeLMTMachZehnderFrag)
+DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
+    DeclarativeLMTSymmetricMachZehnderFrag
+)
