@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
 
@@ -44,7 +45,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 12
+N_LAUNCH = 2
 M_TOP = 1 + N_LAUNCH
 
 
@@ -82,24 +83,25 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Full intensity for the launch and interferometer; the declared
         # Rabi frequencies set the default pulse durations
         # (pi time = 1 / (2 * Rabi))
-        # SetPoint(
-        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
-        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        # ),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        ),
         # Blast away the unselected ground-state atoms
         Clearout(),
         # # Launch: alternating pi pulses walking the atoms up the momentum
         # # ladder from |e, 1> to m = M_TOP
-        # *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
-        # Clearout(),
-        SetPoint(
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
-            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
-            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
-        ),
+        *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
+        Clearout(),
+        # 10x longer:
+        # SetPoint(
+        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
+        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        # ),
         # Wait(t=1e-3, label="droptime"),
-        pi(Beam.DOWN, m=1, label="spectroscopy"),
+        # pi(Beam.DOWN, m=1, label="spectroscopy"),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
         # GOTCHA: the interferometer must be symmetric about the mirror
