@@ -75,8 +75,18 @@ CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
 # TODO(charles): consider deriving this from the drop time instead of a constant.
 DEFAULT_INITIAL_VELOCITY_M_S = 14e-3
 
-# Probe AC-Stark shift coefficient: the clock light shift is alpha * rabi**2 (Hz).
-DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.24e-7
+# Probe AC-Stark shift coefficient: the clock light shift is alpha * rabi**2 (Hz),
+# where ``rabi`` is the LINEAR Rabi frequency in Hz (= 1/(2*T_pi)).
+#
+# The clock-shift calibration ("2026-06-09 Clock shift gap-filling even Omega2
+# grid") measured the slope in the ANGULAR convention, omega_probe = alpha_ang *
+# Omega**2 with Omega = pi/T_pi (rad/s), giving alpha_ang ~= 3.25e-7 Hz*s**2.
+# Because Omega = 2*pi*rabi, Omega**2 = 4*pi**2 * rabi**2, so the coefficient for
+# the linear-rabi formula used here is alpha = alpha_ang * 4*pi**2. The previous
+# value (3.24e-7) plugged the angular-convention number straight into the
+# linear-rabi formula, under-counting the light shift by a factor 4*pi**2 (~39.5)
+# -- it produced ~17 Hz where the measurement gives ~1 kHz at a 55 us pi pulse.
+DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.25e-7 * 4 * scipy_constants.pi**2  # = 1.283e-5
 
 # Default ROI dimensions for dynamic-ROI imaging (pixels). Sized to enclose a
 # single fast-kinetics cloud with a little margin. The box must stay well inside

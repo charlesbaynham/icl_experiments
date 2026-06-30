@@ -233,6 +233,25 @@ def test_probe_stark_term_sign_and_scaling():
     assert lmt_resonance.probe_stark_term_hz(rabi) < 0.0
 
 
+def test_probe_stark_magnitude_matches_clock_shift_measurement():
+    """The default alpha reproduces the measured AC-Stark magnitude.
+
+    Guards the linear-vs-angular Rabi unit convention. The clock-shift
+    calibration ("2026-06-09 Clock shift gap-filling even Omega2 grid") measured
+    ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi`` (rad/s) and
+    ``alpha_ang ~= 3.25e-7 Hz*s**2``. For a 55 us pi pulse that is ~1 kHz of
+    light shift. ``probe_stark_term_hz`` uses the LINEAR Rabi (``rabi =
+    1/(2*T_pi)`` Hz), so the default coefficient must carry the 4*pi**2 factor.
+    A regression to the angular-convention number (3.24e-7) would under-count
+    this by ~39.5x (it would predict ~25 Hz), which this pins against.
+    """
+    t_pi = 55e-6
+    rabi_hz = 1.0 / (2.0 * t_pi)
+    shift = lmt_resonance.probe_stark_term_hz(rabi_hz)
+    # ~1 kHz from the measurement; magnitude, sign is negative (OPLL moves down).
+    assert abs(shift) == pytest.approx(1060.0, rel=0.05)
+
+
 def test_first_beam_splitter_anchor():
     """The legacy interferometer beam splitter (down beam, after an N-pulse
     launch from the single shelving kick) used an OPLL m-term of
