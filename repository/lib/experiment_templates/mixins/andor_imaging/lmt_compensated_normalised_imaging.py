@@ -459,7 +459,7 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             # Measured from the end of the declared sequence, so the post-sequence
             # drop is constant as the sequence grows.
             # Scannable; keeps the cloud in the short fast-kinetics z-window.
-            default=500e-6,
+            default=constants.DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED,
             unit="ms",
             min=0,
         )
