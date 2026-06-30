@@ -469,15 +469,17 @@ class SingleImageNormalisedBase(AndorImagingBase):
             for roi in excited_rois
         ]
 
+        self.set_dataset("g_bg_corrected_roi_targets", ground_rois, broadcast=True)
+        self.set_dataset("e_bg_corrected_roi_targets", excited_rois, broadcast=True)
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{ground_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{excited_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
         )
 
     @abc.abstractmethod
@@ -747,15 +749,17 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
             for roi in excited_rois
         ]
 
+        self.set_dataset("g_bg_corrected_roi_targets", ground_rois, broadcast=True)
+        self.set_dataset("e_bg_corrected_roi_targets", excited_rois, broadcast=True)
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{ground_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{excited_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
         )
 
         self.launch_ellipse_applet()

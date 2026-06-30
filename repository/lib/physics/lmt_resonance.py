@@ -301,6 +301,24 @@ def opll_m_term_hz(
 
 
 # ── Recorded-intent vocabulary ────────────────────────────────────────────────
+#
+# The declarative-LMT pulse recorder archives, alongside the pulse facts, an
+# *intent stream*: one row per atom-affecting event describing what it is meant
+# to do to the populations. The host-side spacetime-trajectory reconstruction
+# (:mod:`repository.lib.physics.lmt_spacetime`, drawn by the trajectory applet)
+# walks that stream exactly. The integer codes and the decode below are the
+# shared schema for the broadcast ``pulse_intent_record`` dataset.
+
+
+def _ground_class_of_pair(m: int, is_ground: bool, beam_sign: int) -> int:
+    """Ground class ``m_g`` of the pair ``|g, m_g> <-> |e, m_g + beam_sign>``.
+
+    A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so the
+    populated state ``(is_ground, m)`` lies on the ground side at ``m_g = m`` or
+    on the excited side at ``m_g = m - s``. This is the pairing rule shared with
+    :meth:`IntentEvent.addresses_pair`.
+    """
+    return m if is_ground else m - beam_sign
 
 
 class Kind(IntEnum):
@@ -367,17 +385,11 @@ class IntentEvent:
     def addresses_pair(self, is_ground: bool, m: int) -> bool:
         """Is the population ``(is_ground, m)`` addressed by this event?
 
-        Shared by the dynamic-ROI predictor
-        (:mod:`repository.lib.physics.trajectory`) and the spacetime diagram
-        (:mod:`repository.lib.physics.lmt_spacetime`) so they always agree on
-        which branches a pulse touches.
-
-        ``AddressedState.AUTO``/``M_AUTO`` (the legacy ``register_pulse``
-        default) address every populated branch through the pulse's own
-        coupling - correct for the single-chain sequences legacy code fires. An
-        explicitly declared pair ``|g, m_g> <-> |e, m_g + delta_m>`` (the
-        declarative engine) addresses only its two members, leaving e.g. a
-        parked interferometer arm untouched.
+        ``AddressedState.AUTO``/``M_AUTO`` address every populated branch through
+        the pulse's own coupling - correct for single-chain sequences. An
+        explicitly declared pair ``|g, m_g> <-> |e, m_g + delta_m>`` addresses
+        only its two members, leaving e.g. a parked interferometer arm
+        untouched.
         """
         state_auto = self.addressed_state == AddressedState.AUTO
         m_auto = self.addressed_m == M_AUTO
@@ -412,7 +424,7 @@ def intent_events_from_arrays(
     addressed_states: Sequence[int],
     addressed_m: Sequence[int],
     delta_m: Sequence[int],
-) -> list[IntentEvent]:
+) -> "list[IntentEvent]":
     """Assemble parallel record arrays into a list of :class:`IntentEvent`.
 
     All arrays must have the same length; validation of the field values
