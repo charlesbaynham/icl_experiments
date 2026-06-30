@@ -74,11 +74,12 @@ BUFFER_DEPTH = 300
 # dipole drop / red-MOT light-off), not the DMA recording origin; see
 # _save_pulse_sequence_to_dataset. They are all stored as float64. The per-shot
 # dedup checksum, however, needs integers, so values are scaled by this factor
-# before the int64 cast. The scale is large enough to keep the checksum
-# sensitive to the smallest meaningful changes across every field - e.g.
-# sub-microsecond times and sub-millivolt setpoints - that an unscaled int64
-# cast would otherwise hide.
-CHECKSUM_SCALE = 1_000_000
+# before the int64 cast. The scale resolves times to ~1 ns (the RTIO machine-unit
+# granularity) so that pulses differing by a single mu are seen as distinct;
+# without it sub-microsecond timing changes would collide and be wrongly deduped.
+# At this scale frequencies and setpoints keep far-sub-Hz / far-sub-µV
+# sensitivity, and the largest scaled field stays well inside int64.
+CHECKSUM_SCALE = 1_000_000_000
 
 
 class PulseDMARecording(Fragment):
