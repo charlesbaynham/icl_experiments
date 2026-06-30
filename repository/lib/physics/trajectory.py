@@ -129,6 +129,9 @@ def walk_intent_events(
             branches = _apply_pulse(branches, event, t_c, v_r, direction)
         elif event.kind == Kind.CLEAROUT:
             branches = _apply_clearout(branches, event)
+        elif event.kind == Kind.PHASE:
+            # A phase change does not move the atoms - skip it.
+            continue
         else:  # pragma: no cover - IntentEvent already validates
             raise ValueError(f"Unknown intent event kind {event.kind!r}")
 

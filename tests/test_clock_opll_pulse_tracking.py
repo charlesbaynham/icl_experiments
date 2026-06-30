@@ -119,6 +119,8 @@ class _Outer:
         self._tracked_opll_ramp_start_mu = int64(0)
         self._tracked_up_switch_freq = 0.0
         self._tracked_down_switch_freq = 0.0
+        self._tracked_up_switch_phase = 0.0
+        self._tracked_down_switch_phase = 0.0
         self._tracked_delivery_aom_freq = 0.0
         self._tracked_delivery_aom_setpoint = 0.0
 
@@ -142,6 +144,7 @@ class _Recorder:
         self._pulse_record_switch_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_setpoint = [0.0] * BUFFER_DEPTH
+        self._pulse_record_phase = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         # Intent stream buffers (register_pulse appends a default-intent entry)
         self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
