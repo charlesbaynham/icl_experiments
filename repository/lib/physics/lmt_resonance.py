@@ -48,12 +48,15 @@ field               type     meaning
 ==================  =======  ====================================================
 ``t_start_mu``      int64    timeline position when the event starts
 ``duration_mu``     int64    event duration
-``kind``            int32    ``Kind.PULSE``, ``Kind.CLEAROUT`` or ``Kind.WAIT``
+``kind``            int32    ``Kind.PULSE``, ``Kind.CLEAROUT``, ``Kind.WAIT``
                              (a pure dark time: occupies its ``[t_start,
                              t_start + duration]`` interval but changes no
-                             population). (``Kind.CALLBACK`` is reserved but no
-                             longer emitted: a callback records one ordinary
-                             ``Kind.PULSE`` row per declared action.)
+                             population) or ``Kind.PHASE`` (a zero-duration,
+                             non-atom-affecting marker recorded only so the
+                             spacetime applet can draw it). (``Kind.CALLBACK``
+                             is reserved but no longer emitted: a callback
+                             records one ordinary ``Kind.PULSE`` row per
+                             declared action.)
 ``state_effect``    int32    ``StateEffect.FLIP`` (pi-like full transfer),
                              ``StateEffect.SUPERPOSE`` (pi/2-like split: both
                              pair members populated) or ``StateEffect.NONE``
@@ -334,6 +337,12 @@ class Kind(IntEnum):
     # the sequence-end anchor counts it and the predictor images that much
     # later, but carries no state flip and no momentum change.
     WAIT = 3
+    # A non-atom-affecting marker: an absolute switch-AOM phase change. It does
+    # NOT move the populations, so the intent walkers skip it for the trajectory;
+    # it is recorded only so the spacetime applet can draw a marker at its time.
+    # Its state_effect/addressed_state/addressed_m/delta_m columns carry neutral
+    # valid codes (NONE / AUTO / M_AUTO / 0).
+    PHASE = 4
 
 
 class StateEffect(IntEnum):

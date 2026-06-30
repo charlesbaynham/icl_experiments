@@ -105,6 +105,7 @@ from repository.lib.experiment_templates.mixins.lmt_trajectory_applet_mixin impo
     LMTTrajectoryAppletMixin,
 )
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
+from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
@@ -323,6 +324,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_offset_handles = []
         self._lmt_duration_handles = []
         self._lmt_setpoint_handles = []
+        self._lmt_phase_handles = []
         # Build-time intent shipped to the kernel and registered with the
         # pulse recorder as each event fires (integer codes from
         # repository.lib.physics.lmt_resonance, filled in by the sequence compiler)
@@ -347,6 +349,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_offset_refs = []
         self._lmt_duration_param_refs = []
         self._lmt_setpoint_refs = []
+        self._lmt_phase_refs = []
 
     def _lmt_build_sequence_arrays(self):
         """Compile the sequence and assemble the parallel kernel arrays.
@@ -423,6 +426,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._bind_offset_slot(event)
             self._bind_duration_slot(event)
             self._bind_setpoint_slot(event)
+            self._bind_phase_slot(event)
 
     def _bind_offset_slot(self, event):
         if self.lmt_use_per_pulse_params:
@@ -496,6 +500,27 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 self.lmt_global_setpoint_attr(event),
             )
 
+    def _bind_phase_slot(self, event):
+        if self.lmt_use_per_pulse_params:
+            if event.phase_param is not None:
+                spec = event.phase_param
+                handle = self.setattr_param(
+                    spec.attr_name,
+                    FloatParam,
+                    spec.description,
+                    default=spec.default,
+                    unit=spec.unit,
+                )
+                self._lmt_phase_handles.append(handle)
+            else:
+                self._lmt_phase_handles.append(self._lmt_pad_handle)
+        else:
+            self._lmt_append_global_slot(
+                self._lmt_phase_handles,
+                self._lmt_phase_refs,
+                self.lmt_global_phase_attr(event),
+            )
+
     def _lmt_append_global_slot(self, handles: list, refs: list, attr_name):
         """Append a pad placeholder and, if an attr name is given, a ref to
         resolve it to a shared handle in host_setup."""
@@ -528,6 +553,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "overridden"
         )
 
+    def lmt_global_phase_attr(self, event) -> "str | None":
+        # Unlike the other three global hooks this defaults to None rather than
+        # raising: Phase events are an additive, optional feature, so existing
+        # global-mode sequences (which contain no Phase events and do not
+        # override this) must not crash. Override it to bind a shared phase
+        # handle if you want to scan phase in global mode.
+        return None
+
     def host_setup(self):
         super().host_setup()
 
@@ -546,6 +579,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             (self._lmt_offset_refs, self._lmt_offset_handles),
             (self._lmt_duration_param_refs, self._lmt_duration_handles),
             (self._lmt_setpoint_refs, self._lmt_setpoint_handles),
+            (self._lmt_phase_refs, self._lmt_phase_handles),
         ):
             for slot, attr_name in refs:
                 handle = getattr(self, attr_name, None)
@@ -782,6 +816,28 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # pulse, or the interferometer will not close.
                 self._set_delivery_setpoint(self._lmt_setpoint_handles[i].get())
                 delay(self.clock_delivery_preempt_time.get())
+
+            elif kind == EVENT_PHASE:
+                # Reprogram both switch DDSes to the new absolute phase. Pulses
+                # are fired by gating these DDSes on/off without reprogramming
+                # them, so this phase persists for every pulse until the next
+                # EVENT_PHASE. Register the marker at the current timeline point
+                # FIRST, before the DDS writes advance the cursor, so it cannot
+                # land after a following zero-gap pulse.
+                phase = self._lmt_phase_handles[i].get()
+                self.dma_recording_fragment.register_phase()
+                self.set_clock_up_dds(
+                    frequency=self.clock_switch_frequency_handle.get(),
+                    amplitude=self.clock_switch_amplitude_handle.get(),
+                    phase=phase,
+                )
+                delay_mu(int64(self.core.ref_multiplier))
+                self.set_clock_down_dds(
+                    frequency=self.clock_switch_frequency_handle.get(),
+                    amplitude=self.clock_switch_amplitude_handle.get(),
+                    phase=phase,
+                )
+                delay_mu(int64(self.core.ref_multiplier))
 
             else:  # EVENT_CALLBACK
                 # Register each declared action as one ordinary pulse intent

@@ -41,11 +41,13 @@ from artiq.master.worker_impl import CCB
 
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
+from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import compile_sequence
@@ -107,6 +109,18 @@ def _wait(t_start, duration):
         "kind": pi_intent.Kind.WAIT,
         "t_start_s": t_start,
         "duration_s": duration,
+        "state_effect": pi_intent.StateEffect.NONE,
+        "addressed_state": pi_intent.AddressedState.AUTO,
+        "addressed_m": pi_intent.M_AUTO,
+        "delta_m": 0,
+    }
+
+
+def _phase(t_start):
+    return {
+        "kind": pi_intent.Kind.PHASE,
+        "t_start_s": t_start,
+        "duration_s": 0.0,
         "state_effect": pi_intent.StateEffect.NONE,
         "addressed_state": pi_intent.AddressedState.AUTO,
         "addressed_m": pi_intent.M_AUTO,
@@ -212,7 +226,15 @@ def _append_interferometer(sequence, *, state, m, n_lmt, symmetric):
 
 
 def _build_sequence(
-    *, do_split, n_split, do_launch, n_launch, n_lmt, symmetric, pulse_duration
+    *,
+    do_split,
+    n_split,
+    do_launch,
+    n_launch,
+    n_lmt,
+    symmetric,
+    pulse_duration,
+    do_phase=False,
 ):
     """The declarative LMT sequence for the requested knobs.
 
@@ -260,6 +282,11 @@ def _build_sequence(
         first_beam = Beam.UP if state == GROUND else Beam.DOWN
         sequence += ladder(start_m=m_now, n=n_launch, first_beam=first_beam)
         state, m_now = _top_pair(sequence)
+
+    # Optional zero-duration phase step just before the interferometer, to
+    # exercise the applet's phase marker.
+    if do_phase:
+        sequence.append(Phase(phase=0.25, label="demo"))
 
     # 4. Interferometer (always): an n_lmt-recoil Mach-Zehnder on the pair.
     _append_interferometer(
@@ -317,6 +344,9 @@ def _events_from_compiled(compiled, *, pulse_duration, interrogation_time):
                     )
                 )
             t += pulse_duration
+        elif ce.kind == EVENT_PHASE:
+            # Zero-duration marker: drawn by the applet, ignored by the walk.
+            events.append(_phase(t))
         elif ce.kind == EVENT_WAIT:
             events.append(_wait(t, interrogation_time))
             t += interrogation_time
@@ -373,6 +403,9 @@ class TestTrajectoryApplet(EnvExperiment):
         )
         self.interrogation_time: float
 
+        self.setattr_argument("do_phase", BooleanValue(default=False))
+        self.do_phase: bool
+
         self.setattr_argument("include_gravity", BooleanValue(default=False))
         self.include_gravity: bool
 
@@ -388,6 +421,7 @@ class TestTrajectoryApplet(EnvExperiment):
             n_lmt=int(self.n_lmt),
             symmetric=self.interferometer_type == "symmetric",
             pulse_duration=self.pulse_duration,
+            do_phase=self.do_phase,
         )
         compiled = compile_sequence(sequence, initial_population=_INITIAL_POPULATION)
         events = _events_from_compiled(

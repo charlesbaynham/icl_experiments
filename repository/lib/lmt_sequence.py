@@ -82,6 +82,7 @@ EVENT_WAIT = 1
 EVENT_CLEAROUT = 2
 EVENT_SETPOINT = 3
 EVENT_CALLBACK = 4
+EVENT_PHASE = 5
 
 
 class SequenceError(ValueError):
@@ -159,6 +160,26 @@ class Clearout:
     """
 
     duration: float | None = None
+    label: str = ""
+
+
+@dataclass(frozen=True)
+class Phase:
+    """Set the absolute switch-AOM phase applied to every following pulse.
+
+    The phase is programmed onto both clock switch DDSes (up and down) and, since
+    pulses are fired by gating those DDSes on and off without reprogramming them,
+    persists until the next :class:`Phase` event. It is zero-duration and has no
+    effect on the atomic populations (so the trajectory is unchanged); it only
+    rotates the phase the subsequent pulses are emitted with. Spawns a scannable
+    parameter with this default.
+
+    Args:
+        phase: Absolute AOM phase in turns (1.0 = one full turn = 2*pi).
+        label: Optional tag appended to the generated parameter name.
+    """
+
+    phase: float
     label: str = ""
 
 
@@ -502,6 +523,7 @@ class CompiledEvent:
     duration_param: ParamSpec | None = None
     duration_param_ref: str | None = None
     setpoint_param: ParamSpec | None = None
+    phase_param: ParamSpec | None = None
     addressed_pair: tuple | None = None
     state_effect: StateEffect = StateEffect.NONE
     addressed_state: AddressedState = AddressedState.AUTO
@@ -700,6 +722,24 @@ def compile_sequence(
                         default=event.setpoint,
                         unit="V",
                         min=0.0,
+                    ),
+                )
+            )
+        elif isinstance(event, Phase):
+            # A pure phase change: no population or set-point side effect, and
+            # allowed anywhere (even before the first SetPoint).
+            compiled.append(
+                CompiledEvent(
+                    index=index,
+                    kind=EVENT_PHASE,
+                    phase_param=ParamSpec(
+                        attr_name=_event_name(index, "phase", event.label),
+                        description=(
+                            f"{_event_prefix(index, event.label)}: switch AOM "
+                            "phase (turns)"
+                        ),
+                        default=event.phase,
+                        unit="",
                     ),
                 )
             )

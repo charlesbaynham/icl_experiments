@@ -58,6 +58,19 @@ def _clearout(t_start, duration, state=pi.AddressedState.GROUND):
     }
 
 
+def _phase(t_start):
+    """A zero-duration phase-change marker row (neutral atom-effect codes)."""
+    return {
+        "kind": pi.Kind.PHASE,
+        "t_start_s": t_start,
+        "duration_s": 0.0,
+        "state_effect": pi.StateEffect.NONE,
+        "addressed_state": pi.AddressedState.AUTO,
+        "addressed_m": pi.M_AUTO,
+        "delta_m": 0,
+    }
+
+
 def _symmetric_mach_zehnder_events():
     """Declared up-beam pi/2 - pi - pi/2 Mach-Zehnder on the (g,0)<->(e,1) pair."""
     t_pulse = 30e-6
@@ -106,8 +119,9 @@ def test_pi2_superpose_splits_ground_into_two_branches():
             ]
         )
     )
-    sequence, clouds, clearout_times = st.walk_intent_to_trajectory(events)
+    sequence, clouds, clearout_times, phase_times = st.walk_intent_to_trajectory(events)
     assert clearout_times.size == 0
+    assert phase_times.size == 0
     # One branch stays |g,0>, the other transfers to |e,1>.
     finals = sorted((c.is_ground[-1], c.m[-1]) for c in clouds)
     assert finals == [(False, 1), (True, 0)]
@@ -117,11 +131,12 @@ def test_symmetric_mach_zehnder_trajectory_shapes():
     record = _record(_symmetric_mach_zehnder_events())
     result = st.infer_trajectory_from_intent_record([record])
     assert result is not None
-    sequence, clouds, clearout_times = result
+    sequence, clouds, clearout_times, phase_times = result
 
     # pi/2 splits, pi swaps the arms, pi/2 recombines -> more than one branch.
     assert len(clouds) >= 2
     assert clearout_times.size == 0
+    assert phase_times.size == 0
 
     # Every cloud history is internally consistent in length.
     for cloud in clouds:
@@ -155,8 +170,9 @@ def test_clearout_kills_ground_and_records_time():
             ]
         )
     )
-    sequence, clouds, clearout_times = st.walk_intent_to_trajectory(events)
+    sequence, clouds, clearout_times, phase_times = st.walk_intent_to_trajectory(events)
     assert clearout_times.size == 1
+    assert phase_times.size == 0
     # The |g,0> branch is cleared (dead), the |e,1> branch survives.
     dead = [c for c in clouds if not c.alive]
     alive = [c for c in clouds if c.alive]
@@ -177,10 +193,44 @@ def test_gap_inserts_drift_event():
             ]
         )
     )
-    sequence, _clouds, _ct = st.walk_intent_to_trajectory(events)
+    sequence, _clouds, _ct, _pt = st.walk_intent_to_trajectory(events)
     kinds = [type(e).__name__ for e in sequence]
     assert kinds == ["Pulse", "Drift", "Pulse"]
     assert sequence[1].duration == pytest.approx(1e-3 - 30e-6)
+
+
+def test_phase_marker_populates_phase_times():
+    """A Kind.PHASE marker records a phase time but does not move the atoms nor
+    add a drawing event."""
+    two_pulses = [
+        _pulse(0.0, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1),
+        _pulse(1e-3, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1),
+    ]
+    with_phase = [
+        two_pulses[0],
+        _phase(5e-4),
+        two_pulses[1],
+    ]
+
+    base = st.walk_intent_to_trajectory(
+        st.intent_events_from_record(_record(two_pulses))
+    )
+    seq_b, clouds_b, ct_b, pt_b = base
+    assert pt_b.size == 0
+
+    seq, clouds, ct, pt = st.walk_intent_to_trajectory(
+        st.intent_events_from_record(_record(with_phase))
+    )
+
+    # The phase marker is recorded at its time...
+    assert pt.size == 1
+    assert pt[0] == pytest.approx(5e-4)
+    # ...but adds no drawing event (same Pulse/Drift/Pulse sequence)...
+    assert [type(e).__name__ for e in seq] == [type(e).__name__ for e in seq_b]
+    # ...and leaves the branch populations identical.
+    assert sorted((c.is_ground[-1], c.m[-1]) for c in clouds) == sorted(
+        (c.is_ground[-1], c.m[-1]) for c in clouds_b
+    )
 
 
 def test_infer_returns_none_for_empty_or_disabled():

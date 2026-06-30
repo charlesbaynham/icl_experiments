@@ -177,6 +177,17 @@ def test_binding_hooks_map_slots_to_global_handles():
         assert hooks.lmt_global_duration_attr(inert) is None
 
 
+def test_global_phase_attr_defaults_to_none():
+    """The phase hook defaults to None (NOT raising like the other three), so
+    existing global-mode sequences with no Phase events do not crash."""
+    hooks = _hooks()
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    for event in compiled.events:
+        assert hooks.lmt_global_phase_attr(event) is None
+
+
 def test_per_pulse_mode_is_the_default():
     from repository.lib.experiment_templates.mixins.declarative_lmt import (
         DeclarativeLMTCoreBase,

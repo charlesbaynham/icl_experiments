@@ -114,6 +114,8 @@ class PulseDMARecording(Fragment):
         self._pulse_record_switch_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_setpoint = [0.0] * BUFFER_DEPTH
+        # Absolute switch-AOM phase (turns) each pulse was delivered at.
+        self._pulse_record_phase = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
@@ -160,9 +162,9 @@ class PulseDMARecording(Fragment):
         ARTIQ can't handle dicts etc, so we wrap this into a 2D array. ARTIQ
         also requires that array to be homogeneously typed, so every row is
         stored as float64 in physical units: start times and durations in s
-        (converted from machine units via mu_to_seconds), frequencies in Hz and
-        the setpoint in V. The direction flag is integer-valued but exactly
-        representable as a float.
+        (converted from machine units via mu_to_seconds), frequencies in Hz, the
+        setpoint in V and the delivered switch-AOM phase in turns. The direction
+        flag is integer-valued but exactly representable as a float.
 
         Start times are stored **relative to the atoms' release** (the dipole
         drop, or red-MOT light-off): each recording-relative timestamp has the
@@ -216,6 +218,9 @@ class PulseDMARecording(Fragment):
                 : self._pulse_record_num_pulses
             ]
         ]
+        phases = [
+            float(x) for x in self._pulse_record_phase[: self._pulse_record_num_pulses]
+        ]
 
         pulse_record = [
             directions,
@@ -225,6 +230,7 @@ class PulseDMARecording(Fragment):
             switch_hz,
             delivery_hz,
             delivery_setpoint,
+            phases,
         ]
 
         # Calculate a checksum of this pulse record. The checksum needs
@@ -232,7 +238,7 @@ class PulseDMARecording(Fragment):
         # keeps it sensitive to sub-unit changes (e.g. a sub-volt setpoint
         # change) that an unscaled int64 cast would hide.
         checksum = int64(0)
-        for i in range(7):
+        for i in range(8):
             self.checksummer.set_seed(checksum)
             checksum = self.checksummer.checksum(
                 [int64(x * CHECKSUM_SCALE) for x in pulse_record[i]]
@@ -397,6 +403,11 @@ class PulseDMARecording(Fragment):
         self._pulse_record_delivery_setpoint[self._pulse_record_num_pulses] = (
             self.outer_self._tracked_delivery_aom_setpoint
         )
+        self._pulse_record_phase[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_up_switch_phase
+            if is_up
+            else self.outer_self._tracked_down_switch_phase
+        )
         self._pulse_record_num_pulses += 1
 
         self._append_intent(
@@ -483,6 +494,28 @@ class PulseDMARecording(Fragment):
         )
 
     @portable
+    def register_phase(self):
+        """
+        Register a switch-AOM phase change about to be applied.
+
+        Call IMMEDIATELY BEFORE programming the new phase. Records a
+        zero-duration intent-stream marker (``Kind.PHASE``) so the spacetime
+        applet can draw it; the population walkers skip it (it does not move the
+        atoms) and the actual delivered phase is recorded per-pulse in the pulse
+        facts record instead. No pulse facts are recorded here (a phase change is
+        not a clock pulse).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=int64(0),
+            kind=Kind.PHASE,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
     def _append_intent(
         self,
         t_start_mu: int64,
@@ -525,14 +558,15 @@ class PulseDMARecording(Fragment):
         Each record is encoded as a flat 1D array:
 
         - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
-        - Regular record (7 rows of ``num_pulses`` values each):
-          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
-          (length ``1 + 7 * num_pulses``)
+        - Regular record (8 rows of ``num_pulses`` values each):
+          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …, phase_0, …]``
+          (length ``1 + 8 * num_pulses``)
 
         All values are stored as float64 in physical units: start times
         (release-relative, as in the broadcast dataset) and durations in s,
-        frequencies in Hz and the setpoint in V. The direction and num_pulses
-        fields are integer-valued but stored as float64 too.
+        frequencies in Hz, the setpoint in V and the phase in turns. The
+        direction and num_pulses fields are integer-valued but stored as float64
+        too.
         """
         self._archive_flat_encoded("pulse_record", "pulse_record")
 

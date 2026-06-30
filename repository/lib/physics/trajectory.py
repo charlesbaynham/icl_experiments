@@ -134,6 +134,9 @@ def walk_intent_events(
             # the timeline, which the final ballistic advance to up_to_t_s
             # already accounts for.
             pass
+        elif event.kind == Kind.PHASE:
+            # A phase change does not move the atoms - skip it.
+            continue
         else:  # pragma: no cover - IntentEvent already validates
             raise ValueError(f"Unknown intent event kind {event.kind!r}")
 

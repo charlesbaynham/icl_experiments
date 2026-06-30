@@ -163,13 +163,18 @@ def _append_kick(cloud: Cloud, t: float, dt: float, delta_m: int, label: str):
 
 
 def walk_intent_to_trajectory(events):
-    """Walk an intent stream into ``(sequence, clouds, clearout_times)``.
+    """Walk an intent stream into ``(sequence, clouds, clearout_times, phase_times)``.
 
     ``events`` is a list of :class:`~repository.lib.physics.lmt_resonance.IntentEvent` in
     firing order. Returns the contiguous drawing ``sequence`` (list of
     :class:`Pulse`/:class:`Drift`/:class:`Clearout`), the list of
-    :class:`Cloud` branches, and an array of clearout times (seconds). Times are
-    rebased so the first event starts at ``t = 0``.
+    :class:`Cloud` branches, an array of clearout times (seconds) and an array of
+    phase-event times (seconds). Times are rebased so the first event starts at
+    ``t = 0``.
+
+    ``Kind.PHASE`` rows are zero-duration markers that do not move the atoms:
+    they only contribute a phase-event time (for the applet to draw), leaving the
+    branches and the drawing sequence untouched.
 
     The branch semantics are exactly those of the recorded intent (and of
     :mod:`repository.lib.physics.trajectory`): a flip transfers the addressed
@@ -180,12 +185,13 @@ def walk_intent_to_trajectory(events):
     """
     events = sorted(events, key=lambda e: e.t_centre_s)
     if not events:
-        return [], [], np.asarray([])
+        return [], [], np.asarray([]), np.asarray([])
 
     t0 = events[0].t_start_s
 
     sequence: list = []
     clearout_times: list = []
+    phase_times: list = []
     clouds = [Cloud(times=[0.0], z=[0.0], m=[0], is_ground=[True], labels=["release"])]
     next_color_index = 1
     t_cursor = 0.0  # seconds since the first event start
@@ -212,6 +218,12 @@ def walk_intent_to_trajectory(events):
             # every branch's internal state and momentum untouched.
             sequence.append(Drift(duration=dt))
             drift_all(dt, "drift")
+            continue
+
+        if event.kind == Kind.PHASE:
+            # Zero-duration marker: record its time, but leave the branches and
+            # drawing sequence untouched (no cursor advance, no population change).
+            phase_times.append(t_cursor)
             continue
 
         if event.kind == Kind.CLEAROUT:
@@ -290,7 +302,7 @@ def walk_intent_to_trajectory(events):
             Pulse(k=k, duration=dt, label="pulse", m_low=band[0], m_high=band[1])
         )
 
-    return sequence, clouds, np.asarray(clearout_times)
+    return sequence, clouds, np.asarray(clearout_times), np.asarray(phase_times)
 
 
 # --- Drawing trace (identical convention to lmt_sim / lmt_trajectory) --------
@@ -421,8 +433,8 @@ def intent_events_from_record(record):
 def infer_trajectory_from_intent_record(records):
     """End-to-end: decode the most recent valid intent record and walk it.
 
-    Returns ``(sequence, clouds, clearout_times)``, or ``None`` if no valid
-    sequence has been recorded yet (or the record holds no events).
+    Returns ``(sequence, clouds, clearout_times, phase_times)``, or ``None`` if
+    no valid sequence has been recorded yet (or the record holds no events).
     """
     record = most_recent_valid_record(records)
     if record is None:
