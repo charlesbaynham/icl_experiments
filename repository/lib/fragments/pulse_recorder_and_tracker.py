@@ -70,12 +70,16 @@ BUFFER_DEPTH = 300
 
 # The pulse record stores physical quantities as floats: times in s,
 # frequencies in Hz and the delivery setpoint in V (plus the integer-valued
-# direction flag). They are all stored as float64. The per-shot dedup checksum,
-# however, needs integers, so values are scaled by this factor before the int64
-# cast. The scale is large enough to keep the checksum sensitive to the smallest
-# meaningful changes across every field - e.g. sub-microsecond times and
-# sub-millivolt setpoints - that an unscaled int64 cast would otherwise hide.
-CHECKSUM_SCALE = 1_000_000
+# direction flag). Start times are stored relative to the atoms' release (the
+# dipole drop / red-MOT light-off), not the DMA recording origin; see
+# _save_pulse_sequence_to_dataset. They are all stored as float64. The per-shot
+# dedup checksum, however, needs integers, so values are scaled by this factor
+# before the int64 cast. The scale resolves times to ~1 ns (the RTIO machine-unit
+# granularity) so that pulses differing by a single mu are seen as distinct;
+# without it sub-microsecond timing changes would collide and be wrongly deduped.
+# At this scale frequencies and setpoints keep far-sub-Hz / far-sub-µV
+# sensitivity, and the largest scaled field stays well inside int64.
+CHECKSUM_SCALE = 1_000_000_000
 
 
 class PulseDMARecording(Fragment):
@@ -158,6 +162,14 @@ class PulseDMARecording(Fragment):
         (converted from machine units via mu_to_seconds), frequencies in Hz and
         the setpoint in V. The direction flag is integer-valued but exactly
         representable as a float.
+
+        Start times are stored **relative to the atoms' release** (the dipole
+        drop, or red-MOT light-off): each recording-relative timestamp has the
+        drop offset ``get_t_release_minus_playback_mu()`` subtracted before the
+        conversion to seconds, so a stored start time is the flight time since
+        release (negative for any event preceding the drop). The in-memory
+        ``_pulse_record_start_times_mu`` buffers stay recording-relative; only
+        this saved representation is rebased.
         """
 
         SAME_AS_LAST_TIME_SENTINEL = -1.0
@@ -167,12 +179,16 @@ class PulseDMARecording(Fragment):
             self.append_to_dataset("pulse_record", [[DISABLED_SENTINEL]])
             return
 
+        # Recording-relative timestamp of the drop, subtracted to make the
+        # stored start times release-relative (see method docstring).
+        t_release_mu = self.outer_self.get_t_release_minus_playback_mu()
+
         directions = [
             float(x)
             for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
         ]
         start_times_s = [
-            self.core.mu_to_seconds(x)
+            self.core.mu_to_seconds(x - t_release_mu)
             for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
         ]
         durations_s = [
@@ -239,7 +255,8 @@ class PulseDMARecording(Fragment):
         float64 array (homogeneous typing for ARTIQ), one row per field, with
         times converted to seconds and the integer-coded fields exactly
         representable as floats. Deduplicated per shot with the same sentinel
-        scheme.
+        scheme. Start times are release-relative, rebased the same way as the
+        pulse facts (the drop offset is subtracted before the seconds cast).
         """
 
         SAME_AS_LAST_TIME_SENTINEL = -1.0
@@ -249,9 +266,14 @@ class PulseDMARecording(Fragment):
             self.append_to_dataset("pulse_intent_record", [[DISABLED_SENTINEL]])
             return
 
+        # Recording-relative timestamp of the drop, subtracted to make the
+        # stored start times release-relative (see _save_pulse_sequence_to_dataset).
+        t_release_mu = self.outer_self.get_t_release_minus_playback_mu()
+
         n = self._intent_record_num_events
         start_times_s = [
-            self.core.mu_to_seconds(x) for x in self._intent_record_start_times_mu[:n]
+            self.core.mu_to_seconds(x - t_release_mu)
+            for x in self._intent_record_start_times_mu[:n]
         ]
         durations_s = [
             self.core.mu_to_seconds(x) for x in self._intent_record_durations_mu[:n]
@@ -484,9 +506,10 @@ class PulseDMARecording(Fragment):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
           (length ``1 + 7 * num_pulses``)
 
-        All values are stored as float64 in physical units: start times and
-        durations in s, frequencies in Hz and the setpoint in V. The direction
-        and num_pulses fields are integer-valued but stored as float64 too.
+        All values are stored as float64 in physical units: start times
+        (release-relative, as in the broadcast dataset) and durations in s,
+        frequencies in Hz and the setpoint in V. The direction and num_pulses
+        fields are integer-valued but stored as float64 too.
         """
         self._archive_flat_encoded("pulse_record", "pulse_record")
 
