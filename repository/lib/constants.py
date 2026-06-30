@@ -73,7 +73,7 @@ CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
 # Initial (release) z-velocity of the velocity-selected class along the clock
 # axis (positive = up), inferred from the down-launch resonance offset.
 # TODO(charles): consider deriving this from the drop time instead of a constant.
-DEFAULT_INITIAL_VELOCITY_M_S = 14e-3
+DEFAULT_INITIAL_VELOCITY_M_S = 0.0
 
 # Probe AC-Stark shift coefficient: the clock light shift is alpha * rabi**2 (Hz),
 # where ``rabi`` is the LINEAR Rabi frequency in Hz (= 1/(2*T_pi)).
