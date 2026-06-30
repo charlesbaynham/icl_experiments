@@ -17,7 +17,6 @@ instance (build skipped), exactly as in ``test_lmt_global_params``.
 import pytest
 
 from repository.lib import constants
-from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
@@ -58,6 +57,7 @@ def _assemble(compiled):
     inst._bind_offset_slot = lambda event: None
     inst._bind_duration_slot = lambda event: None
     inst._bind_setpoint_slot = lambda event: None
+    inst._bind_phase_slot = lambda event: None
     inst._lmt_assemble_event_arrays(compiled)
     return inst
 
@@ -65,9 +65,7 @@ def _assemble(compiled):
 def _kernel_v0_term(inst, i, v0):
     """The v0 contribution the kernel formula adds for event ``i`` at velocity
     ``v0`` (the tethered differential term)."""
-    return (
-        (inst._lmt_v0_reference_beam_sign - inst._lmt_beam_sign[i]) * v0 * INV_LAMBDA
-    )
+    return (inst._lmt_v0_reference_beam_sign - inst._lmt_beam_sign[i]) * v0 * INV_LAMBDA
 
 
 def test_reference_beam_sign_is_first_pulse():
