@@ -45,7 +45,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 6
+N_LAUNCH = 7
 M_TOP = 1 + N_LAUNCH
 
 
@@ -93,7 +93,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # # Launch: alternating pi pulses walking the atoms up the momentum
         # # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
-        Clearout(),  # even n -> ends in |e>; keep to blast |g> junk
+        # Clearout(),  # odd n -> ends in |g>; clearout would destroy the signal
         # 10x longer:
         # SetPoint(
         #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
