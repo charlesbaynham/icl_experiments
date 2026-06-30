@@ -109,6 +109,11 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         # Remove any ground-state population left behind by imperfect pulses
         Clearout(),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        ),
         pi(Beam.UP, m=M_TOP, label="spectroscopy"),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
         #
