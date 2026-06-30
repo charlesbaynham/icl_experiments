@@ -74,21 +74,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
-        # Velocity selection: a normal pulse, just longer and with a lower
-        # delivery set point. Each SetPoint event writes the new set point
-        # and waits clock_delivery_preempt_time for the servo to recapture;
-        # the set point never changes anywhere else.
-        #
-        # TODO: experimentally scan this set point (p00_setpoint_slice) to
-        # find the value giving the intended slicing Rabi frequency, then
-        # update the default and the declared rabi_up. Reduced intensity is
-        # now always done through the delivery SUServo set point; the legacy
-        # stack instead varied the RF attenuation of the switch AOM
-        # (LMT_launch_mixins.do_selective_lmt_pulse, att=10.5 dB on
-        # clock_up_dds), whose relationship to optical power is nonlinear
-        # and uncalibrated, so the conversion to set points must be
-        # calibrated on atoms. The same applies to any future low-intensity
-        # "selective" pulses: give them their own SetPoint and calibrate.
+        # Velocity selection
         SetPoint(
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
             rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
