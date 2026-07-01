@@ -879,7 +879,7 @@ def _compile_pulse(
     rabi_frequency = setpoint.rabi_for(event.beam)
     if rabi_frequency is None:
         raise SequenceError(
-            f"Event {index}: pulse on the {event.beam.name.lower()} beam, but "
+            f"Event {index} {event.label}: pulse on the {event.beam.name.lower()} beam, but "
             f"the governing SetPoint (event {setpoint_index}) declares no "
             f"rabi_{event.beam.name.lower()} - declare the Rabi frequency of "
             "this beam at the current set point"
@@ -890,7 +890,7 @@ def _compile_pulse(
     if event.state is not None:
         if event.state not in populated_states:
             message = (
-                f"Event {index}: pulse addresses {_format_state((event.state, event.m))} "
+                f"Event {index} {event.label}: pulse addresses {_format_state((event.state, event.m))} "
                 f"but it is not populated (populated: "
                 f"{', '.join(map(_format_state, sorted(population)))})"
             )
@@ -905,14 +905,14 @@ def _compile_pulse(
         input_state = populated_states[0]
     elif len(populated_states) == 2:
         raise SequenceError(
-            f"Event {index}: both |g, m={event.m}> and |e, m={event.m}> are "
+            f"Event {index} {event.label}: both |g, m={event.m}> and |e, m={event.m}> are "
             "populated - give Pulse(..., state=GROUND or EXCITED) to disambiguate"
         )
     else:
         # No population at this m and no explicit state: the transition is
         # unresolvable, so this is an error even with strict=False.
         raise SequenceError(
-            f"Event {index}: pulse addresses m={event.m} but no population is "
+            f"Event {index} {event.label}: pulse addresses m={event.m} but no population is "
             f"there (populated: {', '.join(map(_format_state, sorted(population)))})"
             " - give Pulse(..., state=GROUND or EXCITED) to fire it anyway"
         )
