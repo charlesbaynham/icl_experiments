@@ -73,6 +73,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
         delay(1e-3)
         self.dds.sw.set_o(True)
         self.dds.set_att(self.attenuation.get())
+        self.dds.set(self.probe_ramper.min_f.get())
         self.core.break_realtime()
 
         self.device_setup_subfragments()
