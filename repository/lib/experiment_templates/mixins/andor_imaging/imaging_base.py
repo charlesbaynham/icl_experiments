@@ -46,6 +46,11 @@ ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET = "g_bg_corrected_roi_targets"
 ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET = "e_bg_corrected_roi_targets"
 
+# Width of the bright separator strip drawn between the excited and ground
+# sub-frames in the composite monitor image. The excited ROI is offset by this
+# plus the sub-frame height when mapping onto the composite.
+ANDOR_MONITOR_SEPARATOR_WIDTH = 2
+
 
 class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     """
