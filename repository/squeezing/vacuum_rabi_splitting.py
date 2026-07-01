@@ -88,9 +88,7 @@ class SingleVRSSweepFrag(
         self.acquisition_time: FloatParamHandle
 
         # Fragments
-        self.setattr_fragment(
-            "probe_ramper", VRS_Probe_Ramper, "urukul9910_squeezing_probe"
-        )
+        self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, VRS_URUKUL_CHANNEL)
         self.probe_ramper: VRS_Probe_Ramper
 
         # Variable
