@@ -53,14 +53,17 @@ class VRS_Probe_Ramper(Fragment):
         self.max_f: FloatParamHandle
         self.min_f: FloatParamHandle
 
+    def host_setup(self):
+        super().host_setup()
+
+        self.df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
+
     @kernel
     def trigger_single_sweep(self):
         """
         Trigger a single sweep of the pulse
         Also advances the timeline by the given sweep time.
         """
-
-        df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
 
         self.probe_ramper.start_ramp(
             df_dt,
