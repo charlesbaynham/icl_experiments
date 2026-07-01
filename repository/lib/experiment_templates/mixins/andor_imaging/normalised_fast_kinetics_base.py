@@ -52,6 +52,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
     ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -65,6 +71,44 @@ from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConf
 logger = logging.getLogger(__name__)
 
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+
+# 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
+_LABEL_BITMAPS = {
+    "G": [
+        "01110",
+        "10001",
+        "10000",
+        "10111",
+        "10001",
+        "10001",
+        "01110",
+    ],
+    "E": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "10000",
+        "10000",
+        "11111",
+    ],
+}
+
+
+def _stamp_frame_label(image, letter, a0, b0, value):
+    """Draw ``letter`` into ``image`` with its top-left pixel at array index
+    (``a0``, ``b0``).
+
+    Bitmap columns run along array axis 0 (rendered horizontally) and rows along
+    axis 1 (rendered vertically), matching the composite monitor image.
+    """
+    for row, bits in enumerate(_LABEL_BITMAPS[letter]):
+        for col, bit in enumerate(bits):
+            if bit == "1":
+                a = a0 + col
+                b = b0 + row
+                if 0 <= a < image.shape[0] and 0 <= b < image.shape[1]:
+                    image[a, b] = value
 
 
 class NormalisedFKConfig(FastKineticsCameraConfig):
@@ -538,6 +582,70 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             self.excitation_fraction.push((sums[1] - sums[3]) / atom_number)
 
         self.atom_number.push(atom_number)
+
+    @host_only
+    def update_andor_monitor_hook(self, images):
+        """
+        Show a composite of the background-corrected ground and excited state
+        images, stacked vertically, instead of the raw first image.
+
+        The monitor applet renders array axis 1 vertically, so a vertical stack
+        is a concatenation along axis 1 (``np.hstack``), with a bright separator
+        strip between the two frames and an "E" / "G" label stamped into each
+        frame's corner. In this codebase axis 1 is the ROI y-axis and is
+        *flipped* (see :meth:`~AndorImagingBase.slice_from_roi_params`), so the
+        excited frame, which ``np.hstack`` places at the low-index end, is the
+        one whose ROI is offset in y by the sub-frame height plus the separator
+        width; the ground frame keeps its coordinates.
+        """
+        ground_corrected = np.int32(images[0]) - np.int32(images[2])
+        excited_corrected = np.int32(images[1]) - np.int32(images[3])
+
+        separator_width = 2
+        label_value = int(max(excited_corrected.max(), ground_corrected.max()))
+        separator = np.full(
+            (excited_corrected.shape[0], separator_width),
+            label_value,
+            dtype=np.int32,
+        )
+        composite = np.hstack([excited_corrected, separator, ground_corrected])
+
+        # Label each frame in its corner: "E" on the excited frame (low-index
+        # end), "G" on the ground frame (past the separator).
+        frame_height = excited_corrected.shape[1]
+        _stamp_frame_label(composite, "E", 3, 3, label_value)
+        _stamp_frame_label(
+            composite, "G", 3, frame_height + separator_width + 3, label_value
+        )
+
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            composite,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        # Rebuild the monitor ROI targets to line up on the composite, reusing
+        # the same ground / excited ROI split as the dedicated bg-corrected
+        # applets.
+        ground_targets, excited_targets = self._split_bg_corrected_roi_targets(
+            self.andor_camera_config.get_rois(),
+            self.andor_camera_config.fast_kinetics_height,
+        )
+        # The excited ROI is already mapped onto its split sub-frame. Because the
+        # stacking axis (1) is the flipped ROI y-axis, the excited frame's ROI is
+        # shifted up in y by the sub-frame height plus the separator width while
+        # the ground ROI is unchanged.
+        y_offset = frame_height + separator_width
+        excited_targets[0][1] += y_offset
+        excited_targets[0][3] += y_offset
+
+        self.set_dataset(
+            ANDOR_MONITOR_ROI_TARGETS_DATASET,
+            np.array([excited_targets[0], ground_targets[0]]).tolist(),
+            broadcast=True,
+        )
 
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
