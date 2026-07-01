@@ -1,7 +1,6 @@
 from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -58,6 +57,7 @@ class VRS_Probe_Ramper(Fragment):
     def trigger_single_sweep(self):
         """
         Trigger a single sweep of the pulse
+        Also advances the timeline by the given sweep time.
         """
 
         df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
@@ -70,5 +70,3 @@ class VRS_Probe_Ramper(Fragment):
         # Wait until we do one pulse
         delay(self.sweep_time.get())
         self.probe_ramper.stop_ramp()
-        # also wait until this operation is complete
-        self.core.wait_until_mu(now_mu())

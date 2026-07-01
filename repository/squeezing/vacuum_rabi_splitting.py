@@ -5,7 +5,6 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -157,9 +156,6 @@ class SingleVRSSweepFrag(
         self.core.break_realtime()
         # Switch the ttl on without advancing the timeline
         self.ttl.on()
-        # I think add a bit of delay to advance the timeline to prevent clashes, but also it'd be nice if it was simultaneous...
-        # TODO: Check if I need this delay
-        delay_mu(100)
         self.probe_ramper.trigger_single_sweep()
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.core.wait_until_mu(now_mu())
