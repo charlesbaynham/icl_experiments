@@ -186,6 +186,14 @@ The OPLL controller is owned by `ClockOPLLTrackingMixin` under the deliberately-
 - Use `TODO` for planned improvements
 - Use `FIXME` for temporary bodges that must be removed
 - **FIXME markers will fail CI** - they are not allowed in committed code on the master branch
+- A `FIXME` on a feature branch is a deliberate, human-placed guard: it's there
+  to turn CI red so the branch can't be accidentally merged before the marked
+  issue is addressed. If you're asked to make a change on a branch that already
+  has a failing CI due to a `FIXME`, **do not "fix" the `FIXME` unless that is
+  the specific task you were asked to do**. A red CI caused only by a `FIXME`
+  marker is expected and not a regression you introduced or need to resolve.
+  This is different from failing unit tests, integration tests, linting, or
+  docs builds - those are always real failures and must be fixed.
 
 ### Git branching conventions
 
