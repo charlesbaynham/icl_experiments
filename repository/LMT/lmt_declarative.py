@@ -12,6 +12,8 @@ generated with model-predicted defaults.
 
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -43,8 +45,6 @@ from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.lmt_sequence import pi2
 from repository.lib.physics.lmt_resonance import GROUND
-from vendor.ndscan.ndscan.experiment.parameters import FloatParam
-from vendor.ndscan.ndscan.experiment.parameters import FloatParamHandle
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 LMT_INTERFEROMETER_TIME = 0.1  # seconds
