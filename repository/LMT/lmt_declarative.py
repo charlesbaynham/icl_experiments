@@ -121,16 +121,17 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         ),
         Phase(param="interferometer_phase", label="mirror"),
         pi(Beam.UP, m=M_TOP, label="mirror"),
-        *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
-        *ladder(
-            start_m=M_TOP + N_LMT,
-            n=N_LMT,
-            direction=-1,
-            first_beam=Beam.DOWN,
-        ),
-        Phase(param="interferometer_phase", label="bs2"),
-        pi2(Beam.UP, m=M_TOP, label="bs2"),
+        # FIXME
+        # *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
+        # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        # *ladder(
+        #     start_m=M_TOP + N_LMT,
+        #     n=N_LMT,
+        #     direction=-1,
+        #     first_beam=Beam.DOWN,
+        # ),
+        # Phase(param="interferometer_phase", label="bs2"),
+        # pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
 
     def build_fragment(self):
