@@ -76,8 +76,7 @@ class ClockCavityOffsetFrag(ClockSpecPulseRatioFrag):
         # OPLL held on the nominal line; the delivery AOM frequency is the scan axis.
         self.override_param("extra_clock_detuning", 0.0)
 
-        # Not a full pi pulse, to avoid line broadening from the doppler distribution:
-        self.override_param("spectroscopy_pulse_time", constants.CLOCK_PI_TIME / 8.0)
+        self.override_param("spectroscopy_pulse_time", constants.CLOCK_PI_TIME)
         self.override_param("em_gain_enabled", True)
         self.override_param("em_gain", 30.0)
         self.override_param("blue_loading_time", 500e-3)
