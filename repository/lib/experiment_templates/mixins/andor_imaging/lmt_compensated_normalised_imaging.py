@@ -17,6 +17,7 @@ from artiq.language import TInt32
 from artiq.language import TInt64
 from artiq.language import TList
 from artiq.language import at_mu
+from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
@@ -33,6 +34,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_ROI_TARGETS_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsBase,
@@ -629,7 +633,13 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
     ) -> None:
         """Re-broadcast the bg-corrected roi_targets datasets so the live applet
         overlay tracks the per-shot predicted ROIs (ROI 0 = ground, ROI 1 =
-        excited)."""
+        excited).
+
+        Driven from the kernel-side ``after_save_andor_data_hook`` with the live
+        ``rois``: the predicted positions are only current kernel-side, so the
+        host-side ``get_rois()`` used by the base monitor hook is stale. The
+        composite monitor targets are broadcast here too, from the same live
+        ROIs (:meth:`_broadcast_monitor_roi_targets` is a no-op for this mixin)."""
         ground, excited = self._split_bg_corrected_roi_targets(
             rois, self.andor_camera_config.fast_kinetics_height
         )
@@ -637,6 +647,20 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.set_dataset(
             ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, excited, broadcast=True
         )
+        self.set_dataset(
+            ANDOR_MONITOR_ROI_TARGETS_DATASET,
+            self._composite_monitor_roi_targets(
+                rois, self.andor_camera_config.fast_kinetics_height
+            ),
+            broadcast=True,
+        )
+
+    @host_only
+    def _broadcast_monitor_roi_targets(self):
+        # The base samples get_rois() on the host, where the predicted positions
+        # are stale (only updated kernel-side). The live monitor targets are
+        # broadcast from _broadcast_dynamic_roi_targets instead.
+        pass
 
     @kernel
     def after_save_andor_data_hook(self):

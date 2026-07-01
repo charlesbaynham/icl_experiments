@@ -279,6 +279,30 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
             roi[3] -= fast_kinetics_height
         return ground, excited
 
+    @staticmethod
+    def _composite_monitor_roi_targets(rois, fast_kinetics_height):
+        """Map a get_rois() buffer to the two ROI targets for the composite
+        monitor image (``[excited_target, ground_target]``).
+
+        The composite stacks the excited sub-frame (low index) above a
+        ``ANDOR_MONITOR_SEPARATOR_WIDTH``-wide separator and the ground
+        sub-frame. Because the applet renders array axis 1 flipped, the excited
+        ROI is shifted up in y by the sub-frame height plus the separator width
+        while the ground ROI keeps its sub-frame coordinates.
+
+        This must be fed ROIs sampled at the same instant as the dedicated
+        ground/excited applet targets: for dynamically-predicted ROIs those
+        positions are only current kernel-side, so pass the ``get_rois()``
+        result from a kernel hook rather than sampling on the host.
+        """
+        ground, excited = AndorImagingBase._split_bg_corrected_roi_targets(
+            rois, fast_kinetics_height
+        )
+        y_offset = fast_kinetics_height + ANDOR_MONITOR_SEPARATOR_WIDTH
+        excited[0][1] += y_offset
+        excited[0][3] += y_offset
+        return [excited[0], ground[0]]
+
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():

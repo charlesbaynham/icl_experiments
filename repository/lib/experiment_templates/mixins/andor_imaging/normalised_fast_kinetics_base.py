@@ -58,6 +58,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
     ANDOR_MONITOR_ROI_TARGETS_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_SEPARATOR_WIDTH,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -601,7 +604,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         ground_corrected = np.int32(images[0]) - np.int32(images[2])
         excited_corrected = np.int32(images[1]) - np.int32(images[3])
 
-        separator_width = 2
+        separator_width = ANDOR_MONITOR_SEPARATOR_WIDTH
         label_value = int(max(excited_corrected.max(), ground_corrected.max()))
         separator = np.full(
             (excited_corrected.shape[0], separator_width),
@@ -626,24 +629,23 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             archive=False,
         )
 
-        # Rebuild the monitor ROI targets to line up on the composite, reusing
-        # the same ground / excited ROI split as the dedicated bg-corrected
-        # applets.
-        ground_targets, excited_targets = self._split_bg_corrected_roi_targets(
-            self.andor_camera_config.get_rois(),
-            self.andor_camera_config.fast_kinetics_height,
-        )
-        # The excited ROI is already mapped onto its split sub-frame. Because the
-        # stacking axis (1) is the flipped ROI y-axis, the excited frame's ROI is
-        # shifted up in y by the sub-frame height plus the separator width while
-        # the ground ROI is unchanged.
-        y_offset = frame_height + separator_width
-        excited_targets[0][1] += y_offset
-        excited_targets[0][3] += y_offset
+        # Rebuild the monitor ROI targets to line up on the composite. Routed
+        # through an overridable method so mixins with dynamically-predicted
+        # ROIs (whose positions are only current kernel-side) can supply the
+        # live ROIs instead of the stale host-side get_rois() sampled here.
+        self._broadcast_monitor_roi_targets()
 
+    @host_only
+    def _broadcast_monitor_roi_targets(self):
+        """Broadcast the composite monitor ROI targets from the host-side
+        ``get_rois()``. Correct for static-config experiments; overridden by
+        dynamic-ROI mixins that must source the ROIs kernel-side."""
         self.set_dataset(
             ANDOR_MONITOR_ROI_TARGETS_DATASET,
-            np.array([excited_targets[0], ground_targets[0]]).tolist(),
+            self._composite_monitor_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+            ),
             broadcast=True,
         )
 
