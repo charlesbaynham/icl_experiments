@@ -5,7 +5,6 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -146,21 +145,23 @@ class TestRTBSetupFrag(ExpFragment):
         self.core.break_realtime()
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(2.0)
+        delay(5.0)
         # self.core.wait_until_mu(now_mu())
-        self.core.wait_until_mu(now_mu())
+        # self.core.wait_until_mu(now_mu())
 
         # Pulse the TTL for 10 ms
+        # self.ttl.pulse(10e-3)
         self.ttl.on()
-        logger.warning("start the wait")
+        # logger.warning("start the wait")
         delay(self.acquisition_time.get())
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
+        self.ttl.off()
         self.core.wait_until_mu(now_mu())
         self.get_data_from_scope()
-        self.core.break_realtime()
-        delay_mu(4)
-        logger.warning("I've gotten data!")
-        self.ttl.off()
+        # self.core.wait_until_mu(now_mu())
+
+        # self.core.break_realtime()
+        # logger.warning("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
