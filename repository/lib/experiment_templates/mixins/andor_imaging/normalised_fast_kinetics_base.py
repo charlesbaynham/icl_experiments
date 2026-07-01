@@ -52,6 +52,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
     ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -538,6 +541,24 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             self.excitation_fraction.push((sums[1] - sums[3]) / atom_number)
 
         self.atom_number.push(atom_number)
+
+    @host_only
+    def update_andor_monitor_hook(self, images):
+        """
+        Show a composite of the background-corrected ground and excited state
+        images, stacked vertically, instead of the raw first image.
+        """
+        ground_corrected = np.int32(images[0]) - np.int32(images[2])
+        excited_corrected = np.int32(images[1]) - np.int32(images[3])
+        composite = np.vstack([excited_corrected, ground_corrected])
+
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            composite,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
 
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
