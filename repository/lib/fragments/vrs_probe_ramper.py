@@ -66,7 +66,7 @@ class VRS_Probe_Ramper(Fragment):
         """
 
         self.probe_ramper.start_ramp(
-            df_dt,
+            self.df_dt,
             self.min_f.get(),
             self.max_f.get(),
         )
