@@ -142,6 +142,7 @@ class SingleVRSSweepFrag(
         delay(1e-3)
         self.dds.sw.set_o(True)
         self.dds.set_att(float(self.attenuation.get()))
+        self.dds.set(self.probe_ramper.min_f.get())
         self.core.break_realtime()
 
     @kernel
