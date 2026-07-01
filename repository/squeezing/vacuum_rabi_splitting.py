@@ -157,7 +157,7 @@ class SingleVRSSweepFrag(
         self.ttl.on()
         # I think add a bit of delay to advance the timeline to prevent clashes, but also it'd be nice if it was simultaneous...
         # TODO: Check if I need this delay
-        delay_mu(4)
+        delay_mu(12)
         self.probe_ramper.trigger_single_sweep()
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.core.wait_until_mu(now_mu())
