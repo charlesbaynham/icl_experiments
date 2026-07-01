@@ -127,6 +127,19 @@ def test_phase_event_allowed_before_setpoint():
     assert compiled.events[0].kind == EVENT_PHASE
 
 
+def test_phase_validation():
+    with pytest.raises(ValueError):
+        Phase()
+    with pytest.raises(ValueError):
+        Phase(phase=0.25, param="some_param")
+    compiled = compile_sequence(
+        [*setpoints(), Phase(param="interferometer_phase")],
+        initial_population={(GROUND, 0)},
+    )
+    assert compiled.events[-1].phase_param_ref == "interferometer_phase"
+    assert compiled.events[-1].phase_param is None
+
+
 def test_velocity_selective_slice_sequence():
     """The canonical full sequence starting from release: the
     velocity-selective pulse is just a normal pulse with a longer duration

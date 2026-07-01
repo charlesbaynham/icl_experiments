@@ -501,7 +501,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             )
 
     def _bind_phase_slot(self, event):
-        if self.lmt_use_per_pulse_params:
+        # Phase(param=...) reuses an existing handle by name in BOTH modes.
+        if event.phase_param_ref is not None:
+            self._lmt_append_global_slot(
+                self._lmt_phase_handles,
+                self._lmt_phase_refs,
+                event.phase_param_ref,
+            )
+        elif self.lmt_use_per_pulse_params:
             if event.phase_param is not None:
                 spec = event.phase_param
                 handle = self.setattr_param(
@@ -572,9 +579,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_build_sequence_arrays()
 
         # Late resolution of slots that reference an existing handle by name:
-        # Wait(param=...)/shared clearouts in both modes, and every global-mode
-        # offset/duration/set-point binding. The referenced parameter may only
-        # exist after every mixin has built.
+        # Wait(param=...)/Phase(param=...)/shared clearouts in both modes, and
+        # every global-mode offset/duration/set-point binding. The referenced
+        # parameter may only exist after every mixin has built.
         for refs, handles in (
             (self._lmt_offset_refs, self._lmt_offset_handles),
             (self._lmt_duration_param_refs, self._lmt_duration_handles),

@@ -171,16 +171,25 @@ class Phase:
     pulses are fired by gating those DDSes on and off without reprogramming them,
     persists until the next :class:`Phase` event. It is zero-duration and has no
     effect on the atomic populations (so the trajectory is unchanged); it only
-    rotates the phase the subsequent pulses are emitted with. Spawns a scannable
-    parameter with this default.
+    rotates the phase the subsequent pulses are emitted with. Exactly one of
+    ``phase`` and ``param`` must be given. ``phase`` spawns a dedicated
+    scannable parameter with that default; ``param`` names an existing
+    ``FloatParamHandle`` attribute on the fragment to reuse instead.
 
     Args:
         phase: Absolute AOM phase in turns (1.0 = one full turn = 2*pi).
+        param: Name of an existing ``FloatParamHandle`` attribute to reuse
+            instead of spawning a dedicated parameter.
         label: Optional tag appended to the generated parameter name.
     """
 
-    phase: float
+    phase: float | None = None
+    param: str | None = None
     label: str = ""
+
+    def __post_init__(self):
+        if (self.phase is None) == (self.param is None):
+            raise ValueError("Phase requires exactly one of 'phase' or 'param'")
 
 
 @dataclass(frozen=True)
@@ -490,8 +499,9 @@ class CompiledEvent:
     """One sequence event, compiled for execution.
 
     ``offset_param``, ``duration_param`` and ``setpoint_param`` describe
-    parameters the execution mixin must spawn; ``duration_param_ref`` instead
-    names an existing handle attribute to reuse for the duration slot.
+    parameters the execution mixin must spawn; ``duration_param_ref`` and
+    ``phase_param_ref`` instead name an existing handle attribute to reuse for
+    the duration/phase slot.
     ``governing_setpoint_index`` points pulses at the sequence index of the
     :class:`SetPoint` event whose parameter governs their delivery set point.
 
@@ -524,6 +534,7 @@ class CompiledEvent:
     duration_param_ref: str | None = None
     setpoint_param: ParamSpec | None = None
     phase_param: ParamSpec | None = None
+    phase_param_ref: str | None = None
     addressed_pair: tuple | None = None
     state_effect: StateEffect = StateEffect.NONE
     addressed_state: AddressedState = AddressedState.AUTO
@@ -728,21 +739,31 @@ def compile_sequence(
         elif isinstance(event, Phase):
             # A pure phase change: no population or set-point side effect, and
             # allowed anywhere (even before the first SetPoint).
-            compiled.append(
-                CompiledEvent(
-                    index=index,
-                    kind=EVENT_PHASE,
-                    phase_param=ParamSpec(
-                        attr_name=_event_name(index, "phase", event.label),
-                        description=(
-                            f"{_event_prefix(index, event.label)}: switch AOM "
-                            "phase (turns)"
-                        ),
-                        default=event.phase,
-                        unit="",
-                    ),
+            if event.param is not None:
+                compiled.append(
+                    CompiledEvent(
+                        index=index,
+                        kind=EVENT_PHASE,
+                        phase_param_ref=event.param,
+                    )
                 )
-            )
+            else:
+                assert event.phase is not None
+                compiled.append(
+                    CompiledEvent(
+                        index=index,
+                        kind=EVENT_PHASE,
+                        phase_param=ParamSpec(
+                            attr_name=_event_name(index, "phase", event.label),
+                            description=(
+                                f"{_event_prefix(index, event.label)}: switch AOM "
+                                "phase (turns)"
+                            ),
+                            default=event.phase,
+                            unit="",
+                        ),
+                    )
+                )
         elif isinstance(event, Callback):
             _apply_callback(population, event)
             actions = tuple(

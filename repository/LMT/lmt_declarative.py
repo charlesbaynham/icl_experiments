@@ -36,14 +36,18 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 )
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import pi2
 from repository.lib.physics.lmt_resonance import GROUND
+from vendor.ndscan.ndscan.experiment.parameters import FloatParam
+from vendor.ndscan.ndscan.experiment.parameters import FloatParamHandle
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
-
+LMT_INTERFEROMETER_TIME = 0.1  # seconds
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
 N_LAUNCH = 6
@@ -102,8 +106,23 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         Clearout(),
         Wait(t=DROP, label="droptime"),
         # Now do some actual interferometry
-        # FIXME
+        Phase(phase=0.0, label="bs1"),
+        pi2(Beam.UP, m=M_TOP, label="bs1"),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Phase(param="interferometer_phase", label="mirror"),
+        pi(Beam.UP, m=M_TOP, label="mirror"),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Phase(param="interferometer_phase", label="bs2"),
+        pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "interferometer_phase", FloatParam, "Interferometer phase", default=0.0
+        )
+        self.interferometer_phase: FloatParamHandle
 
     @kernel
     def DMA_initialization_hook(self):
