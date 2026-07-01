@@ -47,6 +47,18 @@ class SingleVRSSweepFrag(
 ):
     """
     Single sided RF sweep on the 689 VRS AM
+
+    This sequence traps the atoms from a narrowband red mot and does a vacuum Rabi
+    splitting measurement. This includes preparing a scope to readout from the PMT
+    and triggering it while sweeping the amplitude modulator on the 689 probe beam.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks)
+
+        * :meth:`~do_experiment_after_red_mot_hook`
+        * :meth:`~host_functions_after_experiment_hook`
     """
 
     def build_fragment(self):
@@ -156,19 +168,11 @@ class SingleVRSSweepFrag(
         self.core.break_realtime()
 
     @kernel
-    def before_start_hook(self):
-        # Setup a single shot
-        self.start_single()
-        # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(3.0)
-
-    @kernel
     def do_experiment_after_red_mot_hook(self):
         # self.core.break_realtime()
         # Switch the ttl on without advancing the timeline
         self.ttl.on()
         self.probe_ramper.trigger_single_sweep()
-        # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.ttl.off()
 
     @kernel
@@ -181,7 +185,6 @@ class SingleVRSSweepFrag(
     @rpc
     def get_data_from_scope(self) -> None:
         # Save the data in ascii format and save
-        # pass
         # logger.warning("Query")
         data = self.rtb.query_bin_or_ascii_float_list(
             "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
@@ -189,10 +192,6 @@ class SingleVRSSweepFrag(
         logger.warning(len(data))
         self.scope_data.push(0)
         self.set_dataset("scope_data", data, broadcast=False, archive=False)
-
-    @rpc
-    def start_single(self) -> None:
-        self.rtb.write_str("SING")
 
 
 SingleVRSSweep = make_fragment_scan_exp(
