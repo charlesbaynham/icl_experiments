@@ -76,7 +76,9 @@ class ClockCavityOffsetFrag(ClockSpecPulseRatioFrag):
         # OPLL held on the nominal line; the delivery AOM frequency is the scan axis.
         self.override_param("extra_clock_detuning", 0.0)
 
-        self.override_param("spectroscopy_pulse_time", constants.CLOCK_PI_TIME)
+        self.override_param(
+            "spectroscopy_pulse_time", constants.CLOCK_SHELVING_PULSE_TIME
+        )
         self.override_param("em_gain_enabled", True)
         self.override_param("em_gain", 30.0)
         self.override_param("blue_loading_time", 500e-3)
@@ -88,13 +90,12 @@ class ClockCavityOffsetFrag(ClockSpecPulseRatioFrag):
         self.t_dipole_beams_off = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
 
-        T_clock = self.spectroscopy_pulse_time.get()
         T_ref = self.reference_pi_pulse_duration.get()
         V_ref = self.reference_clock_setpoint.get()
-        f = self.pulse_area_fraction.get()
+        T_clock = self.spectroscopy_pulse_time.get() * self.pulse_area_fraction.get()
 
         # pi setpoint scaling V = V_ref * (T_ref / T)^2, times f^2 so Omega*T = f*pi.
-        auto_setpoint = V_ref * (T_ref / T_clock) * (T_ref / T_clock) * f * f
+        auto_setpoint = V_ref * (T_ref / T_clock) * (T_ref / T_clock)
 
         # Configure the delivery AOM and pre-position the OPLL inside the preempt
         # window (written in the past), then return to _t_prep.
