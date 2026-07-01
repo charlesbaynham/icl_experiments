@@ -37,6 +37,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
@@ -45,8 +46,13 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 9
+N_LAUNCH = 7
 M_TOP = 1 + N_LAUNCH
+
+# Post-ladder drop time: at higher launch the cloud leaves the fixed
+# fast-kinetics window; this Wait lets it fall back in before imaging.
+# Image-driven - grow with n. Scannable via the spawned droptime duration.
+DROP = 5e-3
 
 
 class DeclarativeLMTSymmetricMachZehnderFrag(
@@ -94,6 +100,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         # Clearout(),  # odd n -> ends in |g>; clearout would destroy the signal
+        Wait(t=DROP, label="droptime"),
         # 10x longer:
         # SetPoint(
         #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
