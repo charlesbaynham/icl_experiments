@@ -46,7 +46,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 7
+N_LAUNCH = 6
 M_TOP = 1 + N_LAUNCH
 
 # Post-ladder drop time: at higher launch the cloud leaves the fixed
@@ -99,26 +99,10 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # # Launch: alternating pi pulses walking the atoms up the momentum
         # # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
-        # Clearout(),  # odd n -> ends in |g>; clearout would destroy the signal
+        Clearout(),
         Wait(t=DROP, label="droptime"),
-        # 10x longer:
-        # SetPoint(
-        #     setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 10**2,
-        #     rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
-        #     rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
-        # ),
-        # Wait(t=1e-3, label="droptime"),
-        # pi(Beam.DOWN, m=1, label="spectroscopy"),
-        # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
-        #
-        # GOTCHA: the interferometer must be symmetric about the mirror
-        # pulse or it will not close. SetPoint events cost time (servo
-        # write + clock_delivery_preempt_time settle), so keep them outside
-        # the interferometer as done here - or, if one is needed inside
-        # (e.g. for a selective pulse on one arm), balance it with a
-        # mirrored SetPoint at the corresponding position on the other side
-        # of the mirror (re-declaring the current value costs exactly the
-        # same time).
+        # Now do some actual interferometry
+        # FIXME
     ]
 
     @kernel
