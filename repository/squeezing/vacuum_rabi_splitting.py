@@ -110,7 +110,7 @@ class SingleVRSSweepFrag(
         self.cpld: CPLD = self.dds.cpld
 
         # and write a bunch of stuff to the scope
-        self.rtb = RsInstrument(VRS_SCOPE_ADDRESS, True, True, "Simulate = True")
+        self.rtb = RsInstrument(VRS_SCOPE_ADDRESS, True, True)
         # Set a long Long timeout for visa
         self.rtb.visa_timeout = 50000
         # Set the trigger to an external signal
