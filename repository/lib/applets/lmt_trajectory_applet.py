@@ -127,29 +127,11 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
             self._draw_styled_polyline(self.ax_m, t_m_us, m, m_ground, color)
 
             if not cloud.alive:
-                # Dots on every point; a big green X plus a "!" callout marks
-                # the cleared-out final one -- a live branch ending here is
-                # usually a bug, not an intended part of the sequence, so it
-                # needs to be impossible to miss.
-                self.ax_z.plot(
-                    t_z_us[:-1],
-                    z_mm[:-1],
-                    pen=None,
-                    symbol="o",
-                    symbolSize=5,
-                    symbolBrush=color,
-                    symbolPen=None,
-                )
+                # A big green X plus a "!" callout marks the cleared-out final
+                # point only -- a live branch ending here is usually a bug,
+                # not an intended part of the sequence, so it needs to be
+                # impossible to miss.
                 self._draw_clearout_mark(self.ax_z, t_z_us[-1], z_mm[-1])
-                self.ax_m.plot(
-                    t_m_us[:-1],
-                    m[:-1],
-                    pen=None,
-                    symbol="o",
-                    symbolSize=5,
-                    symbolBrush=color,
-                    symbolPen=None,
-                )
                 self._draw_clearout_mark(self.ax_m, t_m_us[-1], m[-1])
         return all_m
 
