@@ -62,6 +62,7 @@ class VRS_Probe_Ramper(Fragment):
     def trigger_single_sweep(self):
         """
         Trigger a single sweep of the pulse
+
         Also advances the timeline by the given sweep time.
         """
 

@@ -6,7 +6,6 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
-from artiq.language import now_mu
 from artiq.language import rpc
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
@@ -161,7 +160,7 @@ class SingleVRSSweepFrag(
         # Setup a single shot
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(5.0)
+        delay(3.0)
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
@@ -170,37 +169,32 @@ class SingleVRSSweepFrag(
         self.ttl.on()
         self.probe_ramper.trigger_single_sweep()
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
-        self.core.wait_until_mu(now_mu())
-        self.get_data_from_scope()
         self.ttl.off()
-        # self.core.break_realtime()
-        # delay_mu(4)
-        # logger.warning("I've gotten data!")
 
-    # Does this need to be done on the PC?, how else would it manage to save the data
-    # Also this is quite a large data set...
-    # We can save this data on the scope internally and rerun the experiment
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.host_functions_after_experiment_hook_default()
+
+        # Save the data!
+        self.get_data_from_scope()
+
     @rpc
     def get_data_from_scope(self) -> None:
         # Save the data in ascii format and save
-
-        logger.warning("Query")
-        # self.rtb.write_str("")
-        # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
+        # pass
+        # logger.warning("Query")
         data = self.rtb.query_bin_or_ascii_float_list(
             "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
         )
         logger.warning(len(data))
-        # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
-        logger.warning("Data Here")
-
         self.scope_data.push(0)
-        logger.warning("Pushed")
-        self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        self.set_dataset("scope_data", data, broadcast=False, archive=False)
 
     @rpc
     def start_single(self) -> None:
         self.rtb.write_str("SING")
 
 
-SingleVRSSweep = make_fragment_scan_exp(SingleVRSSweepFrag)
+SingleVRSSweep = make_fragment_scan_exp(
+    SingleVRSSweepFrag, max_rtio_underflow_retries=0
+)
