@@ -100,8 +100,8 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         ),
         # Blast away the unselected ground-state atoms
         Clearout(),
-        # # Launch: alternating pi pulses walking the atoms up the momentum
-        # # ladder from |e, 1> to m = M_TOP
+        # Launch: alternating pi pulses walking the atoms up the momentum
+        # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         Clearout(),
         Wait(t=DROP, label="droptime"),
