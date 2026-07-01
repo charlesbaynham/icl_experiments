@@ -129,6 +129,11 @@ def walk_intent_events(
             branches = _apply_pulse(branches, event, t_c, v_r, direction)
         elif event.kind == Kind.CLEAROUT:
             branches = _apply_clearout(branches, event)
+        elif event.kind == Kind.WAIT:
+            # Pure dark time: no state flip, no momentum kick. It only advances
+            # the timeline, which the final ballistic advance to up_to_t_s
+            # already accounts for.
+            pass
         else:  # pragma: no cover - IntentEvent already validates
             raise ValueError(f"Unknown intent event kind {event.kind!r}")
 

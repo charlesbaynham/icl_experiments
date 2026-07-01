@@ -755,7 +755,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 )
 
             elif kind == EVENT_WAIT:
-                delay(self._lmt_duration_handles[i].get())
+                wait_duration = self._lmt_duration_handles[i].get()
+                # Register before delaying so now_mu() stamps the wait start;
+                # this keeps the dark time in the recorded intent stream so the
+                # sequence-end anchor and ROI predictor both see it.
+                self.dma_recording_fragment.register_wait(duration_s=wait_duration)
+                delay(wait_duration)
 
             elif kind == EVENT_CLEAROUT:
                 clearout_duration = self._lmt_duration_handles[i].get()

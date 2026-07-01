@@ -173,8 +173,9 @@ def walk_intent_to_trajectory(events):
 
     The branch semantics are exactly those of the recorded intent (and of
     :mod:`repository.lib.physics.trajectory`): a flip transfers the addressed
-    pair, a superpose splits it, and a clearout removes the addressed internal
-    state. Callbacks carry no special record kind - each callback action is an
+    pair, a superpose splits it, a clearout removes the addressed internal
+    state, and a wait is a pure dark time drawn as free-evolution drift.
+    Callbacks carry no special record kind - each callback action is an
     ordinary ``Kind.PULSE`` row and flows through the pulse path here.
     """
     events = sorted(events, key=lambda e: e.t_centre_s)
@@ -205,6 +206,13 @@ def walk_intent_to_trajectory(events):
         if gap > 1e-12:
             sequence.append(Drift(duration=gap))
             drift_all(gap, "drift")
+
+        if event.kind == Kind.WAIT:
+            # Pure dark time: draw its duration as free-evolution drift, leaving
+            # every branch's internal state and momentum untouched.
+            sequence.append(Drift(duration=dt))
+            drift_all(dt, "drift")
+            continue
 
         if event.kind == Kind.CLEAROUT:
             sequence.append(Clearout(duration=dt))

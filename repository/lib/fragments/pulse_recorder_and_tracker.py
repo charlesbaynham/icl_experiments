@@ -118,8 +118,9 @@ class PulseDMARecording(Fragment):
         self._pulse_record_checksum = int64(0)
 
         # Preallocate the intent stream: one entry per atom-affecting event
-        # (clock pulses, clearouts, callbacks), appended at fire time next to
-        # the facts. Schema in repository.lib.physics.lmt_resonance.
+        # (clock pulses, clearouts, callbacks) plus dark times (waits),
+        # appended at fire time next to the facts. Schema in
+        # repository.lib.physics.lmt_resonance.
         self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
         self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
@@ -423,6 +424,28 @@ class PulseDMARecording(Fragment):
             kind=Kind.CLEAROUT,
             state_effect=StateEffect.NONE,
             addressed_state=AddressedState.GROUND,
+            addressed_m=M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
+    def register_wait(self, duration_s: float):
+        """
+        Register a dark time about to elapse.
+
+        Call IMMEDIATELY BEFORE the ``delay`` so ``now_mu()`` stamps the start
+        of the wait. Records an intent-stream entry that occupies its
+        ``[start, start + duration]`` interval but flips no state and imparts no
+        momentum, so the sequence-end anchor counts it and the predictor images
+        that much later while treating it as pure free flight. Records no pulse
+        facts (a wait is not a clock pulse).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=Kind.WAIT,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.AUTO,
             addressed_m=M_AUTO,
             delta_m=0,
         )

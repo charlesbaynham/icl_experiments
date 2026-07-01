@@ -102,6 +102,18 @@ def _clearout(t_start, duration, state=pi_intent.AddressedState.GROUND):
     }
 
 
+def _wait(t_start, duration):
+    return {
+        "kind": pi_intent.Kind.WAIT,
+        "t_start_s": t_start,
+        "duration_s": duration,
+        "state_effect": pi_intent.StateEffect.NONE,
+        "addressed_state": pi_intent.AddressedState.AUTO,
+        "addressed_m": pi_intent.M_AUTO,
+        "delta_m": 0,
+    }
+
+
 def _record_from_events(events):
     """Pack a list of event dicts into the 7-row float record the applet reads."""
     return [[float(e[key]) for e in events] for key in _RECORD_KEYS]
@@ -261,8 +273,9 @@ def _events_from_compiled(compiled, *, pulse_duration, interrogation_time):
     """Lay synthetic timing over the compiled events to make an intent record.
 
     Pulses and clearouts each occupy ``pulse_duration`` / a short clearout time;
-    Wait events advance the clock by ``interrogation_time``; set points are
-    instantaneous (and, like waits, are not part of the recorded intent stream).
+    Wait events record a dark-time intent row of ``interrogation_time``; set
+    points are instantaneous and, unlike waits, are not part of the recorded
+    intent stream.
     """
     clearout_duration = 5e-6
     events = []
@@ -305,6 +318,7 @@ def _events_from_compiled(compiled, *, pulse_duration, interrogation_time):
                 )
             t += pulse_duration
         elif ce.kind == EVENT_WAIT:
+            events.append(_wait(t, interrogation_time))
             t += interrogation_time
         elif ce.kind == EVENT_SETPOINT:
             pass  # instantaneous; not an atom-affecting event
