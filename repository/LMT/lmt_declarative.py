@@ -41,6 +41,7 @@ from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import pi2
 from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -102,6 +103,9 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-4),
+        # Test a0pplet
+        pi2(Beam.UP, m=M_TOP, label="bs1"),
+        Clearout(),
         # Wait(t=DROP, label="droptime"),
         # # Now do some actual interferometry
         # # %% LMT beamsplitter
