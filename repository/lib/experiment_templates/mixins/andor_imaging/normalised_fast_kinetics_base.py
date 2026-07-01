@@ -1044,6 +1044,19 @@ class NormalisedFastKineticsClockPulseMixin(
     def do_first_pulse(self):
         self.do_pulse()
         delay(self.delay_clock_after_first_pulse.get())
+
+        # Drive the delivery servo to full clock power for the readout pulse.
+        # A truncated sequence can leave the servo at whatever setpoint its last
+        # executed event set (e.g. the low shelving setpoint after a slice-only
+        # truncation), so the readout sets full power itself. This makes the
+        # readout a full-power, fast (Fourier-broad) DOWN pi identical in speed
+        # to the launch/mirror pulses - the M-state selection pulse.
+        self.set_clock_delivery_aom(
+            freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
+            setpoint_v=constants.SUSERVOED_BEAMS["clock_delivery"].setpoint,
+        )
+        delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
+
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.imaging_clock_pulse_detuning.get()
@@ -1053,10 +1066,8 @@ class NormalisedFastKineticsClockPulseMixin(
 
         delay(1e-6)
 
-        # PI PULSE
-
         self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
+        delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
         self.clock_down_dds.sw.off()
 
 
