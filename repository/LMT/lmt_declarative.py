@@ -53,6 +53,8 @@ LMT_INTERFEROMETER_TIME = 100e-6  # seconds
 N_LAUNCH = 6
 M_TOP = 1 + N_LAUNCH
 
+N_LMT = 2
+
 # Post-ladder drop time: at higher launch the cloud leaves the fixed
 # fast-kinetics window; this Wait lets it fall back in before imaging.
 # Image-driven - grow with n. Scannable via the spawned droptime duration.
@@ -106,12 +108,18 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         Clearout(),
         Wait(t=DROP, label="droptime"),
         # Now do some actual interferometry
+        # %% LMT beamsplitter
         Phase(phase=0.0, label="bs1"),
         pi2(Beam.UP, m=M_TOP, label="bs1"),
+        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
         Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        # %% LMT mirror
+        *ladder(start_m=M_TOP + N_LMT, n=N_LMT, direction=-1, first_beam=Beam.DOWN),
         Phase(param="interferometer_phase", label="mirror"),
-        pi(Beam.UP, m=M_TOP, label="mirror"),
+        pi(Beam.UP, m=M_TOP + M_TOP, label="mirror"),
+        *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
         Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        *ladder(start_m=M_TOP + N_LMT, n=N_LMT, direction=-1, first_beam=Beam.DOWN),
         Phase(param="interferometer_phase", label="bs2"),
         pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
