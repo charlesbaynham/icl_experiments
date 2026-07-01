@@ -85,6 +85,8 @@ from artiq.language import now_mu
 from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from numpy import int32
 from numpy import int64
 
@@ -237,6 +239,17 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             unit="",
         )
         self.lmt_probe_stark_alpha: FloatParamHandle
+
+        self.setattr_param(
+            "skip_after",
+            IntParam,
+            "Stop the LMT sequence after this event index (-1 = run all "
+            "events). Index counts flat sequence events after ladder() "
+            "expansion.",
+            default=-1,
+            min=-1,
+        )
+        self.skip_after: IntParamHandle
 
         # The kernel cannot iterate a list of heterogeneous event objects (no
         # dataclasses/sum types across the host->kernel boundary), so each event
@@ -755,8 +768,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         ``register_intent_action`` (one ordinary pulse intent row per action).
         """
         t_ref_mu = self.get_doppler_t_ref_mu()
+        skip_after = self.skip_after.get()
 
         for i in range(self._lmt_n_events):
+            if skip_after >= 0 and i > skip_after:
+                break
             kind = self._lmt_event_kind[i]
 
             if kind == EVENT_PULSE:
