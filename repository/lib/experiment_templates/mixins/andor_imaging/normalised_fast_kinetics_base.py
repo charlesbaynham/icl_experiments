@@ -74,6 +74,9 @@ from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConf
 logger = logging.getLogger(__name__)
 
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+# Full clock-delivery setpoint, resolved host-side (string-keyed dict lookups are
+# not permitted inside kernels) for the full-power readout pulse.
+CLOCK_DELIVERY_SETPOINT_V: float = constants.SUSERVOED_BEAMS["clock_delivery"].setpoint
 
 # 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
 _LABEL_BITMAPS = {
@@ -1053,7 +1056,7 @@ class NormalisedFastKineticsClockPulseMixin(
         # to the launch/mirror pulses - the M-state selection pulse.
         self.set_clock_delivery_aom(
             freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
-            setpoint_v=constants.SUSERVOED_BEAMS["clock_delivery"].setpoint,
+            setpoint_v=CLOCK_DELIVERY_SETPOINT_V,
         )
         delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
 
