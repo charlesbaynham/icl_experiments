@@ -17,8 +17,8 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
-from repository.lib.constants import VRS_SCOPE_ADDRESS
-from repository.lib.constants import VRS_URUKUL_CHANNEL
+from device_db_config import get_configuration_from_db
+from repository.lib.constants import VRS_SWEEP_ATTENUATION
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImageMixin,
 )
@@ -58,15 +58,15 @@ class SingleVRSSweepFrag(
         self.core: Core
 
         # Probe sweep DDS
-        self.dds: AD9910 = self.get_device(VRS_URUKUL_CHANNEL)
+        self.dds: AD9910 = self.get_device("urukul9910_squeezing_probe")
         self.setattr_device
 
         # Init of the Probe sweep DDS without glitching
         self.setattr_fragment(
             "GlitchFreeUrukulSweeper",
             GlitchFreeUrukulDefaultAttenuation,
-            VRS_URUKUL_CHANNEL,
-            5.0,
+            "urukul9910_squeezing_probe",
+            VRS_SWEEP_ATTENUATION,
         )
 
         # Scope trigger ttl
@@ -97,7 +97,9 @@ class SingleVRSSweepFrag(
         self.acquisition_time: FloatParamHandle
 
         # Fragments
-        self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, VRS_URUKUL_CHANNEL)
+        self.setattr_fragment(
+            "probe_ramper", VRS_Probe_Ramper, "urukul9910_squeezing_probe"
+        )
         self.probe_ramper: VRS_Probe_Ramper
 
         # Variable
@@ -115,7 +117,9 @@ class SingleVRSSweepFrag(
     def host_setup(self):
 
         # and write a bunch of stuff to the scope
-        self.rtb = RsInstrument(VRS_SCOPE_ADDRESS, id_query=True, reset=True)
+        self.rtb = RsInstrument(
+            get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
+        )
         # Set a long Long timeout for visa
         self.rtb.visa_timeout = 50000
         # Set the trigger to an external signal

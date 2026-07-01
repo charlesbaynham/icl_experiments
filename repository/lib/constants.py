@@ -1560,5 +1560,5 @@ LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 
 # Squeezing / Vacuum Rabi splitting stuff
-VRS_URUKUL_CHANNEL = "urukul9910_squeezing_probe"
-VRS_SCOPE_ADDRESS = "TCPIP::10.137.1.19::INSTR"
+# This is in a glitch free urukul, so need to restart the crate for it take effect!
+VRS_SWEEP_ATTENUATION = 5.0
