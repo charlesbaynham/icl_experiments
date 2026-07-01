@@ -3,7 +3,6 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.coredevice.urukul import CPLD
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
@@ -25,6 +24,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
 )
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
+)
+from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
+    GlitchFreeUrukulDefaultAttenuation,
 )
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
@@ -58,6 +60,14 @@ class SingleVRSSweepFrag(
         # Probe sweep DDS
         self.dds: AD9910 = self.get_device(VRS_URUKUL_CHANNEL)
         self.setattr_device
+
+        # Init of the Probe sweep DDS without glitching
+        self.setattr_fragment(
+            "GlitchFreeUrukulSweeper",
+            GlitchFreeUrukulDefaultAttenuation,
+            VRS_URUKUL_CHANNEL,
+            5.0,
+        )
 
         # Scope trigger ttl
         self.ttl = self.get_device("ttl_vrs_scope_trigger")
@@ -104,9 +114,6 @@ class SingleVRSSweepFrag(
     @host_only
     def host_setup(self):
 
-        # initiate the cpld for the VRS urukul channel
-        self.cpld: CPLD = self.dds.cpld
-
         # and write a bunch of stuff to the scope
         self.rtb = RsInstrument(VRS_SCOPE_ADDRESS, id_query=True, reset=True)
         # Set a long Long timeout for visa
@@ -136,11 +143,7 @@ class SingleVRSSweepFrag(
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(200e-3)
-        self.cpld.init()
-        self.dds.init()
-        delay(1e-3)
         self.dds.sw.set_o(True)
-        self.dds.set_att(float(self.attenuation.get()))
         self.dds.set(self.probe_ramper.min_f.get())
         self.core.break_realtime()
 
