@@ -84,6 +84,64 @@ class NarrowDownAfterSliceFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
+class NarrowUpAfterSliceFrag(
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Narrow up after slice
+
+    Designed for tuning the alpha Stark coefficient
+    """
+
+    # Atoms are released from the trap in the ground state with no kicks
+    lmt_initial_population = {(GROUND, 0)}
+
+    lmt_sequence = [
+        # Velocity selection
+        SetPoint(
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        pi(Beam.UP, m=0, label="slice"),
+        # Reduced intensity for a down pulse, to intentionally make it more
+        # sensitive to incorrect velocity class selection
+        Clearout(),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 100,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        ),
+        pi(Beam.UP, m=1, label="up_spec"),
+    ]
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
 NarrowDownAfterSlice = make_fragment_scan_exp(
     NarrowDownAfterSliceFrag, max_rtio_underflow_retries=0
+)
+
+
+NarrowUpAfterSlice = make_fragment_scan_exp(
+    NarrowUpAfterSliceFrag, max_rtio_underflow_retries=0
 )
