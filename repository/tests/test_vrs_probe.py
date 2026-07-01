@@ -16,8 +16,6 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
@@ -45,14 +43,14 @@ class TestVRSProbeRamperFrag(ExpFragment):
         # Variable
         self.setattr_param(
             "attenuation",
-            IntParam,
+            FloatParam,
             "DDS attenuation",
             min=0,
             max=30,
             default=30,
             unit="dB",
         )
-        self.attenuation: IntParamHandle
+        self.attenuation: FloatParamHandle
 
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -74,7 +72,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.dds.init()
         delay(1e-3)
         self.dds.sw.set_o(True)
-        self.dds.set_att(float(self.attenuation.get()))
+        self.dds.set_att(self.attenuation.get())
         self.core.break_realtime()
 
         self.device_setup_subfragments()
