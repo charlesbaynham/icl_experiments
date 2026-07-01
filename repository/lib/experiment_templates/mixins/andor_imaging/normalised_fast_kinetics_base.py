@@ -55,6 +55,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
     ANDOR_MONITOR_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -547,10 +550,18 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         """
         Show a composite of the background-corrected ground and excited state
         images, stacked vertically, instead of the raw first image.
+
+        The monitor applet renders array axis 1 vertically, so a vertical stack
+        is a concatenation along axis 1 (``np.hstack``). In this codebase axis 1
+        is the ROI y-axis and is *flipped* (see
+        :meth:`~AndorImagingBase.slice_from_roi_params`), so the excited frame,
+        which ``np.hstack`` places at the low-index end, is the one whose ROI is
+        offset in y by the sub-frame height; the ground frame keeps its
+        coordinates.
         """
         ground_corrected = np.int32(images[0]) - np.int32(images[2])
         excited_corrected = np.int32(images[1]) - np.int32(images[3])
-        composite = np.vstack([excited_corrected, ground_corrected])
+        composite = np.hstack([excited_corrected, ground_corrected])
 
         self.set_dataset(
             ANDOR_MONITOR_DATASET,
@@ -558,6 +569,27 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             broadcast=True,
             persist=False,
             archive=False,
+        )
+
+        # Rebuild the monitor ROI targets to line up on the composite, reusing
+        # the same ground / excited ROI split as the dedicated bg-corrected
+        # applets.
+        ground_targets, excited_targets = self._split_bg_corrected_roi_targets(
+            self.andor_camera_config.get_rois(),
+            self.andor_camera_config.fast_kinetics_height,
+        )
+        # The excited ROI is already mapped onto its split sub-frame. Because the
+        # stacking axis (1) is the flipped ROI y-axis, the excited frame's ROI is
+        # shifted up in y by the sub-frame height while the ground ROI is
+        # unchanged.
+        y_offset = excited_corrected.shape[1]
+        excited_targets[0][1] += y_offset
+        excited_targets[0][3] += y_offset
+
+        self.set_dataset(
+            ANDOR_MONITOR_ROI_TARGETS_DATASET,
+            np.array([excited_targets[0], ground_targets[0]]).tolist(),
+            broadcast=True,
         )
 
     @rpc(flags={"async"})
