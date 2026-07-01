@@ -125,6 +125,8 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
         self.rtb.write_str("TRIG:A:LEV5 1")
+        # Ensure we are not in roll mode!
+        self.rtb.write_float("TIM:ROLL:MTIM", self.acquisition_time.get() + 1.0)
 
         # Set the acquisition settings CH1 is the PMT signal
         self.rtb.write_float(
