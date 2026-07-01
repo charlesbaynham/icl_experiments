@@ -23,7 +23,7 @@ toptica-wrapper = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/to
 gaio-laser-driver = { git = "https://gitlab.com/imperial-sr/electronics/general-adc-dac-board/wand-ecdl-controller.git" }
 relocker-driver = { git = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git" }
 andor-artiq-ndsp = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git" }
-imperial-artiq-applets = { git = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git" }
+imperial-artiq-applets = { git = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git", branch = "feature/roi-from-dataset" }
 
 # As with artiq, aravis needs some nix packaging too. For now, this is in this
 # repo - see python-aravis.nix and its use in flake.nix

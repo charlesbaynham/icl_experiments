@@ -53,6 +53,10 @@ Relative to the legacy loop formulas (which omit the recoil energy term),
 tests in ``tests/test_lmt_resonance.py``.
 """
 
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import Sequence
+
 import scipy.constants
 
 from repository.lib import constants
@@ -174,3 +178,161 @@ def opll_m_term_hz(
     """
     m_g = pair_ground_class(m, internal_state, beam_sign)
     return transition_detuning_hz(m_g, beam_sign, kick_hz=kick_hz)
+
+
+# ── Recorded-intent vocabulary ────────────────────────────────────────────────
+#
+# The declarative-LMT pulse recorder archives, alongside the pulse facts, an
+# *intent stream*: one row per atom-affecting event describing what it is meant
+# to do to the populations. The host-side spacetime-trajectory reconstruction
+# (:mod:`repository.lib.physics.lmt_spacetime`, drawn by the trajectory applet)
+# walks that stream exactly. The integer codes and the decode below are the
+# shared schema for the broadcast ``pulse_intent_record`` dataset.
+
+
+def _ground_class_of_pair(m: int, is_ground: bool, beam_sign: int) -> int:
+    """Ground class ``m_g`` of the pair ``|g, m_g> <-> |e, m_g + beam_sign>``.
+
+    A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so the
+    populated state ``(is_ground, m)`` lies on the ground side at ``m_g = m`` or
+    on the excited side at ``m_g = m - s``. This is the pairing rule shared with
+    :meth:`IntentEvent.addresses_pair`.
+    """
+    return m if is_ground else m - beam_sign
+
+
+class Kind(IntEnum):
+    PULSE = 0
+    CLEAROUT = 1
+    # No longer emitted: callbacks self-describe as PULSE rows (one ordinary
+    # pulse intent row per declared callback action). Kept to document the
+    # record schema and preserve the IntEnum numbering.
+    CALLBACK = 2
+
+
+class StateEffect(IntEnum):
+    FLIP = 0  # pi-like: the addressed pair's population swaps sides
+    SUPERPOSE = 1  # pi/2-like: both members of the addressed pair populated
+    NONE = 2  # internal states unchanged
+
+
+class AddressedState(IntEnum):
+    AUTO = -1  # resolve from the population walk
+    GROUND = 0
+    EXCITED = 1
+
+
+#: "Resolve the addressed momentum class from the population walk". Far outside
+#: any physical recoil count so it can never collide with a real value.
+M_AUTO = -1048576
+
+
+@dataclass(frozen=True)
+class IntentEvent:
+    """One decoded entry of the intent stream, with times in seconds.
+
+    Times are in whatever frame the caller rebased them to (the trajectory
+    predictor expects seconds since atom release).
+
+    ``kind``/``state_effect``/``addressed_state`` may be given as raw ints or as
+    enum members; ``__post_init__`` coerces them to the enums, which also
+    validates them (the enum constructor raises ``ValueError`` on an unknown
+    code).
+    """
+
+    t_start_s: float
+    duration_s: float
+    kind: Kind
+    state_effect: StateEffect
+    addressed_state: AddressedState
+    addressed_m: int
+    delta_m: int
+
+    @property
+    def t_centre_s(self) -> float:
+        """Instantaneous-kick time: the centre of the event."""
+        return self.t_start_s + self.duration_s / 2.0
+
+    def __post_init__(self):
+        # Coerce to the enums; an unknown code raises ValueError here. Frozen
+        # dataclass, so assign through object.__setattr__.
+        object.__setattr__(self, "kind", Kind(self.kind))
+        object.__setattr__(self, "state_effect", StateEffect(self.state_effect))
+        object.__setattr__(
+            self, "addressed_state", AddressedState(self.addressed_state)
+        )
+
+    def addresses_pair(self, is_ground: bool, m: int) -> bool:
+        """Is the population ``(is_ground, m)`` addressed by this event?
+
+        ``AddressedState.AUTO``/``M_AUTO`` address every populated branch through
+        the pulse's own coupling - correct for single-chain sequences. An
+        explicitly declared pair ``|g, m_g> <-> |e, m_g + delta_m>`` addresses
+        only its two members, leaving e.g. a parked interferometer arm
+        untouched.
+        """
+        state_auto = self.addressed_state == AddressedState.AUTO
+        m_auto = self.addressed_m == M_AUTO
+
+        if state_auto and m_auto:
+            return True
+        if m_auto:
+            # State declared, momentum class automatic: every branch in that state
+            return is_ground == (self.addressed_state == AddressedState.GROUND)
+        if state_auto:
+            # Momentum class declared, state automatic: every branch at that m
+            return m == self.addressed_m
+
+        # Both declared: the addressed pair is |g, m_g> <-> |e, m_g + delta_m>,
+        # and population on either side of the pair participates. The pairing
+        # rule is the shared one used at compile time (delta_m plays beam_sign).
+        m_g = _ground_class_of_pair(
+            self.addressed_m,
+            self.addressed_state == AddressedState.GROUND,
+            self.delta_m,
+        )
+        if is_ground:
+            return m == m_g
+        return m == m_g + self.delta_m
+
+
+def intent_events_from_arrays(
+    t_start_s: Sequence[float],
+    duration_s: Sequence[float],
+    kinds: Sequence[int],
+    state_effects: Sequence[int],
+    addressed_states: Sequence[int],
+    addressed_m: Sequence[int],
+    delta_m: Sequence[int],
+) -> "list[IntentEvent]":
+    """Assemble parallel record arrays into a list of :class:`IntentEvent`.
+
+    All arrays must have the same length; validation of the field values
+    happens in :class:`IntentEvent`.
+    """
+    n = len(t_start_s)
+    for name, arr in (
+        ("duration_s", duration_s),
+        ("kinds", kinds),
+        ("state_effects", state_effects),
+        ("addressed_states", addressed_states),
+        ("addressed_m", addressed_m),
+        ("delta_m", delta_m),
+    ):
+        if len(arr) != n:
+            raise ValueError(
+                f"Intent record arrays must have equal lengths: "
+                f"t_start_s has {n}, {name} has {len(arr)}"
+            )
+    return [
+        IntentEvent(
+            t_start_s=float(t_start_s[i]),
+            duration_s=float(duration_s[i]),
+            kind=int(kinds[i]),
+            state_effect=int(state_effects[i]),
+            addressed_state=int(addressed_states[i]),
+            addressed_m=int(addressed_m[i]),
+            delta_m=int(delta_m[i]),
+        )
+        for i in range(n)
+    ]
