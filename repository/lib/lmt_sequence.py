@@ -347,7 +347,13 @@ def pi2(
     return Pulse(area=0.5, beam=beam, m=m, state=state, label=label)
 
 
-def ladder(start_m: int, n: int, first_beam: Beam, direction: int = 1) -> list[Pulse]:
+def ladder(
+    start_m: int,
+    n: int,
+    first_beam: Beam,
+    direction: int = 1,
+    clearout_from: int | None = None,
+) -> list:
     """An alternating-beam ladder of ``n`` pi pulses.
 
     Pulse ``j`` addresses momentum class ``start_m + j * direction`` -
@@ -361,16 +367,47 @@ def ladder(start_m: int, n: int, first_beam: Beam, direction: int = 1) -> list[P
     ``_lower_arm``), so the beam sequence used is transparently inverted
     when ``direction=-1`` - callers do not need to flip ``first_beam``
     themselves when reusing the same ladder shape in reverse.
+
+    ``clearout_from`` inserts a :class:`Clearout` after every pulse that leaves
+    the packet in the excited state - removing residual ground-state population
+    between launch steps. Since the up beam climbs from the ground state and the
+    down beam from the excited state, the entering state (and hence which pulses
+    leave the packet excited) is fixed by ``first_beam``. A non-negative value
+    clears out from pulse ``clearout_from`` onwards (pulse 0 being the first); a
+    negative value counts from the end, e.g. ``-2`` clears out over the final
+    two pulses. The default of ``None`` inserts no clearouts.
     """
     if direction not in (1, -1):
         raise ValueError(f"ladder direction must be +1 or -1, got {direction}")
+
+    n = int(n)
+    clearout_threshold = None
+    if clearout_from is not None:
+        clearout_threshold = clearout_from if clearout_from >= 0 else n + clearout_from
+
+    # The entering internal state is fixed by first_beam as passed (as for
+    # direction=+1): the up beam climbs from ground, the down beam from excited.
+    entering_excited = first_beam is Beam.DOWN
+
     if direction == -1:
         first_beam = Beam.DOWN if first_beam is Beam.UP else Beam.UP
     second = Beam.DOWN if first_beam is Beam.UP else Beam.UP
-    return [
-        pi(first_beam if j % 2 == 0 else second, m=start_m + j * direction)
-        for j in range(int(n))
-    ]
+
+    events: list = []
+    for j in range(n):
+        events.append(
+            pi(first_beam if j % 2 == 0 else second, m=start_m + j * direction)
+        )
+        # Each pi pulse flips the internal state, so after pulse j the packet
+        # has flipped j+1 times.
+        packet_excited = entering_excited ^ ((j + 1) % 2 == 1)
+        if (
+            clearout_threshold is not None
+            and j >= clearout_threshold
+            and packet_excited
+        ):
+            events.append(Clearout())
+    return events
 
 
 @dataclass(frozen=True)
