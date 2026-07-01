@@ -488,7 +488,7 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        x, y, width, height = 215, 273, 100, 100
+        x, y, width, height = 180, 297, 100, 100
 
     else:
         x, y, width, height = 215, 216, 100, 100
