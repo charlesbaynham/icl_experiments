@@ -54,6 +54,21 @@ def test_ladder_helper():
     assert all(p.area == 1.0 for p in rungs)
 
 
+def test_ladder_helper_descending():
+    # Descending re-uses the same first_beam value as the matching ascending
+    # ladder; the beam sequence is inverted internally (UP/DOWN swapped
+    # relative to the ascending case) to keep addressing populated states -
+    # see _raise_arm/_lower_arm for the underlying beam-per-direction rule.
+    rungs = ladder(start_m=6, n=4, first_beam=Beam.DOWN, direction=-1)
+    assert [p.m for p in rungs] == [6, 5, 4, 3]
+    assert [p.beam for p in rungs] == [Beam.UP, Beam.DOWN, Beam.UP, Beam.DOWN]
+
+
+def test_ladder_helper_rejects_invalid_direction():
+    with pytest.raises(ValueError):
+        ladder(start_m=3, n=4, first_beam=Beam.DOWN, direction=2)
+
+
 def test_symmetric_mach_zehnder_compiles_and_closes():
     """The canonical launch + Mach-Zehnder sequence compiles, and the
     interferometer output pair is the final population."""

@@ -347,16 +347,29 @@ def pi2(
     return Pulse(area=0.5, beam=beam, m=m, state=state, label=label)
 
 
-def ladder(start_m: int, n: int, first_beam: Beam) -> list[Pulse]:
+def ladder(start_m: int, n: int, first_beam: Beam, direction: int = 1) -> list[Pulse]:
     """An alternating-beam ladder of ``n`` pi pulses.
 
-    Pulse ``j`` addresses momentum class ``start_m + j`` with the beams
-    alternating from ``first_beam``, transferring one recoil per pulse - the
-    standard LMT launch / beam-splitter ladder.
+    Pulse ``j`` addresses momentum class ``start_m + j * direction`` -
+    transferring one recoil per pulse in that direction, the standard LMT
+    launch / beam-splitter ladder. ``direction`` must be +1 (climbing the
+    ladder, the default) or -1 (descending it).
+
+    ``first_beam`` names the beam that climbs the ladder from the entering
+    internal state (as for ``direction=1``); descending it (``direction=-1``)
+    requires the opposite beam at each step (c.f. ``_raise_arm``/
+    ``_lower_arm``), so the beam sequence used is transparently inverted
+    when ``direction=-1`` - callers do not need to flip ``first_beam``
+    themselves when reusing the same ladder shape in reverse.
     """
+    if direction not in (1, -1):
+        raise ValueError(f"ladder direction must be +1 or -1, got {direction}")
+    if direction == -1:
+        first_beam = Beam.DOWN if first_beam is Beam.UP else Beam.UP
     second = Beam.DOWN if first_beam is Beam.UP else Beam.UP
     return [
-        pi(first_beam if j % 2 == 0 else second, m=start_m + j) for j in range(int(n))
+        pi(first_beam if j % 2 == 0 else second, m=start_m + j * direction)
+        for j in range(int(n))
     ]
 
 
