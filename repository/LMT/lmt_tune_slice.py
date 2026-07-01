@@ -25,6 +25,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
 
@@ -111,15 +112,20 @@ class NarrowUpAfterSliceFrag(
             label="slice",
         ),
         pi(Beam.UP, m=0, label="slice"),
-        # Reduced intensity for a down pulse, to intentionally make it more
-        # sensitive to incorrect velocity class selection
         Clearout(),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        ),
+        *ladder(start_m=1, n=8, first_beam=Beam.DOWN, clearout_from=1),
         SetPoint(
             setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 100,
             rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
             rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
         ),
-        pi(Beam.UP, m=1, label="up_spec"),
+        Clearout(),
+        pi(Beam.UP, m=9, label="up_spec"),
     ]
 
     @kernel
