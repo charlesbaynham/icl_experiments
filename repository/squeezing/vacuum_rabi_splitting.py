@@ -153,6 +153,7 @@ class SingleVRSSweepFrag(
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.core.break_realtime()
         # Switch the ttl on without advancing the timeline
         self.ttl.on()
         # I think add a bit of delay to advance the timeline to prevent clashes, but also it'd be nice if it was simultaneous...
