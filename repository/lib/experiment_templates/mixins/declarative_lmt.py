@@ -287,6 +287,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_intent_addressed_m",
             "_lmt_intent_delta_m",
             "_lmt_intent_duration_s",
+            "_lmt_phase_multiplier",
             "_lmt_cb_action_addressed_state",
             "_lmt_cb_action_addressed_m",
             "_lmt_cb_action_delta_m",
@@ -325,6 +326,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_duration_handles = []
         self._lmt_setpoint_handles = []
         self._lmt_phase_handles = []
+        # Static (compile-time) scale factor applied to a Phase(param=...)
+        # handle's value at fire time; see repository.lib.lmt_sequence.Phase.
+        self._lmt_phase_multiplier = []
         # Build-time intent shipped to the kernel and registered with the
         # pulse recorder as each event fires (integer codes from
         # repository.lib.physics.lmt_resonance, filled in by the sequence compiler)
@@ -407,6 +411,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_intent_addressed_m.append(int32(event.addressed_m))
             self._lmt_intent_delta_m.append(int32(event.delta_m))
             self._lmt_intent_duration_s.append(float(event.declared_duration_s))
+            self._lmt_phase_multiplier.append(float(event.phase_multiplier))
 
             # Flatten the callback's actions into the shared action arrays and
             # record this event's slice into them.
@@ -831,7 +836,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # EVENT_PHASE. Register the marker at the current timeline point
                 # FIRST, before the DDS writes advance the cursor, so it cannot
                 # land after a following zero-gap pulse.
-                phase = self._lmt_phase_handles[i].get()
+                phase = self._lmt_phase_handles[i].get() * self._lmt_phase_multiplier[i]
                 self.dma_recording_fragment.register_phase()
                 self.set_clock_up_dds(
                     frequency=self.clock_switch_frequency_handle.get(),

@@ -132,12 +132,24 @@ def test_phase_validation():
         Phase()
     with pytest.raises(ValueError):
         Phase(phase=0.25, param="some_param")
+    with pytest.raises(ValueError):
+        Phase(phase=0.25, multiplier=2.0)
     compiled = compile_sequence(
         [*setpoints(), Phase(param="interferometer_phase")],
         initial_population={(GROUND, 0)},
     )
     assert compiled.events[-1].phase_param_ref == "interferometer_phase"
     assert compiled.events[-1].phase_param is None
+    assert compiled.events[-1].phase_multiplier == 1.0
+
+
+def test_phase_multiplier():
+    compiled = compile_sequence(
+        [*setpoints(), Phase(param="interferometer_phase", multiplier=-2.0)],
+        initial_population={(GROUND, 0)},
+    )
+    assert compiled.events[-1].phase_param_ref == "interferometer_phase"
+    assert compiled.events[-1].phase_multiplier == -2.0
 
 
 def test_velocity_selective_slice_sequence():

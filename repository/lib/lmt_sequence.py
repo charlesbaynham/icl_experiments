@@ -174,22 +174,34 @@ class Phase:
     rotates the phase the subsequent pulses are emitted with. Exactly one of
     ``phase`` and ``param`` must be given. ``phase`` spawns a dedicated
     scannable parameter with that default; ``param`` names an existing
-    ``FloatParamHandle`` attribute on the fragment to reuse instead.
+    ``FloatParamHandle`` attribute on the fragment to reuse instead - the
+    value read from it is scaled by ``multiplier`` before being applied, so
+    one shared phase handle can drive several :class:`Phase` events with
+    different (static) scale factors, e.g. a mirror pulse needing twice the
+    beam splitters' phase.
 
     Args:
         phase: Absolute AOM phase in turns (1.0 = one full turn = 2*pi).
         param: Name of an existing ``FloatParamHandle`` attribute to reuse
             instead of spawning a dedicated parameter.
+        multiplier: Static scale factor applied to the value read from
+            ``param`` (irrelevant when ``phase`` is given instead).
         label: Optional tag appended to the generated parameter name.
     """
 
     phase: float | None = None
     param: str | None = None
+    multiplier: float = 1.0
     label: str = ""
 
     def __post_init__(self):
         if (self.phase is None) == (self.param is None):
             raise ValueError("Phase requires exactly one of 'phase' or 'param'")
+        if self.param is None and self.multiplier != 1.0:
+            raise ValueError(
+                "Phase multiplier only has an effect together with 'param' "
+                "(there is no shared handle to scale)"
+            )
 
 
 @dataclass(frozen=True)
@@ -501,7 +513,9 @@ class CompiledEvent:
     ``offset_param``, ``duration_param`` and ``setpoint_param`` describe
     parameters the execution mixin must spawn; ``duration_param_ref`` and
     ``phase_param_ref`` instead name an existing handle attribute to reuse for
-    the duration/phase slot.
+    the duration/phase slot. ``phase_multiplier`` is the static scale factor
+    applied to the value read from a ``phase_param_ref`` handle (see
+    :class:`Phase`).
     ``governing_setpoint_index`` points pulses at the sequence index of the
     :class:`SetPoint` event whose parameter governs their delivery set point.
 
@@ -535,6 +549,7 @@ class CompiledEvent:
     setpoint_param: ParamSpec | None = None
     phase_param: ParamSpec | None = None
     phase_param_ref: str | None = None
+    phase_multiplier: float = 1.0
     addressed_pair: tuple | None = None
     state_effect: StateEffect = StateEffect.NONE
     addressed_state: AddressedState = AddressedState.AUTO
@@ -745,6 +760,7 @@ def compile_sequence(
                         index=index,
                         kind=EVENT_PHASE,
                         phase_param_ref=event.param,
+                        phase_multiplier=event.multiplier,
                     )
                 )
             else:
