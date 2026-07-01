@@ -149,6 +149,8 @@ class SingleVRSSweepFrag(
         delay(200e-3)
         self.dds.sw.set_o(True)
         self.dds.set(self.probe_ramper.min_f.get())
+        # Make sure it starts in the off position
+        self.ttl.off()
         self.core.break_realtime()
 
     @kernel
@@ -156,11 +158,11 @@ class SingleVRSSweepFrag(
         # Setup a single shot
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(1.5)
+        delay(5.0)
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
-        self.core.break_realtime()
+        # self.core.break_realtime()
         # Switch the ttl on without advancing the timeline
         self.ttl.on()
         self.probe_ramper.trigger_single_sweep()
