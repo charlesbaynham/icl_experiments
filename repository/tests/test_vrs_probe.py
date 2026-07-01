@@ -67,6 +67,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
     @kernel
     def device_setup(self) -> None:
+        print("Hello")
         self.core.break_realtime()
         delay(200e-3)
         self.cpld.init()
