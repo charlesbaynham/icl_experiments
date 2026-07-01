@@ -144,7 +144,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.core.break_realtime()
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(2)
+        delay(2.0)
         # self.core.wait_until_mu(now_mu())
         self.core.wait_until_mu(now_mu())
 
