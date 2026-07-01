@@ -104,7 +104,6 @@ class SingleVRSSweepFrag(
 
     @host_only
     def host_setup(self):
-        super().host_setup()
 
         # initiate the cpld for the VRS urukul channel
         self.cpld: CPLD = self.dds.cpld
@@ -131,6 +130,7 @@ class SingleVRSSweepFrag(
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
         self.rtb.write_float("ACQ:POIN", 1e6)
+        super().host_setup()
 
     @kernel
     def device_setup(self) -> None:
