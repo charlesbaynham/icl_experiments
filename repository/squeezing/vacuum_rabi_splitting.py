@@ -162,6 +162,7 @@ class SingleVRSSweepFrag(
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.core.wait_until_mu(now_mu())
         self.get_data_from_scope()
+        self.ttl.off()
         # self.core.break_realtime()
         # delay_mu(4)
         # logger.warning("I've gotten data!")
