@@ -543,7 +543,14 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     def update_andor_monitor_hook(self, images):
         """
         Show a composite of the background-corrected ground and excited state
-        images, stacked vertically, instead of the raw first image.
+        images, stacked with the excited frame above the ground frame, instead
+        of the raw first image.
+
+        The monitor ROI targets are updated to match the composite so the ROI
+        boxes line up on the atoms in each frame. ``np.vstack`` concatenates
+        along axis 0, which is the ROI x-axis (see
+        :meth:`~AndorImagingBase.slice_from_roi_params`), so the ground frame
+        (stacked second) is offset in x by the excited frame's width.
         """
         ground_corrected = np.int32(images[0]) - np.int32(images[2])
         excited_corrected = np.int32(images[1]) - np.int32(images[3])
@@ -555,6 +562,30 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             broadcast=True,
             persist=False,
             archive=False,
+        )
+
+        # Rebuild the monitor ROI targets to line up on the composite, reusing
+        # the same ROIs as the dedicated ground / excited applets.
+        x_offset = excited_corrected.shape[0]
+        fast_kinetics_height = self.andor_camera_config.fast_kinetics_height
+        rois = self.andor_camera_config.get_rois()
+
+        # Excited frame (stacked first): map the grabber ROI onto the split
+        # excited sub-frame exactly as the "Excited bg corrected" applet does.
+        excited_roi = list(rois[1])
+        excited_roi[1] -= fast_kinetics_height
+        excited_roi[3] -= fast_kinetics_height
+
+        # Ground frame (stacked second): grabber ROI as-is, shifted in x by the
+        # excited frame's width to account for the stacking.
+        ground_roi = list(rois[0])
+        ground_roi[0] += x_offset
+        ground_roi[2] += x_offset
+
+        self.set_dataset(
+            "andor_monitor_roi_targets",
+            np.array([excited_roi, ground_roi]).tolist(),
+            broadcast=True,
         )
 
     @rpc(flags={"async"})
