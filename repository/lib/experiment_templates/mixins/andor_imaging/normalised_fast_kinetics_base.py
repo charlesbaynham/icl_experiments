@@ -72,6 +72,44 @@ logger = logging.getLogger(__name__)
 
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
+# 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
+_LABEL_BITMAPS = {
+    "G": [
+        "01110",
+        "10001",
+        "10000",
+        "10111",
+        "10001",
+        "10001",
+        "01110",
+    ],
+    "E": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "10000",
+        "10000",
+        "11111",
+    ],
+}
+
+
+def _stamp_frame_label(image, letter, a0, b0, value):
+    """Draw ``letter`` into ``image`` with its top-left pixel at array index
+    (``a0``, ``b0``).
+
+    Bitmap columns run along array axis 0 (rendered horizontally) and rows along
+    axis 1 (rendered vertically), matching the composite monitor image.
+    """
+    for row, bits in enumerate(_LABEL_BITMAPS[letter]):
+        for col, bit in enumerate(bits):
+            if bit == "1":
+                a = a0 + col
+                b = b0 + row
+                if 0 <= a < image.shape[0] and 0 <= b < image.shape[1]:
+                    image[a, b] = value
+
 
 class NormalisedFKConfig(FastKineticsCameraConfig):
     """
@@ -552,16 +590,33 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         images, stacked vertically, instead of the raw first image.
 
         The monitor applet renders array axis 1 vertically, so a vertical stack
-        is a concatenation along axis 1 (``np.hstack``). In this codebase axis 1
-        is the ROI y-axis and is *flipped* (see
-        :meth:`~AndorImagingBase.slice_from_roi_params`), so the excited frame,
-        which ``np.hstack`` places at the low-index end, is the one whose ROI is
-        offset in y by the sub-frame height; the ground frame keeps its
-        coordinates.
+        is a concatenation along axis 1 (``np.hstack``), with a bright separator
+        strip between the two frames and an "E" / "G" label stamped into each
+        frame's corner. In this codebase axis 1 is the ROI y-axis and is
+        *flipped* (see :meth:`~AndorImagingBase.slice_from_roi_params`), so the
+        excited frame, which ``np.hstack`` places at the low-index end, is the
+        one whose ROI is offset in y by the sub-frame height plus the separator
+        width; the ground frame keeps its coordinates.
         """
         ground_corrected = np.int32(images[0]) - np.int32(images[2])
         excited_corrected = np.int32(images[1]) - np.int32(images[3])
-        composite = np.hstack([excited_corrected, ground_corrected])
+
+        separator_width = 2
+        label_value = int(max(excited_corrected.max(), ground_corrected.max()))
+        separator = np.full(
+            (excited_corrected.shape[0], separator_width),
+            label_value,
+            dtype=np.int32,
+        )
+        composite = np.hstack([excited_corrected, separator, ground_corrected])
+
+        # Label each frame in its corner: "E" on the excited frame (low-index
+        # end), "G" on the ground frame (past the separator).
+        frame_height = excited_corrected.shape[1]
+        _stamp_frame_label(composite, "E", 3, 3, label_value)
+        _stamp_frame_label(
+            composite, "G", 3, frame_height + separator_width + 3, label_value
+        )
 
         self.set_dataset(
             ANDOR_MONITOR_DATASET,
@@ -580,9 +635,9 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         )
         # The excited ROI is already mapped onto its split sub-frame. Because the
         # stacking axis (1) is the flipped ROI y-axis, the excited frame's ROI is
-        # shifted up in y by the sub-frame height while the ground ROI is
-        # unchanged.
-        y_offset = excited_corrected.shape[1]
+        # shifted up in y by the sub-frame height plus the separator width while
+        # the ground ROI is unchanged.
+        y_offset = frame_height + separator_width
         excited_targets[0][1] += y_offset
         excited_targets[0][3] += y_offset
 
