@@ -2,7 +2,7 @@ from RsInstrument import RsInstrument
 
 
 class RSDevice:
-    def __init__(self, address: str, id_query: bool, reset: bool):
+    def __init__(self, *args, address: str, id_query: bool, reset: bool):
         self.device = RsInstrument(
             resource_name=address, id_query=id_query, reset=reset
         )
