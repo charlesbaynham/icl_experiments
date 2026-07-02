@@ -17,6 +17,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from RsInstrument import RsInstrument
 
+from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
@@ -109,11 +110,14 @@ class TestRTBSetupFrag(ExpFragment):
         self.ttl = self.get_device("ttl_vrs_scope_trigger")
         self.ttl: TTLOut
 
+        self.rtb_device: RSDevice = self.get_device("vrs_scope")
+        self.rtb: RsInstrument = self.rtb_device.get_instrument()
+
         ### This stuff should not be done in build fragment but probably somewhere later... needs to be done from the computer
 
     @host_only
     def host_setup(self):
-        self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
+        # self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
         # Long timeout for visa
         self.rtb.visa_timeout = 50000
