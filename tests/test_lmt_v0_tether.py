@@ -58,6 +58,7 @@ def _assemble(compiled):
     inst._bind_duration_slot = lambda event: None
     inst._bind_setpoint_slot = lambda event: None
     inst._bind_phase_slot = lambda event: None
+    inst._bind_rabi_slot = lambda event: None
     inst._lmt_assemble_event_arrays(compiled)
     return inst
 

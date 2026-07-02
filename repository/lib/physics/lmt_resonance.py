@@ -119,6 +119,14 @@ import scipy.constants
 
 from repository.lib import constants
 
+try:
+    from artiq.language import portable
+except ImportError:
+    # This module stays importable without ARTIQ (applets, host analysis);
+    # @portable only matters when a kernel inlines probe_stark_term_hz.
+    def portable(function):
+        return function
+
 
 class InternalState(Enum):
     GROUND = "g"
@@ -177,16 +185,23 @@ def v0_doppler_term_hz(
     return (reference_beam_sign - beam_sign) * initial_velocity_m_s / wavelength_m
 
 
+@portable
 def probe_stark_term_hz(
     rabi_hz: float,
     alpha_hz_s2: float = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
 ) -> float:
     """OPLL correction (Hz) for the probe AC-Stark light shift.
 
-    The light shift raises the resonance by ``alpha * rabi**2``, so to stay
-    resonant the OPLL centre is moved with it: the correction added to the OPLL
-    frequency is ``-alpha * rabi**2``. (``alpha`` is our convention for the
-    light shift per unit ``rabi**2``.)
+    The correction added to the OPLL frequency is ``-alpha * rabi**2``, with
+    ``rabi`` the linear Rabi frequency (Hz) and ``alpha`` the light shift per
+    unit ``rabi**2``.
+
+    The sign of the default ``alpha`` is empirical, not derived: on atoms the
+    original positive-``alpha`` correction left a residual equal to twice the
+    applied correction - quantitative confirmation the correction itself had
+    the wrong sign - so the constant was flipped negative in commit 212fb304
+    ("Wrong sign!") and later retuned. With ``alpha < 0`` this correction
+    raises the OPLL centre frequency.
     """
     return -alpha_hz_s2 * rabi_hz * rabi_hz
 

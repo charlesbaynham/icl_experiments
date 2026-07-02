@@ -113,6 +113,7 @@ from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import CompiledSequence
 from repository.lib.lmt_sequence import compile_sequence
+from repository.lib.physics.lmt_resonance import probe_stark_term_hz
 
 logger = logging.getLogger(__name__)
 
@@ -233,8 +234,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "lmt_probe_stark_alpha",
             FloatParam,
             "AC-Stark shift coefficient alpha",
-            # Shifts each pulse's OPLL centre freq by -alpha*rabi**2
-            # (rabi = declared Rabi at the governing set point).
+            # Correction -alpha*rabi**2 on each pulse's OPLL centre freq; the
+            # default alpha is negative (empirically flipped, commit 212fb304)
+            # so at defaults the centre moves UP. rabi comes from the pulse's
+            # *_rabi param (per-pulse mode) or the SetPoint-declared value
+            # (global mode); see lmt_resonance.probe_stark_term_hz.
             default=constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
             unit="",
         )
@@ -295,6 +299,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_m_term_hz",
             "_lmt_rabi_hz",
             "_lmt_callback_id",
+            "lmt_use_per_pulse_params",
             "_lmt_intent_state_effect",
             "_lmt_intent_addressed_state",
             "_lmt_intent_addressed_m",
@@ -338,6 +343,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_offset_handles = []
         self._lmt_duration_handles = []
         self._lmt_setpoint_handles = []
+        self._lmt_rabi_handles = []
         self._lmt_phase_handles = []
         # Static (compile-time) scale factor applied to a Phase(param=...)
         # handle's value at fire time; see repository.lib.lmt_sequence.Phase.
@@ -445,6 +451,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._bind_duration_slot(event)
             self._bind_setpoint_slot(event)
             self._bind_phase_slot(event)
+            self._bind_rabi_slot(event)
 
     def _bind_offset_slot(self, event):
         if self.lmt_use_per_pulse_params:
@@ -465,6 +472,27 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 self._lmt_offset_refs,
                 self.lmt_global_offset_attr(event),
             )
+
+    def _bind_rabi_slot(self, event):
+        # Per-pulse mode only: the Rabi that feeds the AC-Stark term becomes a
+        # scannable parameter, defaulting to the SetPoint-declared value. In
+        # global mode the kernel reads the baked _lmt_rabi_hz floats instead (a
+        # single shared handle cannot represent mixed up/down Rabis), so the
+        # slot is padded.
+        if self.lmt_use_per_pulse_params and event.offset_param is not None:
+            handle = self.setattr_param(
+                event.offset_param.attr_name.removesuffix("_offset") + "_rabi",
+                FloatParam,
+                event.offset_param.description.replace(
+                    "detuning", "Rabi for the AC-Stark term"
+                ),
+                default=float(event.rabi_hz),
+                unit="kHz",
+                min=0.0,
+            )
+            self._lmt_rabi_handles.append(handle)
+        else:
+            self._lmt_rabi_handles.append(self._lmt_pad_handle)
 
     def _bind_duration_slot(self, event):
         # Wait(param=...) and the shared Clearout reuse an existing handle by
@@ -794,8 +822,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     * self.lmt_initial_velocity.get()
                     * inverse_clock_wavelength
                 )
-                rabi = self._lmt_rabi_hz[i]
-                stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
+                if self.lmt_use_per_pulse_params:
+                    rabi = self._lmt_rabi_handles[i].get()
+                else:
+                    rabi = self._lmt_rabi_hz[i]
+                stark = probe_stark_term_hz(rabi, self.lmt_probe_stark_alpha.get())
 
                 freq_centre = (
                     start_opll_offset
