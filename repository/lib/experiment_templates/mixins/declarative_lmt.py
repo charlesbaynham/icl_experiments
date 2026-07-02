@@ -113,6 +113,7 @@ from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import CompiledSequence
 from repository.lib.lmt_sequence import compile_sequence
+from repository.lib.physics.lmt_resonance import probe_stark_term_hz
 
 logger = logging.getLogger(__name__)
 
@@ -822,7 +823,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     rabi = self._lmt_rabi_handles[i].get()
                 else:
                     rabi = self._lmt_rabi_hz[i]
-                stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
+                stark = probe_stark_term_hz(rabi, self.lmt_probe_stark_alpha.get())
 
                 freq_centre = (
                     start_opll_offset

@@ -119,6 +119,14 @@ import scipy.constants
 
 from repository.lib import constants
 
+try:
+    from artiq.language import portable
+except ImportError:
+    # This module stays importable without ARTIQ (applets, host analysis);
+    # @portable only matters when a kernel inlines probe_stark_term_hz.
+    def portable(function):
+        return function
+
 
 class InternalState(Enum):
     GROUND = "g"
@@ -177,6 +185,7 @@ def v0_doppler_term_hz(
     return (reference_beam_sign - beam_sign) * initial_velocity_m_s / wavelength_m
 
 
+@portable
 def probe_stark_term_hz(
     rabi_hz: float,
     alpha_hz_s2: float = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,

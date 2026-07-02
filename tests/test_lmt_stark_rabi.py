@@ -23,6 +23,7 @@ from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
+from repository.lib.physics.lmt_resonance import probe_stark_term_hz
 
 SLICE_RABI = 1.0 / (2 * 380e-6)
 RABI_UP = 9.1e3
@@ -125,3 +126,6 @@ def test_stark_at_defaults_equals_old_baked_computation(alpha):
         rabi_gl = global_mode._lmt_rabi_hz[i]
         assert -alpha * rabi_pp * rabi_pp == old_baked
         assert -alpha * rabi_gl * rabi_gl == old_baked
+        # The kernel routes through the helper; must be bit-identical
+        assert probe_stark_term_hz(rabi_pp, alpha) == old_baked
+        assert probe_stark_term_hz(rabi_gl, alpha) == old_baked
