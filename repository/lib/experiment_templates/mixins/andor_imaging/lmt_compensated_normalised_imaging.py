@@ -22,6 +22,8 @@ from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -144,6 +146,32 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         )
         self.fast_kinetics_offset: IntParamHandle
 
+        # When enabled, the readout-window offset is recomputed each shot from
+        # the predicted ground-cloud sensor row so the window stays centred on
+        # the launched atoms (the fast_kinetics_offset param is then the
+        # fallback / manual value, unused). Off by default -> behaviour
+        # unchanged.
+        self.setattr_param(
+            "fast_kinetics_offset_auto",
+            BoolParam,
+            "Auto-centre the FK readout window on the predicted cloud",
+            default=False,
+        )
+        self.fast_kinetics_offset_auto: BoolParamHandle
+
+        # Per-shot auto offset, recomputed by update_auto_offset() from the
+        # predicted ground row; read back by get_fast_kinetics_offset()/get_rois()
+        # when auto mode is on.
+        self._auto_offset = 0
+
+        # Largest offset that keeps the whole readout frame on the sensor.
+        self._max_fk_offset = (
+            constants.ANDOR_SENSOR_HEIGHT
+            - self.fast_kinetics_num_shots * self.fast_kinetics_height
+        )
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("_max_fk_offset")
+
         self.setattr_param(
             "roi_width",
             IntParam,
@@ -209,8 +237,35 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
     # ── ROI calculation ───────────────────────────────────────────────────────
 
-    def get_fast_kinetics_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+    @portable
+    def _current_fk_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+        """The offset to use this shot: the auto value if auto mode is on, else
+        the manual/scannable parameter."""
+        if self.fast_kinetics_offset_auto.get():
+            return self._auto_offset
         return self.fast_kinetics_offset.get()
+
+    def get_fast_kinetics_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+        return self._current_fk_offset()
+
+    @portable
+    def update_auto_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+        """Recompute the auto offset from the predicted ground-cloud row so the
+        readout window is centred on the launched atoms, and return it.
+
+        The window's first sub-frame spans sensor rows ``[offset, offset+height)``
+        and the ground cloud lands at sensor row ``gnd_y``; centring it in that
+        sub-frame gives ``offset = gnd_y - height/2``. The excited cloud (row
+        ``excited_y``, only a small inter-shot fall away) then lands centred in
+        the second sub-frame. Clamped to keep the frame on the sensor.
+        """
+        offset = self.gnd_y - self.fast_kinetics_height // 2
+        if offset < 0:
+            offset = 0
+        elif offset > self._max_fk_offset:
+            offset = self._max_fk_offset
+        self._auto_offset = offset
+        return offset
 
     @portable
     def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]
@@ -226,7 +281,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         half_height = self.roi_height.get() // 2
         frame_height = 2 * self.fast_kinetics_height
 
-        offset = self.fast_kinetics_offset.get()
+        offset = self._current_fk_offset()
         gnd_y_frame = self.gnd_y - offset
         excited_y_frame = self.excited_y - offset + self.fast_kinetics_height
 
