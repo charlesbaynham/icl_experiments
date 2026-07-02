@@ -20,6 +20,8 @@ from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import ladder
 from repository.lib.physics import lmt_resonance
+from repository.lib.physics.lmt_resonance import EXCITED
+from repository.lib.physics.lmt_resonance import GROUND
 
 KICK = constants.MOMENTUM_KICK_DETUNING
 START = 80e6  # OPLL offset DDS centre frequency
@@ -52,9 +54,9 @@ def test_addressed_class_round_trip(m, k_sign):
 @pytest.mark.parametrize("beam_sign", [1, -1])
 def test_pair_ground_class(beam_sign):
     # Driving a ground state addresses the pair rooted at that state
-    assert lmt_resonance.pair_ground_class(3, "g", beam_sign) == 3
+    assert lmt_resonance.pair_ground_class(3, GROUND, beam_sign) == 3
     # Driving an excited state |e, m> addresses |g, m - s> <-> |e, m>
-    assert lmt_resonance.pair_ground_class(3, "e", beam_sign) == 3 - beam_sign
+    assert lmt_resonance.pair_ground_class(3, EXCITED, beam_sign) == 3 - beam_sign
 
 
 def test_invalid_arguments():
@@ -127,7 +129,7 @@ def test_launch_ladder_matches_legacy(doppler, n_previous):
         start_m=n_previous,
         n=n,
         first_beam=Beam.DOWN,
-        initial_population={("e", n_previous)},
+        initial_population={(EXCITED, n_previous)},
     )
     legacy = legacy_launch_series(doppler, n_previous, n)
     assert len(pulses) == len(legacy)
@@ -148,7 +150,7 @@ def test_ground_start_ladder_matches_legacy(doppler, n_previous):
         start_m=n_previous,
         n=n,
         first_beam=Beam.UP,
-        initial_population={("g", n_previous)},
+        initial_population={(GROUND, n_previous)},
     )
     legacy = legacy_series_start_up(doppler, n_previous, n)
     assert len(pulses) == len(legacy)
@@ -165,14 +167,89 @@ def test_single_pulses_match_legacy_helpers():
     doppler = 0.7e6
     # up_pulse fires on ground atoms at m = N
     for n in [0, 3, 12]:
-        m_term = lmt_resonance.opll_m_term_hz(n, "g", 1)
+        m_term = lmt_resonance.opll_m_term_hz(n, GROUND, 1)
         f_new = START + doppler - m_term
         assert f_new == pytest.approx(legacy_up_pulse(doppler, n) - KICK / 2.0)
     # down_pulse fires on excited atoms at m = N
     for n in [1, 4, 13]:
-        m_term = lmt_resonance.opll_m_term_hz(n, "e", -1)
+        m_term = lmt_resonance.opll_m_term_hz(n, EXCITED, -1)
         f_new = START - doppler - m_term
         assert f_new == pytest.approx(legacy_down_pulse(doppler, n) + KICK / 2.0)
+
+
+def test_v0_doppler_term_tethered_to_first_pulse():
+    """The v0 Doppler term is tethered to the first pulse: the reference (up)
+    pulse carries 0, the down pulse carries +2*v0/lambda (~+40 kHz at default v0).
+
+    This is the corrected, differential form. The first pulse selects the
+    velocity class, so it cannot carry the v0 term itself; every other pulse is
+    corrected against it. With an up first pulse (reference_beam_sign = +1):
+    up reference -> 0, down -> +2*v0/lambda.
+    """
+    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    lam = constants.CLOCK_WAVELENGTH_M
+    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=+1)
+    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=+1)
+    assert up == pytest.approx(0.0)
+    assert down == pytest.approx(+2.0 * v0 / lam)
+    # ~ +40 kHz for the default v0 ~ 14 mm/s (twice the old single-beam term)
+    assert down == pytest.approx(40.0e3, abs=0.4e3)
+    # Slope is 2/lambda = 2.865 kHz per mm/s on the down pulse
+    assert lmt_resonance.v0_doppler_term_hz(
+        -1, reference_beam_sign=+1, initial_velocity_m_s=1e-3
+    ) == pytest.approx(2.865e3, abs=10.0)
+
+
+def test_v0_doppler_term_down_reference_mirrors():
+    """If the first pulse were a down pulse (reference_beam_sign = -1) the roles
+    mirror: the down reference carries 0 and an up pulse carries -2*v0/lambda."""
+    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    lam = constants.CLOCK_WAVELENGTH_M
+    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=-1)
+    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=-1)
+    assert down == pytest.approx(0.0)
+    assert up == pytest.approx(-2.0 * v0 / lam)
+
+
+def test_v0_doppler_term_invalid_beam_sign():
+    with pytest.raises(ValueError):
+        lmt_resonance.v0_doppler_term_hz(0)
+    with pytest.raises(ValueError):
+        lmt_resonance.v0_doppler_term_hz(1, reference_beam_sign=0)
+
+
+def test_probe_stark_term_sign_and_scaling():
+    """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
+    alpha = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
+    rabi = 9.1e3
+    assert lmt_resonance.probe_stark_term_hz(rabi, alpha) == pytest.approx(
+        -alpha * rabi**2
+    )
+    # Quadrupling the Rabi (4x intensity) scales the shift by 4
+    assert lmt_resonance.probe_stark_term_hz(2 * rabi, alpha) == pytest.approx(
+        4 * lmt_resonance.probe_stark_term_hz(rabi, alpha)
+    )
+    # Always reduces the OPLL centre frequency (negative)
+    assert lmt_resonance.probe_stark_term_hz(rabi) < 0.0
+
+
+def test_probe_stark_magnitude_matches_clock_shift_measurement():
+    """The default alpha reproduces the measured AC-Stark magnitude.
+
+    Guards the linear-vs-angular Rabi unit convention. The clock-shift
+    calibration ("2026-06-09 Clock shift gap-filling even Omega2 grid") measured
+    ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi`` (rad/s) and
+    ``alpha_ang ~= 3.25e-7 Hz*s**2``. For a 55 us pi pulse that is ~1 kHz of
+    light shift. ``probe_stark_term_hz`` uses the LINEAR Rabi (``rabi =
+    1/(2*T_pi)`` Hz), so the default coefficient must carry the 4*pi**2 factor.
+    A regression to the angular-convention number (3.24e-7) would under-count
+    this by ~39.5x (it would predict ~25 Hz), which this pins against.
+    """
+    t_pi = 55e-6
+    rabi_hz = 1.0 / (2.0 * t_pi)
+    shift = lmt_resonance.probe_stark_term_hz(rabi_hz)
+    # ~1 kHz from the measurement; magnitude, sign is negative (OPLL moves down).
+    assert abs(shift) == pytest.approx(1060.0, rel=0.05)
 
 
 def test_first_beam_splitter_anchor():
@@ -180,12 +257,12 @@ def test_first_beam_splitter_anchor():
     launch from the single shelving kick) used an OPLL m-term of
     +(N_launch + 1) * kick; the new formula gives the same up to +kick/2.
 
-    This pins the initial-population anchor {("e", 1)} after shelving.
+    This pins the initial-population anchor {(EXCITED, 1)} after shelving.
     """
     n_launch = 12
     # After the launch the atoms are excited at m = 1 + n_launch
     m = 1 + n_launch
-    m_term = lmt_resonance.opll_m_term_hz(m, "e", -1)
+    m_term = lmt_resonance.opll_m_term_hz(m, EXCITED, -1)
     # Legacy: calculate_frequency_for_first_pi_by_2_pulse contributes
     # (-chirp + kick) and first_beam_splitter adds n_launch * kick.
     legacy_m_contribution = (1 + n_launch) * KICK

@@ -4,14 +4,16 @@ LMT interferometry driven by the declarative sequence language.
 This is the reference experiment for the declarative LMT stack
 (:mod:`repository.lib.lmt_sequence` +
 :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`):
-the velocity-selective pulse, the launch and a Mach-Zehnder interferometer
-are declared as a single list of pulse descriptions, from which scannable
-per-pulse parameters (detuning offsets and durations) are generated with
-model-predicted defaults.
+the velocity-selective pulse, the launch and a symmetric Mach-Zehnder
+interferometer are declared as a single list of pulse descriptions, from
+which scannable per-pulse parameters (detuning offsets and durations) are
+generated with model-predicted defaults.
 """
 
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -36,18 +38,27 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 )
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.lmt_sequence import pi2
+from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
-
+LMT_INTERFEROMETER_TIME = 100e-6  # seconds
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 12
+N_LAUNCH = 6
 M_TOP = 1 + N_LAUNCH
+
+N_LMT = 6
+
+# Post-ladder drop time: at higher launch the cloud leaves the fixed
+# fast-kinetics window; this Wait lets it fall back in before imaging.
+# Image-driven - grow with n. Scannable via the spawned droptime duration.
+DROP = 5e-3
 
 
 class DeclarativeLMTSymmetricMachZehnderFrag(
@@ -67,28 +78,14 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     DipoleTrapWithExperimentBase,
 ):
     """
-    Velocity selection, launch and Mach-Zehnder from a declared pulse sequence
+    Declarative symmetric LMT interferometry
     """
 
     # Atoms are released from the trap in the ground state with no kicks
-    lmt_initial_population = {("g", 0)}
+    lmt_initial_population = {(GROUND, 0)}
 
     lmt_sequence = [
-        # Velocity selection: a normal pulse, just longer and with a lower
-        # delivery set point. Each SetPoint event writes the new set point
-        # and waits clock_delivery_preempt_time for the servo to recapture;
-        # the set point never changes anywhere else.
-        #
-        # TODO: experimentally scan this set point (p00_setpoint_slice) to
-        # find the value giving the intended slicing Rabi frequency, then
-        # update the default and the declared rabi_up. Reduced intensity is
-        # now always done through the delivery SUServo set point; the legacy
-        # stack instead varied the RF attenuation of the switch AOM
-        # (LMT_launch_mixins.do_selective_lmt_pulse, att=10.5 dB on
-        # clock_up_dds), whose relationship to optical power is nonlinear
-        # and uncalibrated, so the conversion to set points must be
-        # calibrated on atoms. The same applies to any future low-intensity
-        # "selective" pulses: give them their own SetPoint and calibrate.
+        # Velocity selection
         SetPoint(
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
             rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
@@ -108,28 +105,32 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
-        # Remove any ground-state population left behind by imperfect pulses
         Clearout(),
-        # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
-        #
-        # GOTCHA: the interferometer must be symmetric about the mirror
-        # pulse or it will not close. SetPoint events cost time (servo
-        # write + clock_delivery_preempt_time settle), so keep them outside
-        # the interferometer as done here - or, if one is needed inside
-        # (e.g. for a selective pulse on one arm), balance it with a
-        # mirrored SetPoint at the corresponding position on the other side
-        # of the mirror (re-declaring the current value costs exactly the
-        # same time).
-        pi2(Beam.DOWN, m=M_TOP, label="bs1"),
-        Wait(t=1e-3, label="dark1"),
-        pi(Beam.DOWN, m=M_TOP, label="mirror"),
-        Wait(t=1e-3, label="dark2"),
-        pi2(Beam.DOWN, m=M_TOP, label="bs2"),
-        # Escape-hatch example (v2): a shaped pulse implemented by an
-        # overridden lmt_sequence_callback, declaring its momentum effect so
-        # the bookkeeping of later pulses stays correct:
-        # Callback(callback_id=1, delta_m=1, state_effect="flip"),
+        Wait(t=DROP, label="droptime"),
+        # Now do some actual interferometry
+        # %% LMT beamsplitter
+        Phase(phase=0.0, label="bs1"),
+        pi2(Beam.UP, m=M_TOP, label="bs1"),
+        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        # %% LMT mirror
+        *ladder(start_m=M_TOP + N_LMT, n=N_LMT, direction=-1, first_beam=Beam.DOWN),
+        Phase(param="interferometer_phase", label="mirror"),
+        pi(Beam.UP, m=M_TOP, label="mirror"),
+        *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        *ladder(start_m=M_TOP + N_LMT, n=N_LMT, direction=-1, first_beam=Beam.DOWN),
+        Phase(param="interferometer_phase", label="bs2"),
+        pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "interferometer_phase", FloatParam, "Interferometer phase", default=0.0
+        )
+        self.interferometer_phase: FloatParamHandle
 
     @kernel
     def DMA_initialization_hook(self):
@@ -147,5 +148,5 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
 
 
 DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
-    DeclarativeLMTSymmetricMachZehnderFrag
+    DeclarativeLMTSymmetricMachZehnderFrag, max_rtio_underflow_retries=0
 )

@@ -53,20 +53,33 @@ from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
+from repository.lib.physics.lmt_resonance import M_AUTO
+from repository.lib.physics.lmt_resonance import AddressedState
+from repository.lib.physics.lmt_resonance import Kind
+from repository.lib.physics.lmt_resonance import StateEffect
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
+# The intent vocabulary (and the archive schema) is defined in
+# repository.lib.physics.lmt_resonance. The Kind/StateEffect/AddressedState IntEnum
+# members are int-valued, so the kernel compiler inlines them as compile-time
+# integer constants (see tests/test_intenum_kernel_compile.py).
+
 # The pulse record stores physical quantities as floats: times in s,
 # frequencies in Hz and the delivery setpoint in V (plus the integer-valued
-# direction flag). They are all stored as float64. The per-shot dedup checksum,
-# however, needs integers, so values are scaled by this factor before the int64
-# cast. The scale is large enough to keep the checksum sensitive to the smallest
-# meaningful changes across every field - e.g. sub-microsecond times and
-# sub-millivolt setpoints - that an unscaled int64 cast would otherwise hide.
-CHECKSUM_SCALE = 1_000_000
+# direction flag). Start times are stored relative to the atoms' release (the
+# dipole drop / red-MOT light-off), not the DMA recording origin; see
+# _save_pulse_sequence_to_dataset. They are all stored as float64. The per-shot
+# dedup checksum, however, needs integers, so values are scaled by this factor
+# before the int64 cast. The scale resolves times to ~1 ns (the RTIO machine-unit
+# granularity) so that pulses differing by a single mu are seen as distinct;
+# without it sub-microsecond timing changes would collide and be wrongly deduped.
+# At this scale frequencies and setpoints keep far-sub-Hz / far-sub-µV
+# sensitivity, and the largest scaled field stays well inside int64.
+CHECKSUM_SCALE = 1_000_000_000
 
 
 class PulseDMARecording(Fragment):
@@ -101,25 +114,45 @@ class PulseDMARecording(Fragment):
         self._pulse_record_switch_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_setpoint = [0.0] * BUFFER_DEPTH
+        # Absolute switch-AOM phase (turns) each pulse was delivered at.
+        self._pulse_record_phase = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
+
+        # Preallocate the intent stream: one entry per atom-affecting event
+        # (clock pulses, clearouts, callbacks) plus dark times (waits),
+        # appended at fire time next to the facts. Schema in
+        # repository.lib.physics.lmt_resonance.
+        self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_state_effects = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_states = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_delta_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_num_events = 0
+        self._intent_record_checksum = int64(0)
 
         # Checksummer object
         self.checksummer = FastIntChecksum(seed=0)
 
     def host_setup(self):
-        # Create the broadcast dataset for live monitoring. archive=False avoids
-        # h5py ragged-array errors; host_cleanup encodes it to flat arrays for archiving.
+        # Create the broadcast datasets for live monitoring. archive=False avoids
+        # h5py ragged-array errors; host_cleanup encodes them to flat arrays for archiving.
         self.set_dataset("pulse_record", [], broadcast=True, archive=False)
+        self.set_dataset("pulse_intent_record", [], broadcast=True, archive=False)
         super().host_setup()
 
     @kernel
     def record_pulse_sequence(self):
-        # Wipe the buffer; register_pulse() repopulates it during recording
+        # Wipe the buffers; register_pulse() / register_clearout() /
+        # register_intent_action() repopulate them during recording
         self._pulse_record_num_pulses = 0
+        self._intent_record_num_events = 0
         with self.core_dma.record(self.dma_name):
             self.outer_self.actions_after_drop()
         self._save_pulse_sequence_to_dataset()
+        self._save_intent_record_to_dataset()
 
     @kernel
     def _save_pulse_sequence_to_dataset(self):
@@ -129,9 +162,17 @@ class PulseDMARecording(Fragment):
         ARTIQ can't handle dicts etc, so we wrap this into a 2D array. ARTIQ
         also requires that array to be homogeneously typed, so every row is
         stored as float64 in physical units: start times and durations in s
-        (converted from machine units via mu_to_seconds), frequencies in Hz and
-        the setpoint in V. The direction flag is integer-valued but exactly
-        representable as a float.
+        (converted from machine units via mu_to_seconds), frequencies in Hz, the
+        setpoint in V and the delivered switch-AOM phase in turns. The direction
+        flag is integer-valued but exactly representable as a float.
+
+        Start times are stored **relative to the atoms' release** (the dipole
+        drop, or red-MOT light-off): each recording-relative timestamp has the
+        drop offset ``get_t_release_minus_playback_mu()`` subtracted before the
+        conversion to seconds, so a stored start time is the flight time since
+        release (negative for any event preceding the drop). The in-memory
+        ``_pulse_record_start_times_mu`` buffers stay recording-relative; only
+        this saved representation is rebased.
         """
 
         SAME_AS_LAST_TIME_SENTINEL = -1.0
@@ -141,12 +182,16 @@ class PulseDMARecording(Fragment):
             self.append_to_dataset("pulse_record", [[DISABLED_SENTINEL]])
             return
 
+        # Recording-relative timestamp of the drop, subtracted to make the
+        # stored start times release-relative (see method docstring).
+        t_release_mu = self.outer_self.get_t_release_minus_playback_mu()
+
         directions = [
             float(x)
             for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
         ]
         start_times_s = [
-            self.core.mu_to_seconds(x)
+            self.core.mu_to_seconds(x - t_release_mu)
             for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
         ]
         durations_s = [
@@ -173,6 +218,9 @@ class PulseDMARecording(Fragment):
                 : self._pulse_record_num_pulses
             ]
         ]
+        phases = [
+            float(x) for x in self._pulse_record_phase[: self._pulse_record_num_pulses]
+        ]
 
         pulse_record = [
             directions,
@@ -182,6 +230,7 @@ class PulseDMARecording(Fragment):
             switch_hz,
             delivery_hz,
             delivery_setpoint,
+            phases,
         ]
 
         # Calculate a checksum of this pulse record. The checksum needs
@@ -189,7 +238,7 @@ class PulseDMARecording(Fragment):
         # keeps it sensitive to sub-unit changes (e.g. a sub-volt setpoint
         # change) that an unscaled int64 cast would hide.
         checksum = int64(0)
-        for i in range(7):
+        for i in range(8):
             self.checksummer.set_seed(checksum)
             checksum = self.checksummer.checksum(
                 [int64(x * CHECKSUM_SCALE) for x in pulse_record[i]]
@@ -203,6 +252,70 @@ class PulseDMARecording(Fragment):
             self.append_to_dataset("pulse_record", [[SAME_AS_LAST_TIME_SENTINEL]])
 
         self._pulse_record_checksum = checksum
+
+    @kernel
+    def _save_intent_record_to_dataset(self):
+        """
+        Save the recorded intent stream to the pulse_intent_record dataset.
+
+        Same conventions as :meth:`_save_pulse_sequence_to_dataset`: a 2D
+        float64 array (homogeneous typing for ARTIQ), one row per field, with
+        times converted to seconds and the integer-coded fields exactly
+        representable as floats. Deduplicated per shot with the same sentinel
+        scheme. Start times are release-relative, rebased the same way as the
+        pulse facts (the drop offset is subtracted before the seconds cast).
+        """
+
+        SAME_AS_LAST_TIME_SENTINEL = -1.0
+        DISABLED_SENTINEL = -2.0
+
+        if not self.enable_pulse_sequence_storage.get():
+            self.append_to_dataset("pulse_intent_record", [[DISABLED_SENTINEL]])
+            return
+
+        # Recording-relative timestamp of the drop, subtracted to make the
+        # stored start times release-relative (see _save_pulse_sequence_to_dataset).
+        t_release_mu = self.outer_self.get_t_release_minus_playback_mu()
+
+        n = self._intent_record_num_events
+        start_times_s = [
+            self.core.mu_to_seconds(x - t_release_mu)
+            for x in self._intent_record_start_times_mu[:n]
+        ]
+        durations_s = [
+            self.core.mu_to_seconds(x) for x in self._intent_record_durations_mu[:n]
+        ]
+        kinds = [float(x) for x in self._intent_record_kinds[:n]]
+        state_effects = [float(x) for x in self._intent_record_state_effects[:n]]
+        addressed_states = [float(x) for x in self._intent_record_addressed_states[:n]]
+        addressed_m = [float(x) for x in self._intent_record_addressed_m[:n]]
+        delta_m = [float(x) for x in self._intent_record_delta_m[:n]]
+
+        intent_record = [
+            kinds,
+            start_times_s,
+            durations_s,
+            state_effects,
+            addressed_states,
+            addressed_m,
+            delta_m,
+        ]
+
+        checksum = int64(0)
+        for i in range(7):
+            self.checksummer.set_seed(checksum)
+            checksum = self.checksummer.checksum(
+                [int64(x * CHECKSUM_SCALE) for x in intent_record[i]]
+            )
+
+        if checksum != self._intent_record_checksum:
+            self.append_to_dataset("pulse_intent_record", intent_record)
+        else:
+            self.append_to_dataset(
+                "pulse_intent_record", [[SAME_AS_LAST_TIME_SENTINEL]]
+            )
+
+        self._intent_record_checksum = checksum
 
     @kernel
     def DMA_initialization_hook_after_drop(self):
@@ -220,12 +333,45 @@ class PulseDMARecording(Fragment):
     @portable
     def register_pulse(self, is_up: bool, duration_s: float):
         """
-        Register a clock pulse about to be applied.
+        Register a clock pulse about to be applied, with default intent.
 
         Call this IMMEDIATELY BEFORE turning the clock AOM on so the
         pulse start timestamp and duration are recorded together. Host
         code can then reconstruct whichever effective timing model it
         needs from the full sequence record.
+
+        The default intent is a resonant pi transfer of whichever pair the
+        pulse addresses (resolved from the population walk at prediction
+        time), with ``delta_m`` equal to the beam sign. Use
+        :meth:`register_pulse_with_intent` to declare anything else.
+        """
+        self.register_pulse_with_intent(
+            is_up=is_up,
+            duration_s=duration_s,
+            state_effect=StateEffect.FLIP,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
+            delta_m=1 if is_up else -1,
+        )
+
+    @portable
+    def register_pulse_with_intent(
+        self,
+        is_up: bool,
+        duration_s: float,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
+    ):
+        """
+        Register a clock pulse about to be applied, declaring its intent.
+
+        The facts (timestamp, duration, beam, tracked frequencies) and the
+        intent (what the pulse is meant to do to the atomic populations,
+        assumed 100 % efficient) are appended by this single call, so they
+        can never misalign - even for conditional or per-shot-varying
+        sequences. Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
         """
 
         if self._pulse_record_num_pulses >= BUFFER_DEPTH:
@@ -257,10 +403,146 @@ class PulseDMARecording(Fragment):
         self._pulse_record_delivery_setpoint[self._pulse_record_num_pulses] = (
             self.outer_self._tracked_delivery_aom_setpoint
         )
+        self._pulse_record_phase[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_up_switch_phase
+            if is_up
+            else self.outer_self._tracked_down_switch_phase
+        )
         self._pulse_record_num_pulses += 1
+
+        self._append_intent(
+            t_start_mu=t_now_mu,
+            duration_mu=duration_mu,
+            kind=Kind.PULSE,
+            state_effect=state_effect,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
+            delta_m=delta_m,
+        )
+
+    @portable
+    def register_clearout(self, duration_s: float):
+        """
+        Register a 461 nm clearout pulse about to be applied.
+
+        Call IMMEDIATELY BEFORE firing the clearout. Records an intent-stream
+        entry meaning "remove all ground-state population"; there are no
+        pulse facts for clearouts (they are not clock pulses).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=Kind.CLEAROUT,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.GROUND,
+            addressed_m=M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
+    def register_wait(self, duration_s: float):
+        """
+        Register a dark time about to elapse.
+
+        Call IMMEDIATELY BEFORE the ``delay`` so ``now_mu()`` stamps the start
+        of the wait. Records an intent-stream entry that occupies its
+        ``[start, start + duration]`` interval but flips no state and imparts no
+        momentum, so the sequence-end anchor counts it and the predictor images
+        that much later while treating it as pure free flight. Records no pulse
+        facts (a wait is not a clock pulse).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=Kind.WAIT,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
+    def register_intent_action(
+        self,
+        duration_s: float,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
+    ):
+        """
+        Register one elementary addressed-action of a callback (a shaped pulse
+        fired outside the square-pulse path).
+
+        A callback declares its effect as a list of addressed-actions, each
+        acting exclusively on one momentum class; this records ONE of them as a
+        normal pulse intent row (``Kind.PULSE``) - identical to an ordinary
+        pulse, so the trajectory predictor needs no callback-specific logic.
+        Like :meth:`register_clearout` it appends only an intent row and records
+        NO pulse facts (the shaped pulse is not a tracked square clock pulse).
+
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=Kind.PULSE,
+            state_effect=state_effect,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
+            delta_m=delta_m,
+        )
+
+    @portable
+    def register_phase(self):
+        """
+        Register a switch-AOM phase change about to be applied.
+
+        Call IMMEDIATELY BEFORE programming the new phase. Records a
+        zero-duration intent-stream marker (``Kind.PHASE``) so the spacetime
+        applet can draw it; the population walkers skip it (it does not move the
+        atoms) and the actual delivered phase is recorded per-pulse in the pulse
+        facts record instead. No pulse facts are recorded here (a phase change is
+        not a clock pulse).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=int64(0),
+            kind=Kind.PHASE,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
+    def _append_intent(
+        self,
+        t_start_mu: int64,
+        duration_mu: int64,
+        kind: int32,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
+    ):
+        if self._intent_record_num_events >= BUFFER_DEPTH:
+            raise RuntimeError(
+                "Exceeded maximum number of intent events that can be recorded."
+            )
+        n = self._intent_record_num_events
+        self._intent_record_start_times_mu[n] = t_start_mu
+        self._intent_record_durations_mu[n] = duration_mu
+        self._intent_record_kinds[n] = int32(kind)
+        self._intent_record_state_effects[n] = int32(state_effect)
+        self._intent_record_addressed_states[n] = int32(addressed_state)
+        self._intent_record_addressed_m[n] = int32(addressed_m)
+        self._intent_record_delta_m[n] = int32(delta_m)
+        self._intent_record_num_events += 1
 
     def host_cleanup(self):
         self._archive_encoded_pulse_records()
+        self._archive_encoded_intent_records()
         super().host_cleanup()
 
     def _archive_encoded_pulse_records(self):
@@ -276,15 +558,30 @@ class PulseDMARecording(Fragment):
         Each record is encoded as a flat 1D array:
 
         - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
-        - Regular record (7 rows of ``num_pulses`` values each):
-          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
-          (length ``1 + 7 * num_pulses``)
+        - Regular record (8 rows of ``num_pulses`` values each):
+          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …, phase_0, …]``
+          (length ``1 + 8 * num_pulses``)
 
-        All values are stored as float64 in physical units: start times and
-        durations in s, frequencies in Hz and the setpoint in V. The direction
-        and num_pulses fields are integer-valued but stored as float64 too.
+        All values are stored as float64 in physical units: start times
+        (release-relative, as in the broadcast dataset) and durations in s,
+        frequencies in Hz, the setpoint in V and the phase in turns. The
+        direction and num_pulses fields are integer-valued but stored as float64
+        too.
         """
-        records = self.get_dataset("pulse_record", archive=False)
+        self._archive_flat_encoded("pulse_record", "pulse_record")
+
+    def _archive_encoded_intent_records(self):
+        """Archive the intent stream with the same flat encoding as the facts.
+
+        Writes ``pulse_intent_record_flat`` / ``pulse_intent_record_offsets``;
+        each regular record is ``[num_events, kind_0, …, start_0, …, dur_0, …,
+        effect_0, …, addressed_state_0, …, addressed_m_0, …, delta_m_0, …]``.
+        Field semantics: :mod:`repository.lib.physics.lmt_resonance`.
+        """
+        self._archive_flat_encoded("pulse_intent_record", "pulse_intent_record")
+
+    def _archive_flat_encoded(self, source_dataset: str, dest_prefix: str):
+        records = self.get_dataset(source_dataset, archive=False)
         if not records:
             return
 
@@ -298,20 +595,20 @@ class PulseDMARecording(Fragment):
                 flat_data.append(float(record[0][0]))
                 current_offset += 1
             else:
-                num_pulses = len(record[0])
-                flat_data.append(float(num_pulses))
+                num_entries = len(record[0])
+                flat_data.append(float(num_entries))
                 for row in record:
                     flat_data.extend(float(x) for x in row)
-                current_offset += 1 + 7 * num_pulses
+                current_offset += 1 + len(record) * num_entries
 
         self.set_dataset(
-            "pulse_record_flat",
+            f"{dest_prefix}_flat",
             np.array(flat_data, dtype=np.float64),
             broadcast=False,
             archive=True,
         )
         self.set_dataset(
-            "pulse_record_offsets",
+            f"{dest_prefix}_offsets",
             np.array(offsets, dtype=np.int64),
             broadcast=False,
             archive=True,

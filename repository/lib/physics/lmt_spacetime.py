@@ -163,28 +163,35 @@ def _append_kick(cloud: Cloud, t: float, dt: float, delta_m: int, label: str):
 
 
 def walk_intent_to_trajectory(events):
-    """Walk an intent stream into ``(sequence, clouds, clearout_times)``.
+    """Walk an intent stream into ``(sequence, clouds, clearout_times, phase_times)``.
 
     ``events`` is a list of :class:`~repository.lib.physics.lmt_resonance.IntentEvent` in
     firing order. Returns the contiguous drawing ``sequence`` (list of
     :class:`Pulse`/:class:`Drift`/:class:`Clearout`), the list of
-    :class:`Cloud` branches, and an array of clearout times (seconds). Times are
-    rebased so the first event starts at ``t = 0``.
+    :class:`Cloud` branches, an array of clearout times (seconds) and an array of
+    phase-event times (seconds). Times are rebased so the first event starts at
+    ``t = 0``.
+
+    ``Kind.PHASE`` rows are zero-duration markers that do not move the atoms:
+    they only contribute a phase-event time (for the applet to draw), leaving the
+    branches and the drawing sequence untouched.
 
     The branch semantics are exactly those of the recorded intent (and of
     :mod:`repository.lib.physics.trajectory`): a flip transfers the addressed
-    pair, a superpose splits it, and a clearout removes the addressed internal
-    state. Callbacks carry no special record kind - each callback action is an
+    pair, a superpose splits it, a clearout removes the addressed internal
+    state, and a wait is a pure dark time drawn as free-evolution drift.
+    Callbacks carry no special record kind - each callback action is an
     ordinary ``Kind.PULSE`` row and flows through the pulse path here.
     """
     events = sorted(events, key=lambda e: e.t_centre_s)
     if not events:
-        return [], [], np.asarray([])
+        return [], [], np.asarray([]), np.asarray([])
 
     t0 = events[0].t_start_s
 
     sequence: list = []
     clearout_times: list = []
+    phase_times: list = []
     clouds = [Cloud(times=[0.0], z=[0.0], m=[0], is_ground=[True], labels=["release"])]
     next_color_index = 1
     t_cursor = 0.0  # seconds since the first event start
@@ -200,11 +207,26 @@ def walk_intent_to_trajectory(events):
         t_start = event.t_start_s - t0
         dt = event.duration_s
 
+        if event.kind == Kind.PHASE:
+            # Zero-duration marker: record its time only. Handle it BEFORE the
+            # gap-fill so it does not split the surrounding free-evolution drift
+            # into two segments (and does not advance the cursor or touch the
+            # populations).
+            phase_times.append(t_start)
+            continue
+
         # Fill the gap since the previous event with a free-evolution drift.
         gap = t_start - t_cursor
         if gap > 1e-12:
             sequence.append(Drift(duration=gap))
             drift_all(gap, "drift")
+
+        if event.kind == Kind.WAIT:
+            # Pure dark time: draw its duration as free-evolution drift, leaving
+            # every branch's internal state and momentum untouched.
+            sequence.append(Drift(duration=dt))
+            drift_all(dt, "drift")
+            continue
 
         if event.kind == Kind.CLEAROUT:
             sequence.append(Clearout(duration=dt))
@@ -282,7 +304,7 @@ def walk_intent_to_trajectory(events):
             Pulse(k=k, duration=dt, label="pulse", m_low=band[0], m_high=band[1])
         )
 
-    return sequence, clouds, np.asarray(clearout_times)
+    return sequence, clouds, np.asarray(clearout_times), np.asarray(phase_times)
 
 
 # --- Drawing trace (identical convention to lmt_sim / lmt_trajectory) --------
@@ -413,8 +435,8 @@ def intent_events_from_record(record):
 def infer_trajectory_from_intent_record(records):
     """End-to-end: decode the most recent valid intent record and walk it.
 
-    Returns ``(sequence, clouds, clearout_times)``, or ``None`` if no valid
-    sequence has been recorded yet (or the record holds no events).
+    Returns ``(sequence, clouds, clearout_times, phase_times)``, or ``None`` if
+    no valid sequence has been recorded yet (or the record holds no events).
     """
     record = most_recent_valid_record(records)
     if record is None:

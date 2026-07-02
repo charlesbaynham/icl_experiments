@@ -541,6 +541,41 @@ class AndorCameraControl(Fragment):
         self.grabber.gate_roi(mask)
 
     @kernel
+    def reprogram_rois(self) -> None:
+        """
+        Re-read the config's ROIs and reprogram the grabber mid-shot.
+
+        Re-issues exactly the ROI programming that :meth:`device_setup`
+        performs at the start of the shot, re-reading
+        ``self.andor_camera_config.get_rois()``. Use this to apply dynamically
+        computed ROIs: the programming done at shot start necessarily uses the
+        previous shot's positions, so configs that predict cloud positions
+        during the shot need their ROIs re-written afterwards.
+
+        Must run before the first camera frame of the shot reaches the
+        grabber. Unlike :meth:`device_setup` this method does not call
+        ``break_realtime`` - the caller is responsible for supplying enough
+        timeline slack for the writes.
+        """
+        mask = 0
+
+        roi_config = self.andor_camera_config.get_rois()
+
+        for i in range(self.num_rois):
+            self.grabber.setup_roi(
+                i,
+                roi_config[i][0],
+                roi_config[i][1],
+                roi_config[i][2],
+                roi_config[i][3],
+            )
+            delay_mu(int64(self.core.ref_multiplier))
+            mask = mask | (1 << i)
+
+        # Enable appropriate ROIs
+        self.grabber.gate_roi(mask)
+
+    @kernel
     def device_cleanup(self) -> None:
         self.device_cleanup_subfragments()
 

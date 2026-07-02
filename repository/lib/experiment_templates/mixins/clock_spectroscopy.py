@@ -97,6 +97,11 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         # is configured only in device_setup, not immediately before each pulse).
         self._tracked_up_switch_freq = CLOCK_UP_BEAM_INFO.frequency
         self._tracked_down_switch_freq = CLOCK_DOWN_BEAM_INFO.frequency
+        # Absolute phase (turns) most recently programmed onto each switch DDS,
+        # recorded per-pulse in the pulse facts record. Reset to 0 whenever the
+        # switches are set to nominal (set_clock_*_dds defaults phase to 0.0).
+        self._tracked_up_switch_phase = 0.0
+        self._tracked_down_switch_phase = 0.0
         # Set nominal delivery AOM parameters so the pulse recorder has correct
         # defaults even for experiments that never explicitly call
         # prepare_clock_delivery_aom().
@@ -212,6 +217,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         """
         self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
         self._tracked_up_switch_freq = frequency
+        self._tracked_up_switch_phase = phase
 
     @portable
     def set_clock_down_dds(
@@ -224,6 +230,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         """
         self.clock_down_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
         self._tracked_down_switch_freq = frequency
+        self._tracked_down_switch_phase = phase
 
     @kernel
     def calculate_clock_delivery_freq(
@@ -335,7 +342,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     @kernel
     def fire_clock_spec_pulse(self):
         d = self.spectroscopy_pulse_time.get()
-        self.register_pulse(is_up=True, duration_s=d)
+        self.dma_recording_fragment.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -390,7 +397,7 @@ class ClockRabiSpectroscopyDownBeamBase(ClockSpectroscopyBase):
     @kernel
     def fire_clock_spec_pulse(self):
         d = self.spectroscopy_pulse_time.get()
-        self.register_pulse(is_up=False, duration_s=d)
+        self.dma_recording_fragment.register_pulse(is_up=False, duration_s=d)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()

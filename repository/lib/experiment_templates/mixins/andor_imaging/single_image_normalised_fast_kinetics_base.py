@@ -25,6 +25,18 @@ from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
@@ -33,8 +45,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
-ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
-ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
 # %% Utility functions
@@ -469,17 +479,21 @@ class SingleImageNormalisedBase(AndorImagingBase):
             for roi in excited_rois
         ]
 
-        self.set_dataset("g_bg_corrected_roi_targets", ground_rois, broadcast=True)
-        self.set_dataset("e_bg_corrected_roi_targets", excited_rois, broadcast=True)
+        self.set_dataset(
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, ground_rois, broadcast=True
+        )
+        self.set_dataset(
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, excited_rois, broadcast=True
+        )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
     @abc.abstractmethod
@@ -749,17 +763,21 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
             for roi in excited_rois
         ]
 
-        self.set_dataset("g_bg_corrected_roi_targets", ground_rois, broadcast=True)
-        self.set_dataset("e_bg_corrected_roi_targets", excited_rois, broadcast=True)
+        self.set_dataset(
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, ground_rois, broadcast=True
+        )
+        self.set_dataset(
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, excited_rois, broadcast=True
+        )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
         self.launch_ellipse_applet()

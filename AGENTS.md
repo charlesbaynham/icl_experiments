@@ -101,6 +101,20 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Use `pre-commit install` for automatic formatting on commits
 - All style rules are enforced by CI
 
+### Comments and self-documenting code
+
+- **Write self-documenting code; do not over-comment.** The people reading this
+  are PhD-level physicists - do not explain standard physics (a Doppler shift, a
+  π pulse, a light shift). Prefer a good name over a comment: a variable
+  `doppler_shift_hz` needs no comment, and an expression that is obviously a
+  Doppler shift needs at most `# Doppler shift` - usually nothing.
+- **Comment only what is genuinely surprising**: a non-obvious mechanism, a
+  convention we have invented, a sign or edge case that bites. Everything else
+  should read straight from the code.
+- Over-commenting bloats diffs and hides the code, and every comment is a second
+  thing to keep in sync - a stale comment is a latent bug. A one-line bug is far
+  easier to spot than one buried under fifty lines of explanation.
+
 ### Calibration values & constants
 
 - **Calibration/position values are magic numbers → they live in
@@ -134,16 +148,18 @@ All interactions with the clock beam (OPLL, switch DDSes, and pulse firing) **mu
 
 Use these methods instead of their raw counterparts:
 
-| Task                      | Use this method                       | Never use                                           |
-| ------------------------- | ------------------------------------- | --------------------------------------------------- |
-| Set OPLL frequency        | `set_clock_opll(freq)`                | `clock_opll.clock_frequency_ramper.set(...)`        |
-| Start OPLL ramp           | `start_clock_opll_ramp(...)`          | `clock_opll.clock_frequency_ramper.start_ramp(...)` |
-| Stop OPLL ramp            | `stop_clock_opll_ramp()`              | `clock_opll.clock_frequency_ramper.stop_ramp()`     |
-| Set up-beam DDS           | `set_clock_up_dds(freq, amp)`         | `clock_up_dds.set(...)` directly                    |
-| Set down-beam DDS         | `set_clock_down_dds(freq, amp)`       | `clock_down_dds.set(...)` directly                  |
-| Fire a spectroscopy pulse | `fire_lmt_pulse(freq, type, t_start)` | `clock_up_dds.sw.on/off` manually                   |
+| Task                      | Use this method                       | Never use                                            |
+| ------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| Set OPLL frequency        | `set_clock_opll(freq)`                | `_clock_opll.clock_frequency_ramper.set(...)`        |
+| Start OPLL ramp           | `start_clock_opll_ramp(...)`          | `_clock_opll.clock_frequency_ramper.start_ramp(...)` |
+| Stop OPLL ramp            | `stop_clock_opll_ramp()`              | `_clock_opll.clock_frequency_ramper.stop_ramp()`     |
+| Set up-beam DDS           | `set_clock_up_dds(freq, amp)`         | `clock_up_dds.set(...)` directly                     |
+| Set down-beam DDS         | `set_clock_down_dds(freq, amp)`       | `clock_down_dds.set(...)` directly                   |
+| Fire a spectroscopy pulse | `fire_lmt_pulse(freq, type, t_start)` | `clock_up_dds.sw.on/off` manually                    |
 
 These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_freq`, OPLL frequency records) that is read back by the pulse recorder and by gravity-compensation calculations (e.g. `get_t_start_shelving`). Bypassing them produces silently incorrect results.
+
+The OPLL controller is owned by `ClockOPLLTrackingMixin` under the deliberately-internal name `_clock_opll`, so the tracked wrappers above are the path of least resistance; reaching through `self._clock_opll` to drive the ramper/DDS by hand is intentionally awkward and should not appear outside that mixin.
 
 ### Testing
 
