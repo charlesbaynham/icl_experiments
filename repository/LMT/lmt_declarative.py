@@ -139,34 +139,21 @@ DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
     DeclarativeLMTSymmetricMachZehnderFrag, max_rtio_underflow_retries=0
 )
 
-# Zigzag ladder: total pi pulses and the momentum class where the ladder turns
-# downward. Set here (sequence structure is baked at build time); submit by
-# repo_rev after changing. M_TURN stays within the proven readout range.
-N_ZIGZAG = 12
+# Zigzag ladder: the sequence structure (pulse count, turn points) is baked at
+# build time - it fixes how many per-pulse parameters are spawned and the
+# kernel array sizes - so these are module constants, NOT runtime parameters.
+# The EFFECTIVE pulse count is set at submit time with skip_after (index map in
+# the class docstrings); only a different M_TURN needs a code change, hence the
+# two baked classes below.
+N_ZIGZAG = 100
 M_TURN = 14
 
+N_ZIGZAG_BRINGUP = 12
+M_TURN_BRINGUP = 4
 
-class DeclarativeLMTZigzagLadderFrag(
-    DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedMixin,
-    EMGainMixin,
-    LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
-    DipoleTrapWithExperimentBase,
-):
-    """
-    Zigzag LMT ladder: N_ZIGZAG pi pulses walking the packet up to M_TURN and
-    back down repeatedly, keeping the cloud in the imaging window for
-    arbitrarily long pulse trains. Launch-only diagnostic - no interferometer.
-    Walk it pulse-by-pulse with skip_after; the broad clock imaging pulse
-    resolves the final momentum class via imaging_clock_pulse_detuning.
-    """
 
-    lmt_initial_population = {(GROUND, 0)}
-
-    lmt_sequence = [
+def _zigzag_sequence(n: int, m_turn: int) -> list:
+    return [
         SetPoint(
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
             rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
@@ -182,8 +169,32 @@ class DeclarativeLMTZigzagLadderFrag(
         # The slice leaves (e, 1); no clearouts inside the zigzag - the packet
         # alternates g/e every pulse, so a mid-sequence clearout would kill it
         # on half the skip_after truncations.
-        *zigzag(n=N_ZIGZAG, m_turn=M_TURN, start=Arm(EXCITED, 1)),
+        *zigzag(n=n, m_turn=m_turn, start=Arm(EXCITED, 1)),
     ]
+
+
+class _ZigzagLadderBase(
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Zigzag LMT ladder: pi pulses walking the packet up to a turning point and
+    back down repeatedly, keeping the cloud in the imaging window for
+    arbitrarily long pulse trains. Launch-only diagnostic - no interferometer.
+
+    Flat event indices: 0 = slice SetPoint, 1 = slice pulse, 2 = full SetPoint,
+    3 = Clearout, 4+k = zigzag pulse k. skip_after = 3 + n runs the first n
+    zigzag pulses; the broad clock imaging pulse resolves the resulting
+    momentum class via imaging_clock_pulse_detuning.
+    """
+
+    lmt_initial_population = {(GROUND, 0)}
 
     @kernel
     def DMA_initialization_hook(self):
@@ -200,6 +211,30 @@ class DeclarativeLMTZigzagLadderFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
+class DeclarativeLMTZigzagLadderFrag(_ZigzagLadderBase):
+    """
+    Zigzag ladder for the scaling campaign: N_ZIGZAG = 100 pulses baked,
+    turning at M_TURN = 14. Set the effective pulse count at submit time with
+    skip_after - no recompile per rung.
+    """
+
+    lmt_sequence = _zigzag_sequence(N_ZIGZAG, M_TURN)
+
+
+class DeclarativeLMTZigzagBringupFrag(_ZigzagLadderBase):
+    """
+    Bring-up zigzag: 12 pulses turning at m = 4, so both turn types (top at
+    pulse 3, bottom at pulse 6) sit inside the readout-proven range for the
+    first on-atom walk.
+    """
+
+    lmt_sequence = _zigzag_sequence(N_ZIGZAG_BRINGUP, M_TURN_BRINGUP)
+
+
 DeclarativeLMTZigzagLadder = make_fragment_scan_exp(
     DeclarativeLMTZigzagLadderFrag, max_rtio_underflow_retries=0
+)
+
+DeclarativeLMTZigzagBringup = make_fragment_scan_exp(
+    DeclarativeLMTZigzagBringupFrag, max_rtio_underflow_retries=0
 )
