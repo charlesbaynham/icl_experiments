@@ -22,7 +22,9 @@ Bottom panel: momentum  v_z (recoils) vs time (µs), x-linked to the top.
 Each branch (cloud) gets its own colour. Ground-state segments are solid,
 excited-state segments dotted. Pulses are shaded blue (up beam, ``delta_m > 0``)
 or red (down beam, ``delta_m < 0``); the bottom panel overlays each pulse's
-addressed momentum band. Cleared branches are dotted and end in a cross.
+addressed momentum band. Cleared branches are dotted and end in a large green
+X with a "!" callout -- a live branch surviving to a clearout is usually a
+bug, so it is drawn to stand out.
 
 Launch (e.g. from an experiment via the CCB, or by hand)::
 
@@ -125,42 +127,31 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
             self._draw_styled_polyline(self.ax_m, t_m_us, m, m_ground, color)
 
             if not cloud.alive:
-                # Dots on every point, a cross on the (cleared) final one.
-                self.ax_z.plot(
-                    t_z_us[:-1],
-                    z_mm[:-1],
-                    pen=None,
-                    symbol="o",
-                    symbolSize=5,
-                    symbolBrush=color,
-                    symbolPen=None,
-                )
-                self.ax_z.plot(
-                    t_z_us[-1:],
-                    z_mm[-1:],
-                    pen=None,
-                    symbol="x",
-                    symbolSize=9,
-                    symbolPen=pg.mkPen(color, width=2),
-                )
-                self.ax_m.plot(
-                    t_m_us[:-1],
-                    m[:-1],
-                    pen=None,
-                    symbol="o",
-                    symbolSize=5,
-                    symbolBrush=color,
-                    symbolPen=None,
-                )
-                self.ax_m.plot(
-                    t_m_us[-1:],
-                    m[-1:],
-                    pen=None,
-                    symbol="x",
-                    symbolSize=9,
-                    symbolPen=pg.mkPen(color, width=2),
-                )
+                # A big green X plus a "!" callout marks the cleared-out final
+                # point only -- a live branch ending here is usually a bug,
+                # not an intended part of the sequence, so it needs to be
+                # impossible to miss.
+                self._draw_clearout_mark(self.ax_z, t_z_us[-1], z_mm[-1])
+                self._draw_clearout_mark(self.ax_m, t_m_us[-1], m[-1])
         return all_m
+
+    def _draw_clearout_mark(self, ax, x, y):
+        """Draw a large green X with a "!" callout at a cleared branch end."""
+        ax.plot(
+            [x],
+            [y],
+            pen=None,
+            symbol="x",
+            symbolSize=22,
+            symbolPen=pg.mkPen(CLEAROUT_RGB, width=4),
+        )
+        text = pg.TextItem("!", color=CLEAROUT_RGB, anchor=(0, 1))
+        font = text.textItem.font()
+        font.setBold(True)
+        font.setPointSize(font.pointSize() + 6)
+        text.setFont(font)
+        text.setPos(x, y)
+        ax.addItem(text, ignoreBounds=True)
 
     def _draw_pulses(self, sequence):
         """Shade each pulse and overlay its addressed momentum band."""
@@ -243,6 +234,15 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
                 pen=pg.mkPen(*PHASE_RGB, 255, width=2, style=QtCore.Qt.DashLine)
             ),
             "phase set",
+        )
+        legend.addItem(
+            pg.PlotDataItem(
+                pen=None,
+                symbol="x",
+                symbolSize=12,
+                symbolPen=pg.mkPen(CLEAROUT_RGB, width=3),
+            ),
+            "cleared branch end (!)",
         )
 
     # -- applet entry point --------------------------------------------------
