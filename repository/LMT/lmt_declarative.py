@@ -39,9 +39,12 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.lmt_sequence import Arm
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import pi2
 from repository.lib.lmt_sequence import zigzag
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
@@ -50,7 +53,8 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 LMT_INTERFEROMETER_TIME = 100e-6  # seconds
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 20
+# 8 is the 2026-07-01 working point for the single-MZ interferometer.
+N_LAUNCH = 8
 M_TOP = 1 + N_LAUNCH
 
 N_LMT = 2
@@ -105,11 +109,19 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-4),
-        # Launch-only diagnostic: no interferometer tail. The skip_after param
-        # walks the flat event index one at a time; the broad clock imaging pulse
-        # (NormalisedFastKineticsClockPulseMixin.do_first_pulse) fires after the
-        # truncated sequence and performs the M-state-resolving selection, its
-        # detuning scanned via imaging_clock_pulse_detuning.
+        Clearout(),
+        Wait(t=DROP, label="droptime"),
+        # Symmetric Mach-Zehnder at the top of the launch (2026-07-01 working
+        # point). bs1 fixes the phase reference; mirror and bs2 share the
+        # scannable interferometer_phase (in turns).
+        Phase(phase=0.0, label="bs1"),
+        pi2(Beam.UP, m=M_TOP, label="bs1"),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Phase(param="interferometer_phase", label="mirror"),
+        pi(Beam.UP, m=M_TOP, label="mirror"),
+        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Phase(param="interferometer_phase", label="bs2"),
+        pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
 
     def build_fragment(self):
