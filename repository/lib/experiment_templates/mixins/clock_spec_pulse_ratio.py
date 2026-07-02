@@ -291,7 +291,7 @@ class CompensatedClockSpecMixin(
             # ramp the offset downwards TODO: For some reason the OPLL setting
             # is commented out in the `fire_lmt_pulse` method in the LMT module.
             # Until it's restored, we do it manually here
-            self.clock_opll.clock_frequency_ramper.start_ramp(
+            self.start_clock_opll_ramp(
                 ramp_rate,
                 opll_freq - 1e6,
                 opll_freq,
@@ -302,7 +302,7 @@ class CompensatedClockSpecMixin(
             delay(T_clock)
             self.clock_down_dds.sw.off()
         else:
-            self.clock_opll.clock_frequency_ramper.start_ramp(
+            self.start_clock_opll_ramp(
                 ramp_rate,
                 opll_freq,
                 opll_freq + 2e6,
