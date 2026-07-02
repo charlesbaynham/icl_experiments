@@ -31,6 +31,7 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
+from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
@@ -83,6 +84,10 @@ class SingleVRSSweepFrag(
         # Scope trigger ttl
         self.ttl = self.get_device("ttl_vrs_scope_trigger")
         self.ttl: TTLOut
+
+        # RS Scope for the VRS measurement
+        self.rtb_device: RSDevice = self.get_device("vrs_scope")
+        self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Params
         self.setattr_param(
