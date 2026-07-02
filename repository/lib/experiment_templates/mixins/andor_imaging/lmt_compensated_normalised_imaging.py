@@ -127,6 +127,23 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
         self.setattr_device("core")
 
+        # Fast-kinetics readout-window offset as a scannable parameter so the
+        # hardware window can follow launched clouds up the M-state ladder
+        # (the software ROIs already track via the predictor). Shadows the
+        # class attribute of the same name; get_fast_kinetics_offset() and
+        # get_rois() read it via .get(). Clamped to keep the whole
+        # num_shots x height frame on the sensor.
+        self.setattr_param(
+            "fast_kinetics_offset",
+            IntParam,
+            "Fast kinetics readout-window offset",
+            default=constants.ANDOR_FAST_KINETICS_OFFSET,
+            min=0,
+            max=constants.ANDOR_SENSOR_HEIGHT
+            - self.fast_kinetics_num_shots * self.fast_kinetics_height,
+        )
+        self.fast_kinetics_offset: IntParamHandle
+
         self.setattr_param(
             "roi_width",
             IntParam,
@@ -192,6 +209,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
     # ── ROI calculation ───────────────────────────────────────────────────────
 
+    def get_fast_kinetics_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+        return self.fast_kinetics_offset.get()
+
     @portable
     def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]
         """Build the two grabber ROIs centred on the predicted port positions.
@@ -206,10 +226,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         half_height = self.roi_height.get() // 2
         frame_height = 2 * self.fast_kinetics_height
 
-        gnd_y_frame = self.gnd_y - self.fast_kinetics_offset
-        excited_y_frame = (
-            self.excited_y - self.fast_kinetics_offset + self.fast_kinetics_height
-        )
+        offset = self.fast_kinetics_offset.get()
+        gnd_y_frame = self.gnd_y - offset
+        excited_y_frame = self.excited_y - offset + self.fast_kinetics_height
 
         clipped = 0
         if (
@@ -455,6 +474,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         )
         self.setattr_param_rebind("roi_width", self.andor_camera_config, "roi_width")
         self.setattr_param_rebind("roi_height", self.andor_camera_config, "roi_height")
+        self.setattr_param_rebind(
+            "fast_kinetics_offset", self.andor_camera_config, "fast_kinetics_offset"
+        )
 
         self.setattr_param(
             "image_delay_after_sequence",
