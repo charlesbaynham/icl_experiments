@@ -1,7 +1,7 @@
 """
 Mixin that opens the LMT spacetime-trajectory applet for an experiment.
 
-Issues a ``create_applet`` CCB command pointing
+Issues ``create_applet`` CCB commands pointing
 :mod:`repository.lib.applets.lmt_trajectory_applet` at the broadcast
 ``pulse_intent_record`` dataset that
 :class:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording`
@@ -9,8 +9,8 @@ publishes each shot. Mix it into any declarative-LMT experiment (it shares the
 recorded intent stream, so there is nothing to configure) to get a live
 space-time / momentum diagram of the most recent sequence in the dashboard.
 
-Set ``lmt_trajectory_applet_include_gravity = True`` on the experiment class to
-draw the lab-frame free-fall parabola instead of the freely-falling frame.
+Two applets are opened: one in the freely-falling frame the simulator uses,
+and one in the lab frame with the ½gt² free-fall parabola drawn on top.
 """
 
 from artiq.master.worker_impl import CCB
@@ -21,11 +21,7 @@ PULSE_INTENT_RECORD_DATASET = "pulse_intent_record"
 
 
 class LMTTrajectoryAppletMixin:
-    """Open the LMT trajectory applet against the recorded intent stream."""
-
-    #: Draw the ½gt² free-fall parabola (lab frame) rather than the
-    #: freely-falling frame the simulator uses.
-    lmt_trajectory_applet_include_gravity: bool = False
+    """Open the LMT trajectory applets against the recorded intent stream."""
 
     def build_fragment(self):
         super().build_fragment()
@@ -34,10 +30,13 @@ class LMTTrajectoryAppletMixin:
 
     def host_setup(self):
         super().host_setup()
-        cmd = (
+        base_cmd = (
             "${python} -m repository.lib.applets.lmt_trajectory_applet "
             f"{PULSE_INTENT_RECORD_DATASET}"
         )
-        if self.lmt_trajectory_applet_include_gravity:
-            cmd += " --include-gravity"
-        self.ccb.issue("create_applet", "LMT trajectory", cmd)
+        self.ccb.issue("create_applet", "LMT trajectory", base_cmd)
+        self.ccb.issue(
+            "create_applet",
+            "LMT trajectory (gravity)",
+            base_cmd + " --include-gravity",
+        )

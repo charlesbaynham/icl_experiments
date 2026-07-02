@@ -1,19 +1,5 @@
-"""
-LMT interferometry driven by the declarative sequence language.
-
-This is the reference experiment for the declarative LMT stack
-(:mod:`repository.lib.lmt_sequence` +
-:class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`):
-the velocity-selective pulse, the launch and a symmetric Mach-Zehnder
-interferometer are declared as a single list of pulse descriptions, from
-which scannable per-pulse parameters (detuning offsets and durations) are
-generated with model-predicted defaults.
-"""
-
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -44,28 +30,10 @@ from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
-LMT_INTERFEROMETER_TIME = 100e-6  # seconds
-# Number of launch pulses; the velocity-selective pulse provides the first
-# kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 20
-M_TOP = 1 + N_LAUNCH
-
-N_LMT = 2
-
-# Post-ladder drop time: at higher launch the cloud leaves the fixed
-# fast-kinetics window; this Wait lets it fall back in before imaging.
-# Image-driven - grow with n. Scannable via the spawned droptime duration.
-DROP = 100e-6
 
 
-class DeclarativeLMTSymmetricMachZehnderFrag(
+class NarrowDownAfterSliceFrag(
     DeclarativeLMTBase,
-    # Repositions the camera ROIs along the ballistic trajectory predicted
-    # from the recorded pulse sequence, with t=0 at the dipole-trap drop
-    # recorded by DeclarativeLMTBase. NB: do not also mix in one of the
-    # static-config imaging mixins (e.g. NormalisedDipoleTrapFastKineticsMixin)
-    # - it would win get_andor_camera_config_hook in the MRO and install a
-    # config without calculate_atom_positions.
     NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
@@ -75,7 +43,9 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
     DipoleTrapWithExperimentBase,
 ):
     """
-    Declarative symmetric LMT interferometry
+    Narrow down after slice
+
+    Designed for tuning the SUServo offset to select v=0 atoms
     """
 
     # Atoms are released from the trap in the ground state with no kicks
@@ -89,33 +59,16 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
             label="slice",
         ),
         pi(Beam.UP, m=0, label="slice"),
-        # Full intensity for the launch and interferometer; the declared
-        # Rabi frequencies set the default pulse durations
-        # (pi time = 1 / (2 * Rabi))
-        SetPoint(
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
-            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        ),
-        # Blast away the unselected ground-state atoms
+        # Reduced intensity for a down pulse, to intentionally make it more
+        # sensitive to incorrect velocity class selection
         Clearout(),
-        # Launch: alternating pi pulses walking the atoms up the momentum
-        # ladder from |e, 1> to m = M_TOP
-        *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-4),
-        # Launch-only diagnostic: no interferometer tail. The skip_after param
-        # walks the flat event index one at a time; the broad clock imaging pulse
-        # (NormalisedFastKineticsClockPulseMixin.do_first_pulse) fires after the
-        # truncated sequence and performs the M-state-resolving selection, its
-        # detuning scanned via imaging_clock_pulse_detuning.
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 100,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        ),
+        pi(Beam.DOWN, m=1, label="down_spec"),
     ]
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "interferometer_phase", FloatParam, "Interferometer phase", default=0.0
-        )
-        self.interferometer_phase: FloatParamHandle
 
     @kernel
     def DMA_initialization_hook(self):
@@ -132,6 +85,69 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
-DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
-    DeclarativeLMTSymmetricMachZehnderFrag, max_rtio_underflow_retries=0
+class NarrowUpAfterSliceFrag(
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Narrow up after slice
+
+    Designed for tuning the alpha Stark coefficient
+    """
+
+    # Atoms are released from the trap in the ground state with no kicks
+    lmt_initial_population = {(GROUND, 0)}
+
+    lmt_sequence = [
+        # Velocity selection
+        SetPoint(
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        pi(Beam.UP, m=0, label="slice"),
+        Clearout(),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        ),
+        *ladder(start_m=1, n=8, first_beam=Beam.DOWN, clearout_from=1),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint / 100,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME * 10),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME * 10),
+        ),
+        Clearout(),
+        pi(Beam.UP, m=9, label="up_spec"),
+    ]
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+NarrowDownAfterSlice = make_fragment_scan_exp(
+    NarrowDownAfterSliceFrag, max_rtio_underflow_retries=0
+)
+
+
+NarrowUpAfterSlice = make_fragment_scan_exp(
+    NarrowUpAfterSliceFrag, max_rtio_underflow_retries=0
 )
