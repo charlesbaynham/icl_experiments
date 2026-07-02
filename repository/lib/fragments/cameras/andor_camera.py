@@ -484,7 +484,14 @@ class AndorCameraControl(Fragment):
         self.cam.start_acquisition()
 
     @rpc(flags={"async"})
-    def setup_fast_kinetics_mode(self):
+    def setup_fast_kinetics_mode(self, offset_override: TInt32 = -1):
+        # offset_override lets the caller supply a per-shot offset computed
+        # kernel-side. Kernel writes to config attributes are NOT synced to the
+        # host mid-kernel (only at kernel exit), so an async RPC reading
+        # config.get_fast_kinetics_offset() would see the *previous* shot's
+        # value; passing it as an explicit RPC argument crosses the boundary
+        # correctly. -1 (the default, used by device_setup) means "read the
+        # config accessor" - correct for the static and manual-offset cases.
         exposure_time = (
             ty.cast(
                 FastKineticsCameraConfig, self.andor_camera_config
@@ -499,7 +506,10 @@ class AndorCameraControl(Fragment):
             )
 
         config = ty.cast(FastKineticsCameraConfig, self.andor_camera_config)
-        offset = config.get_fast_kinetics_offset()
+        if offset_override >= 0:
+            offset = offset_override
+        else:
+            offset = config.get_fast_kinetics_offset()
         height = config.fast_kinetics_height
 
         # The readout frame is num_shots stacked sub-frames of `height` rows

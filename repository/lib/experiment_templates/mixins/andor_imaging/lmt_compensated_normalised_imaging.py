@@ -122,6 +122,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
     fast_kinetics_num_shots = 2
 
     fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    # Satisfies FastKineticsCameraConfig's not-None check; the tunable value is
+    # the fast_kinetics_offset_setpoint param below (get_fast_kinetics_offset
+    # never reads this attribute), so it is only a sentinel.
     fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self):
@@ -130,13 +133,16 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         self.setattr_device("core")
 
         # Fast-kinetics readout-window offset as a scannable parameter so the
-        # hardware window can follow launched clouds up the M-state ladder
-        # (the software ROIs already track via the predictor). Shadows the
-        # class attribute of the same name; get_fast_kinetics_offset() and
+        # hardware window can follow launched clouds up the M-state ladder (the
+        # software ROIs already track via the predictor). Named
+        # *_setpoint rather than fast_kinetics_offset because the latter is a
+        # class attribute across the FK configs and ndscan forbids a param that
+        # shadows an existing attribute; it is re-exposed as fast_kinetics_offset
+        # at experiment level via the rebind. get_fast_kinetics_offset() and
         # get_rois() read it via .get(). Clamped to keep the whole
         # num_shots x height frame on the sensor.
         self.setattr_param(
-            "fast_kinetics_offset",
+            "fast_kinetics_offset_setpoint",
             IntParam,
             "Fast kinetics readout-window offset",
             default=constants.ANDOR_FAST_KINETICS_OFFSET,
@@ -144,13 +150,12 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             max=constants.ANDOR_SENSOR_HEIGHT
             - self.fast_kinetics_num_shots * self.fast_kinetics_height,
         )
-        self.fast_kinetics_offset: IntParamHandle
+        self.fast_kinetics_offset_setpoint: IntParamHandle
 
         # When enabled, the readout-window offset is recomputed each shot from
         # the predicted ground-cloud sensor row so the window stays centred on
-        # the launched atoms (the fast_kinetics_offset param is then the
-        # fallback / manual value, unused). Off by default -> behaviour
-        # unchanged.
+        # the launched atoms (the setpoint param is then the manual/fallback
+        # value, unused). Off by default -> behaviour unchanged.
         self.setattr_param(
             "fast_kinetics_offset_auto",
             BoolParam,
@@ -169,8 +174,6 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             constants.ANDOR_SENSOR_HEIGHT
             - self.fast_kinetics_num_shots * self.fast_kinetics_height
         )
-        self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("_max_fk_offset")
 
         self.setattr_param(
             "roi_width",
@@ -243,7 +246,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         the manual/scannable parameter."""
         if self.fast_kinetics_offset_auto.get():
             return self._auto_offset
-        return self.fast_kinetics_offset.get()
+        return self.fast_kinetics_offset_setpoint.get()
 
     def get_fast_kinetics_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
         return self._current_fk_offset()
@@ -530,7 +533,14 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.setattr_param_rebind("roi_width", self.andor_camera_config, "roi_width")
         self.setattr_param_rebind("roi_height", self.andor_camera_config, "roi_height")
         self.setattr_param_rebind(
-            "fast_kinetics_offset", self.andor_camera_config, "fast_kinetics_offset"
+            "fast_kinetics_offset",
+            self.andor_camera_config,
+            "fast_kinetics_offset_setpoint",
+        )
+        self.setattr_param_rebind(
+            "fast_kinetics_offset_auto",
+            self.andor_camera_config,
+            "fast_kinetics_offset_auto",
         )
 
         self.setattr_param(
@@ -665,6 +675,26 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             tof_ground + self.andor_camera_config.fast_kinetics_time_between_shots.get()
         )
         self._predict_atom_positions(tof_ground, tof_excited)
+
+        # Recompute the auto offset from this shot's prediction so both the
+        # camera readout window (re-issued below) and the grabber ROIs
+        # (reprogram_rois, which reads it kernel-side via get_rois) use the same
+        # value. Cheap when auto is off; the camera re-setup below is the only
+        # auto-gated action.
+        auto_offset = self.andor_camera_config.update_auto_offset()
+
+        # In auto mode the readout-window offset moved with the prediction, so
+        # the camera's fast-kinetics subarea (fixed at device_setup) is now
+        # stale: re-issue the per-shot setup + re-arm here, before the imaging
+        # trigger fires (do_imaging_hook_andor runs after the whole sequence).
+        # The offset is passed explicitly: kernel writes to _auto_offset are not
+        # synced to the host until kernel exit, so the async RPC cannot read the
+        # fresh value off the config object mid-kernel. Gated so auto-off is
+        # identical to a plain device_setup shot.
+        if self.andor_camera_config.fast_kinetics_offset_auto.get():
+            self.core.break_realtime()
+            self.andor_camera_control.setup_fast_kinetics_mode(auto_offset)
+            self.andor_camera_control.start_acquisition_async()
 
         # The blocking RPC advanced the RTIO counter but not the cursor;
         # re-establish slack before the grabber writes (reprogram_rois does not
