@@ -436,6 +436,49 @@ def _lower_arm(arm: Arm) -> "tuple[Pulse, Arm]":
     return pi(Beam.UP, m=arm.m, state=EXCITED), Arm(GROUND, arm.m - 1)
 
 
+def zigzag(
+    n: int,
+    m_turn: int,
+    start: Arm = Arm(EXCITED, 1),
+    m_bottom: int = 1,
+) -> list:
+    """``n`` pi pulses walking the packet up to ``m_turn``, back down to
+    ``m_bottom``, up again, and so on - a launch ladder that reverses direction
+    at the turning points so the cloud stays within the imaging window for an
+    arbitrarily long pulse train.
+
+    The walk is threaded through the packet's ``(state, m)`` (via
+    :func:`_raise_arm`/:func:`_lower_arm`), not through addressed-m arithmetic:
+    each pi pulse addresses the *current* population and moves it one recoil.
+    At a turning point the same beam fires twice in a row - the turn pulse
+    re-addresses the pair the previous pulse just populated, so both compile
+    to the same resonance.
+
+    Args:
+        n: Total number of pi pulses.
+        m_turn: Momentum class at which the ladder turns downward.
+        start: The packet's state and momentum class entering the zigzag.
+        m_bottom: Momentum class at which the ladder turns upward again.
+    """
+    if m_turn <= m_bottom:
+        raise ValueError(f"m_turn ({m_turn}) must exceed m_bottom ({m_bottom})")
+    if not m_bottom <= start.m <= m_turn:
+        raise ValueError(
+            f"start.m ({start.m}) must lie within [{m_bottom}, {m_turn}]"
+        )
+    events: list = []
+    arm = start
+    climbing = True
+    for _ in range(int(n)):
+        if climbing and arm.m >= m_turn:
+            climbing = False
+        elif not climbing and arm.m <= m_bottom:
+            climbing = True
+        pulse, arm = (_raise_arm if climbing else _lower_arm)(arm)
+        events.append(pulse)
+    return events
+
+
 def symmetric_mach_zehnder_sequence(
     *,
     n_launch: int,

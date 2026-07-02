@@ -36,11 +36,14 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
+from repository.lib.lmt_sequence import Arm
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import zigzag
+from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -134,4 +137,69 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
 
 DeclarativeLMTSymmetricMachZehnder = make_fragment_scan_exp(
     DeclarativeLMTSymmetricMachZehnderFrag, max_rtio_underflow_retries=0
+)
+
+# Zigzag ladder: total pi pulses and the momentum class where the ladder turns
+# downward. Set here (sequence structure is baked at build time); submit by
+# repo_rev after changing. M_TURN stays within the proven readout range.
+N_ZIGZAG = 12
+M_TURN = 14
+
+
+class DeclarativeLMTZigzagLadderFrag(
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Zigzag LMT ladder: N_ZIGZAG pi pulses walking the packet up to M_TURN and
+    back down repeatedly, keeping the cloud in the imaging window for
+    arbitrarily long pulse trains. Launch-only diagnostic - no interferometer.
+    Walk it pulse-by-pulse with skip_after; the broad clock imaging pulse
+    resolves the final momentum class via imaging_clock_pulse_detuning.
+    """
+
+    lmt_initial_population = {(GROUND, 0)}
+
+    lmt_sequence = [
+        SetPoint(
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        pi(Beam.UP, m=0, label="slice"),
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        ),
+        Clearout(),
+        # The slice leaves (e, 1); no clearouts inside the zigzag - the packet
+        # alternates g/e every pulse, so a mid-sequence clearout would kill it
+        # on half the skip_after truncations.
+        *zigzag(n=N_ZIGZAG, m_turn=M_TURN, start=Arm(EXCITED, 1)),
+    ]
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+DeclarativeLMTZigzagLadder = make_fragment_scan_exp(
+    DeclarativeLMTZigzagLadderFrag, max_rtio_underflow_retries=0
 )
