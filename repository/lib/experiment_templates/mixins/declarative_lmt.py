@@ -164,6 +164,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     superposition of the resolved pair, momentum kick) is shipped to the
     kernel and registered with the pulse recorder as each event fires.
 
+    The sequence shape is fixed at build time: ladder expansion,
+    momentum-class bookkeeping and ndscan-param spawning all happen in
+    :meth:`build_fragment`, so the number of events cannot be changed at
+    run time. To truncate the run at runtime without recompiling, use the
+    ``skip_after`` param.
+
     Callback events dispatch to :meth:`lmt_sequence_callback`, which
     subclasses override with an ``if``/``elif`` on the callback id (ARTIQ
     kernels have no function pointers).
