@@ -214,9 +214,11 @@ def get_non_core_devices(simulation_mode=False):
             "command": 'aqctl_andor_cam --port {port} --bind {bind} --id "AndorCam" --temperature -60 --fan_mode "full"',
         },
         "chamber_1_axial_coil_driver": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
             "arguments": {
                 "id": "tenma-powersupply-1.lan",
                 "port": 18200,
@@ -224,9 +226,11 @@ def get_non_core_devices(simulation_mode=False):
             },
         },
         "chamber_1_radial1_coil_driver": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
             "arguments": {
                 "id": "tenma-aion-ch1-1.lan",
                 "port": 18202,
@@ -234,9 +238,11 @@ def get_non_core_devices(simulation_mode=False):
             },
         },
         "chamber_1_radial2_coil_driver": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
             "arguments": {
                 "id": "tenma-aion-ch1-2.lan",
                 "port": 18203,
