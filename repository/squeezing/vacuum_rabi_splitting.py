@@ -195,8 +195,8 @@ class SingleVRSSweepFrag(
             "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
         )
         logger.warning(len(data))
-        self.scope_data.push(0)
-        self.set_dataset("scope_data", data, broadcast=False, archive=False)
+        self.scope_data.push(data)
+        self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
 SingleVRSSweep = make_fragment_scan_exp(
