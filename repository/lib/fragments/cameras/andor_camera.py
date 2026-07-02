@@ -144,6 +144,18 @@ class FastKineticsCameraConfig(AndorCameraConfig):
         if self.fast_kinetics_num_shots is None:
             raise ValueError("fast_kinetics_num_shots must be set in subclass")
 
+    def get_fast_kinetics_offset(self) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+        """Fast-kinetics readout-window offset (first-shot top row) in pixels.
+
+        The window's top edge on the 512-row sensor; the readout frame is
+        ``fast_kinetics_num_shots`` sub-frames of ``fast_kinetics_height`` rows
+        starting here. Configs that fix the window return the class attribute;
+        configs that expose it as a scannable parameter (so the window can
+        follow launched clouds up the sensor) override this to return the
+        param's current value.
+        """
+        return self.fast_kinetics_offset
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -472,7 +484,14 @@ class AndorCameraControl(Fragment):
         self.cam.start_acquisition()
 
     @rpc(flags={"async"})
-    def setup_fast_kinetics_mode(self):
+    def setup_fast_kinetics_mode(self, offset_override: TInt32 = -1):
+        # offset_override lets the caller supply a per-shot offset computed
+        # kernel-side. Kernel writes to config attributes are NOT synced to the
+        # host mid-kernel (only at kernel exit), so an async RPC reading
+        # config.get_fast_kinetics_offset() would see the *previous* shot's
+        # value; passing it as an explicit RPC argument crosses the boundary
+        # correctly. -1 (the default, used by device_setup) means "read the
+        # config accessor" - correct for the static and manual-offset cases.
         exposure_time = (
             ty.cast(
                 FastKineticsCameraConfig, self.andor_camera_config
@@ -485,16 +504,31 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_time_between_shots must be greater than the time required"
                 f" to shift out one Fast Kinetics region = {1e6*self.fast_kinetics_shift_time:.3f} us"
             )
+
+        config = ty.cast(FastKineticsCameraConfig, self.andor_camera_config)
+        if offset_override >= 0:
+            offset = offset_override
+        else:
+            offset = config.get_fast_kinetics_offset()
+        height = config.fast_kinetics_height
+
+        # The readout frame is num_shots stacked sub-frames of `height` rows
+        # starting at `offset`; it must fit on the sensor.
+        if offset < 0 or offset + self.fast_kinetics_num_shots * height > (
+            constants.ANDOR_SENSOR_HEIGHT
+        ):
+            raise ValueError(
+                "Fast-kinetics readout window does not fit the sensor: offset"
+                f" {offset} + {self.fast_kinetics_num_shots} x height {height}"
+                f" exceeds {constants.ANDOR_SENSOR_HEIGHT} rows"
+            )
+
         self.cam.stop_acquisition()
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
-            subarea_height=ty.cast(
-                FastKineticsCameraConfig, self.andor_camera_config
-            ).fast_kinetics_height,
+            subarea_height=height,
             exposure_time=exposure_time,
-            offset=ty.cast(
-                FastKineticsCameraConfig, self.andor_camera_config
-            ).fast_kinetics_offset,
+            offset=offset,
         )
 
     @kernel
