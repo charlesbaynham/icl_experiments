@@ -292,6 +292,8 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_cb_action_addressed_m",
             "_lmt_cb_action_delta_m",
             "_lmt_cb_action_state_effect",
+            "_lmt_cb_action_m_term_hz",
+            "_lmt_cb_action_rabi_hz",
             "_lmt_cb_action_start",
             "_lmt_cb_action_count",
         }
@@ -345,8 +347,20 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_cb_action_addressed_m = []
         self._lmt_cb_action_delta_m = []
         self._lmt_cb_action_state_effect = []
+        # Per-action recoil m-term and the governing set point's Rabi for the
+        # beam each action drives, so a shaped-pulse callback can reconstruct
+        # each addressed cloud's resonance (Stark shift included) on the OPLL.
+        self._lmt_cb_action_m_term_hz = []
+        self._lmt_cb_action_rabi_hz = []
         self._lmt_cb_action_start = []
         self._lmt_cb_action_count = []
+        # Set per callback as it fires, so the hook-facing helpers below can
+        # read the dispatching callback's actions. Mutated in the kernel, so
+        # deliberately NOT a kernel invariant.
+        self._lmt_active_cb_event = 0
+        # Doppler reference time (atom release), stashed at run start so the
+        # callback helpers see the same reference the pulse loop uses.
+        self._lmt_t_ref_mu = int64(0)
         # (slot index, fragment attribute name) pairs resolved in host_setup,
         # because the referenced parameter may be created by a mixin that builds
         # after this one in the MRO, or (global mode) be a shared global handle.
@@ -418,15 +432,20 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_cb_action_start.append(int32(len(self._lmt_cb_action_delta_m)))
             self._lmt_cb_action_count.append(int32(len(event.callback_actions)))
             for (
-                addressed_state,
-                addressed_m,
-                delta_m,
-                state_effect,
-            ) in event.callback_actions:
+                (addressed_state, addressed_m, delta_m, state_effect),
+                m_term_hz,
+                rabi_hz,
+            ) in zip(
+                event.callback_actions,
+                event.callback_action_m_term_hz,
+                event.callback_action_rabi_hz,
+            ):
                 self._lmt_cb_action_addressed_state.append(int32(addressed_state))
                 self._lmt_cb_action_addressed_m.append(int32(addressed_m))
                 self._lmt_cb_action_delta_m.append(int32(delta_m))
                 self._lmt_cb_action_state_effect.append(int32(state_effect))
+                self._lmt_cb_action_m_term_hz.append(float(m_term_hz))
+                self._lmt_cb_action_rabi_hz.append(float(rabi_hz))
 
             self._bind_offset_slot(event)
             self._bind_duration_slot(event)
@@ -652,6 +671,102 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
+    def _pulse_freq_centre(
+        self,
+        t_centre_mu: int64,
+        beam_sign: float,
+        m_term_hz: float,
+        rabi_hz: float,
+        offset_hz: float,
+    ) -> float:
+        """Model OPLL frequency on resonance at a pulse's centre.
+
+        Single source of the resonance condition for both the square-pulse path
+        and shaped-pulse callbacks: the gravity Doppler accumulated since the
+        atoms' release (referenced to :attr:`_lmt_t_ref_mu`), the static recoil
+        m-term, the initial-velocity Doppler and the probe AC Stark shift
+        ``-alpha * rabi**2``. ``rabi_hz`` is the Rabi frequency of the governing
+        set point (NOT derived from the pulse duration), so a shaped pulse picks
+        up the identical Stark shift an ordinary pulse at that set point sees.
+
+        The v0 Doppler is tethered to the reference (first) pulse's beam
+        (:attr:`_lmt_v0_reference_beam_sign`): the reference pulse selects the
+        velocity class and carries no v0 term, every other pulse is corrected
+        against it (see ``lmt_resonance.v0_doppler_term_hz``).
+        """
+        t_fall = self.core.mu_to_seconds(t_centre_mu - self._lmt_t_ref_mu)
+        v0_doppler = (
+            (self._lmt_v0_reference_beam_sign - beam_sign)
+            * self.lmt_initial_velocity.get()
+            * inverse_clock_wavelength
+        )
+        stark = -self.lmt_probe_stark_alpha.get() * rabi_hz * rabi_hz
+        return (
+            start_opll_offset
+            + beam_sign * t_fall * ramp_rate
+            - m_term_hz
+            + v0_doppler
+            + stark
+            + offset_hz
+        )
+
+    @kernel
+    def lmt_callback_n_actions(self) -> int32:
+        """Number of declared actions of the callback currently dispatching.
+
+        Valid only inside :meth:`lmt_sequence_callback_hook`.
+        """
+        return self._lmt_cb_action_count[self._lmt_active_cb_event]
+
+    @kernel
+    def lmt_callback_action_centre_freq(
+        self, action_index: int32, t_centre_mu: int64
+    ) -> float:
+        """Model OPLL centre frequency for one action of the dispatching callback.
+
+        Each addressed cloud carries the governing set point's probe Stark shift
+        (see :meth:`_pulse_freq_centre`). A shaped pulse covering several clouds
+        combines these itself - e.g. the midpoint of the two clouds left by a
+        pi/2 - and programs that single frequency on the OPLL. Each action is
+        resolved on its own beam (the sign of its ``delta_m``), so this is
+        correct even when a callback mixes beams. Valid only inside
+        :meth:`lmt_sequence_callback_hook`.
+        """
+        i = self._lmt_active_cb_event
+        j = self._lmt_cb_action_start[i] + action_index
+        beam_sign = 1.0 if self._lmt_cb_action_delta_m[j] > 0 else -1.0
+        return self._pulse_freq_centre(
+            t_centre_mu,
+            beam_sign,
+            self._lmt_cb_action_m_term_hz[j],
+            self._lmt_cb_action_rabi_hz[j],
+            0.0,
+        )
+
+    @kernel
+    def start_clock_gravity_chirp(
+        self, freq_centre: float, duration: float, is_up: bool
+    ):
+        """Program the OPLL gravity chirp so it crosses ``freq_centre`` at the
+        centre of a pulse of length ``duration``.
+
+        Shared by the square-pulse path and shaped-pulse callbacks. The ramp
+        tracks the falling atoms at the gravity rate; programme it just before
+        the pulse's ``t_start`` (``at_mu``) so it is already running when the
+        switch opens. The caller stops the ramp after the pulse.
+        """
+        self.stop_clock_opll_ramp()
+        delay_mu(int64(self.core.ref_multiplier))
+        if is_up:
+            # Gravity blue-shift the up beam
+            f_on = freq_centre - ramp_rate * duration / 2
+            self.start_clock_opll_ramp(ramp_rate, f_on, f_on + 2e6, wave_type=1)
+        else:
+            # ... and red-shift the down beam
+            f_on = freq_centre + ramp_rate * duration / 2
+            self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
+
+    @kernel
     def _fire_pulse(
         self,
         freq_centre: float,
@@ -675,17 +790,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         pulse (see :mod:`repository.lib.physics.lmt_resonance`), registered with the
         pulse recorder alongside the pulse facts.
         """
-        self.stop_clock_opll_ramp()
-        delay_mu(int64(self.core.ref_multiplier))
-        # Start the OPLL ramp
-        if is_up:
-            # Gravity blue-shift the up beam
-            f_on = freq_centre - ramp_rate * duration / 2
-            self.start_clock_opll_ramp(ramp_rate, f_on, f_on + 2e6, wave_type=1)
-        else:
-            # ... and red-shifts the down beam
-            f_on = freq_centre + ramp_rate * duration / 2
-            self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
+        self.start_clock_gravity_chirp(freq_centre, duration, is_up)
 
         at_mu(t_start)
         self.dma_recording_fragment.register_pulse_with_intent(
@@ -728,6 +833,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         NOT also call ``register_pulse`` / ``register_pulse_with_intent`` /
         ``register_intent_action`` - doing so would double-count the event in
         the intent stream.
+
+        To place the OPLL, the hook reads each addressed cloud's model
+        resonance from :meth:`lmt_callback_action_centre_freq` (and
+        :meth:`lmt_callback_n_actions`); these already carry the governing set
+        point's probe Stark shift, so the hook only has to combine them (e.g.
+        the midpoint of the two clouds left by a pi/2) and program the chirp.
+        The switch DDS stays at its static carrier - all frequency control is on
+        the OPLL.
         """
         raise ValueError(
             "Unhandled LMT sequence Callback - override lmt_sequence_callback() "
@@ -755,6 +868,8 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         ``register_intent_action`` (one ordinary pulse intent row per action).
         """
         t_ref_mu = self.get_doppler_t_ref_mu()
+        # Stash for the callback helpers, which reference the same Doppler origin
+        self._lmt_t_ref_mu = t_ref_mu
 
         for i in range(self._lmt_n_events):
             kind = self._lmt_event_kind[i]
@@ -765,29 +880,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 t_start = now_mu() + self.core.seconds_to_mu(10e-6)
                 t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
 
-                # Gravity Doppler evaluated at the pulse centre, accumulated
-                # since the release
-                t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
-                # Initial-velocity Doppler term, tethered to the first pulse:
-                # the reference (first) pulse selects the velocity class and so
-                # carries no v0 term; every other pulse is corrected against it.
-                # up slice -> 0, down ladder pulse -> 2*v0/lambda (see
-                # lmt_resonance.v0_doppler_term_hz).
-                v0_doppler = (
-                    (self._lmt_v0_reference_beam_sign - self._lmt_beam_sign[i])
-                    * self.lmt_initial_velocity.get()
-                    * inverse_clock_wavelength
-                )
-                rabi = self._lmt_rabi_hz[i]
-                stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
-
-                freq_centre = (
-                    start_opll_offset
-                    + self._lmt_beam_sign[i] * t_fall * ramp_rate
-                    - self._lmt_m_term_hz[i]
-                    + v0_doppler
-                    + stark
-                    + self._lmt_offset_handles[i].get()
+                freq_centre = self._pulse_freq_centre(
+                    t_centre_mu,
+                    self._lmt_beam_sign[i],
+                    self._lmt_m_term_hz[i],
+                    self._lmt_rabi_hz[i],
+                    self._lmt_offset_handles[i].get(),
                 )
                 self._fire_pulse(
                     freq_centre,
@@ -867,6 +965,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                         addressed_m=self._lmt_cb_action_addressed_m[j],
                         delta_m=self._lmt_cb_action_delta_m[j],
                     )
+                # Expose this callback's actions to the hook-facing helpers
+                # (lmt_callback_action_centre_freq) before dispatching.
+                self._lmt_active_cb_event = i
                 self.lmt_sequence_callback_hook(self._lmt_callback_id[i])
 
     @kernel

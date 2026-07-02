@@ -582,6 +582,15 @@ class CompiledEvent:
     ``addressed_state`` is an :class:`AddressedState` code. At fire time each
     action is registered as one ordinary pulse intent row, so a callback
     contributes N pulse-like columns to the on-disk record.
+    ``callback_action_m_term_hz`` and ``callback_action_rabi_hz`` run parallel
+    to ``callback_actions``, carrying each action's static recoil m-term
+    (:func:`opll_m_term_hz`) and the governing set point's Rabi frequency for the
+    beam that action drives. Together they let the engine reconstruct each
+    addressed cloud's resonance - and the same probe Stark shift an ordinary
+    pulse at that set point would see - when a shaped-pulse callback places the
+    OPLL itself. Each action is resolved independently (its beam is the sign of
+    its ``delta_m``), so a callback may legitimately mix beams; ``governing_
+    setpoint_index`` is the set point in force, or -1 for an empty callback.
     ``declared_duration_s`` is the :class:`Callback`'s nominal duration (0.0
     for everything else).
     """
@@ -607,6 +616,8 @@ class CompiledEvent:
     delta_m: int = 0
     declared_duration_s: float = 0.0
     callback_actions: tuple = ()
+    callback_action_m_term_hz: tuple = ()
+    callback_action_rabi_hz: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -845,13 +856,30 @@ def compile_sequence(
                 )
                 for action in event.actions
             )
+            # A shaped-pulse callback places the OPLL itself, so each action
+            # needs the resonance ingredients an ordinary pulse gets: its recoil
+            # m-term and the governing set point's Rabi for the beam it drives
+            # (which fixes the probe Stark shift). Actions are resolved
+            # independently, so a callback may mix beams.
+            action_m_terms = []
+            action_rabis = []
+            for action in event.actions:
+                rabi_hz, m_term_hz = _resolve_callback_action_drive(
+                    index, action, current_setpoint
+                )
+                action_rabis.append(rabi_hz)
+                action_m_terms.append(m_term_hz)
+            setpoint_index = current_setpoint[0] if event.actions else -1
             compiled.append(
                 CompiledEvent(
                     index=index,
                     kind=EVENT_CALLBACK,
+                    governing_setpoint_index=setpoint_index,
                     callback_id=event.callback_id,
                     declared_duration_s=event.duration,
                     callback_actions=actions,
+                    callback_action_m_term_hz=tuple(action_m_terms),
+                    callback_action_rabi_hz=tuple(action_rabis),
                 )
             )
         else:
@@ -1028,6 +1056,62 @@ def _apply_addressed_action(
         if had_ground or had_excited:
             population.add(ground)
             population.add(excited)
+
+
+def _callback_action_m_term_hz(action: CallbackAction) -> float:
+    """Static recoil m-term of one callback action's addressed cloud.
+
+    The engine reconstructs a cloud's resonance from this term the same way it
+    does for an ordinary pulse (:func:`opll_m_term_hz`). That resonance is only
+    defined for a single-recoil action (``|delta_m| == 1``, like a clock pulse);
+    a multi-recoil or zero-recoil action has no single-photon OPLL resonance, so
+    it gets ``0.0`` and the hook must not ask the engine for its centre
+    frequency (:meth:`...declarative_lmt.DeclarativeLMTBase.lmt_callback_action_centre_freq`).
+    """
+    if abs(action.delta_m) == 1:
+        return opll_m_term_hz(action.m, action.state, action.delta_m)
+    return 0.0
+
+
+def _resolve_callback_action_drive(
+    index: int,
+    action: CallbackAction,
+    current_setpoint: "tuple[int, SetPoint] | None",
+) -> "tuple[float, float]":
+    """Resolve one callback action's ``(rabi_hz, m_term_hz)`` for the engine.
+
+    Each action independently addresses one ``(state, m)`` pair on the beam
+    given by the sign of its ``delta_m``, exactly as the population walk treats
+    it - so a callback may legitimately mix beams (e.g. an up action and a down
+    action representing a two-rung ladder). The engine reconstructs the action's
+    resonance from the governing :class:`SetPoint`'s declared Rabi for that beam
+    (which fixes the probe Stark shift ``-alpha * rabi**2``), never from the
+    pulse duration.
+
+    The recoil m-term is only defined for a single-recoil action
+    (:func:`_callback_action_m_term_hz`); a multi-/zero-recoil action gets
+    ``0.0`` and the hook must not ask the engine for its centre frequency.
+
+    Raises:
+        SequenceError: if there is no governing set point, or if that set point
+            declares no Rabi for the beam this action drives.
+    """
+    if current_setpoint is None:
+        raise SequenceError(
+            f"Event {index}: callback with atom-affecting actions before any "
+            "SetPoint - declare the delivery set point first"
+        )
+    setpoint_index, setpoint = current_setpoint
+    beam = Beam.UP if action.delta_m > 0 else Beam.DOWN
+    rabi_frequency = setpoint.rabi_for(beam)
+    if rabi_frequency is None:
+        raise SequenceError(
+            f"Event {index}: callback action drives the {beam.name.lower()} "
+            f"beam, but the governing SetPoint (event {setpoint_index}) declares "
+            f"no rabi_{beam.name.lower()} - declare the Rabi frequency of this "
+            "beam at the current set point"
+        )
+    return rabi_frequency, _callback_action_m_term_hz(action)
 
 
 def _apply_callback(population: set, event: Callback) -> None:
