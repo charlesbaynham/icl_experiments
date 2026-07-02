@@ -113,13 +113,15 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         Wait(t=DROP, label="droptime"),
         # Symmetric Mach-Zehnder at the top of the launch (2026-07-01 working
         # point). bs1 fixes the phase reference; mirror and bs2 share the
-        # scannable interferometer_phase (in turns).
+        # scannable interferometer_phase (in turns). Both dark times read the
+        # shared lmt_dark_time handle, so one scan axis moves both together and
+        # the interferometer stays symmetric about the mirror.
         Phase(phase=0.0, label="bs1"),
         pi2(Beam.UP, m=M_TOP, label="bs1"),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Wait(param="lmt_dark_time", label="T"),
         Phase(param="interferometer_phase", label="mirror"),
         pi(Beam.UP, m=M_TOP, label="mirror"),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        Wait(param="lmt_dark_time", label="T"),
         Phase(param="interferometer_phase", label="bs2"),
         pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
@@ -131,6 +133,16 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
             "interferometer_phase", FloatParam, "Interferometer phase", default=0.0
         )
         self.interferometer_phase: FloatParamHandle
+
+        self.setattr_param(
+            "lmt_dark_time",
+            FloatParam,
+            "Mach-Zehnder dark time (each half)",
+            default=LMT_INTERFEROMETER_TIME,
+            unit="us",
+            min=0.0,
+        )
+        self.lmt_dark_time: FloatParamHandle
 
     @kernel
     def DMA_initialization_hook(self):
