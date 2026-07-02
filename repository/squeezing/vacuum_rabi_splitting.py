@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -7,6 +8,7 @@ from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import rpc
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -88,6 +90,10 @@ class SingleVRSSweepFrag(
         # RS Scope for the VRS measurement
         self.rtb_device: RSDevice = self.get_device("vrs_scope")
         self.rtb: RsInstrument = self.rtb_device.get_instrument()
+
+        # Make an applet
+        self.setattr_device("ccb")
+        self.ccb: CCB
 
         # Params
         self.setattr_param(
@@ -197,6 +203,14 @@ class SingleVRSSweepFrag(
         logger.warning(len(data))
         self.scope_data.push(data)
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
+
+        fs = np.linspace(
+            self.probe_ramper.min_f.get(), self.probe_ramper.max_f.get(), len(data)
+        )
+        self.set_dataset("frequency_sweep", fs, broadcast=True, archive=False)
+
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
 
 
 SingleVRSSweep = make_fragment_scan_exp(
