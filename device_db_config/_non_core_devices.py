@@ -363,6 +363,8 @@ def get_non_core_devices(simulation_mode=False):
             "class": "RSDevice",
             "arguments": {
                 "address": "TCPIP::10.137.1.19::INSTR",
+                "id_query": True,
+                "reset": True,
             },
             "mockmodule": "repository.lib.mock_device",
             "mockclass": "MockDevice",
