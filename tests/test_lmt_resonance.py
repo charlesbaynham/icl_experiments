@@ -219,7 +219,13 @@ def test_v0_doppler_term_invalid_beam_sign():
 
 
 def test_probe_stark_term_sign_and_scaling():
-    """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
+    """The Stark correction is -alpha*rabi**2 and scales with intensity.
+
+    The default alpha is deliberately NEGATIVE (empirically flipped on atoms,
+    commit 212fb304 "Wrong sign!"), so at defaults the correction RAISES the
+    OPLL centre frequency. The pre-flip sign error is quantitatively
+    confirmed: the on-atom residual equalled twice the applied correction.
+    """
     alpha = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
     rabi = 9.1e3
     assert lmt_resonance.probe_stark_term_hz(rabi, alpha) == pytest.approx(
@@ -229,27 +235,31 @@ def test_probe_stark_term_sign_and_scaling():
     assert lmt_resonance.probe_stark_term_hz(2 * rabi, alpha) == pytest.approx(
         4 * lmt_resonance.probe_stark_term_hz(rabi, alpha)
     )
-    # Always reduces the OPLL centre frequency (negative)
-    assert lmt_resonance.probe_stark_term_hz(rabi) < 0.0
+    # Empirical direction: alpha < 0, correction moves the OPLL centre up
+    assert alpha < 0.0
+    assert lmt_resonance.probe_stark_term_hz(rabi) > 0.0
 
 
 def test_probe_stark_magnitude_matches_clock_shift_measurement():
     """The default alpha reproduces the measured AC-Stark magnitude.
 
     Guards the linear-vs-angular Rabi unit convention. The clock-shift
-    calibration ("2026-06-09 Clock shift gap-filling even Omega2 grid") measured
-    ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi`` (rad/s) and
-    ``alpha_ang ~= 3.25e-7 Hz*s**2``. For a 55 us pi pulse that is ~1 kHz of
-    light shift. ``probe_stark_term_hz`` uses the LINEAR Rabi (``rabi =
-    1/(2*T_pi)`` Hz), so the default coefficient must carry the 4*pi**2 factor.
-    A regression to the angular-convention number (3.24e-7) would under-count
-    this by ~39.5x (it would predict ~25 Hz), which this pins against.
+    calibration ("2026-06-09 Clock shift gap-filling even Omega2 grid")
+    measured ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi``
+    (rad/s) and ``alpha_ang ~= 3.25e-7 Hz*s**2`` - about 1.06 kHz at a 55 us pi
+    pulse; the current default (|alpha| = 1.688e-5, empirically tweaked on
+    atoms from the measured 1.283e-5) gives ~1.4 kHz. ``probe_stark_term_hz``
+    uses the LINEAR Rabi (``rabi = 1/(2*T_pi)`` Hz), so the coefficient must
+    carry the 4*pi**2 factor. A regression to the angular-convention number
+    (3.24e-7) would under-count this by ~39.5x (it would predict ~35 Hz),
+    which this pins against.
     """
     t_pi = 55e-6
     rabi_hz = 1.0 / (2.0 * t_pi)
     shift = lmt_resonance.probe_stark_term_hz(rabi_hz)
-    # ~1 kHz from the measurement; magnitude, sign is negative (OPLL moves down).
-    assert abs(shift) == pytest.approx(1060.0, rel=0.05)
+    expected = -constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2 / (2.0 * t_pi) ** 2
+    assert shift == pytest.approx(expected)
+    assert abs(shift) == pytest.approx(1395.0, rel=0.05)
 
 
 def test_first_beam_splitter_anchor():

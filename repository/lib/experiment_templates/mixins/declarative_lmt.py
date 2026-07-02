@@ -234,8 +234,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "lmt_probe_stark_alpha",
             FloatParam,
             "AC-Stark shift coefficient alpha",
-            # Shifts each pulse's OPLL centre freq by -alpha*rabi**2
-            # (rabi = declared Rabi at the governing set point).
+            # Correction -alpha*rabi**2 on each pulse's OPLL centre freq; the
+            # default alpha is negative (empirically flipped, commit 212fb304)
+            # so at defaults the centre moves UP. rabi comes from the pulse's
+            # *_rabi param (per-pulse mode) or the SetPoint-declared value
+            # (global mode); see lmt_resonance.probe_stark_term_hz.
             default=constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
             unit="",
         )
