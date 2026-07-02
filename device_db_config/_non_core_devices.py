@@ -364,8 +364,8 @@ def get_non_core_devices(simulation_mode=False):
             "arguments": {
                 "address": "TCPIP::10.137.1.19::INSTR",
             },
-            "mockmodule": "repository.lib.devices.rohde_schwarz_devices",
-            "mockclass": "MockRSDevice",
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:
