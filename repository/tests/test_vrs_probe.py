@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -9,6 +10,7 @@ from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
@@ -91,8 +93,6 @@ class TestRTBSetupFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.rtb_data = float
-
         self.setattr_param(
             "acquisition_time",
             FloatParam,
@@ -110,8 +110,13 @@ class TestRTBSetupFrag(ExpFragment):
         self.ttl = self.get_device("ttl_vrs_scope_trigger")
         self.ttl: TTLOut
 
+        # There's probably a more elegant way of doing this
         self.rtb_device: RSDevice = self.get_device("vrs_scope")
         self.rtb: RsInstrument = self.rtb_device.get_instrument()
+
+        # Make an applet
+        self.setattr_device("ccb")
+        self.ccb: CCB
 
         ### This stuff should not be done in build fragment but probably somewhere later... needs to be done from the computer
 
@@ -172,7 +177,7 @@ class TestRTBSetupFrag(ExpFragment):
     # We can save this data on the scope internally and rerun the experiment
     @rpc
     def get_data_from_scope(self) -> None:
-        # Save the data in ascii format and save
+        # Save the data in ascii format and plot in the applet
 
         logger.warning("Query")
         # self.rtb.write_str("")
@@ -187,6 +192,11 @@ class TestRTBSetupFrag(ExpFragment):
         self.scope_data.push(data)
         logger.warning("Pushed")
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        xs = np.linspace(0, self.acquisition_time.get(), len(data))
+        self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
+
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
 
     @rpc
     def start_single(self) -> None:
