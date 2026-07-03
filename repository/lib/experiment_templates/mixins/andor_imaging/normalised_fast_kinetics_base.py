@@ -74,6 +74,9 @@ from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConf
 logger = logging.getLogger(__name__)
 
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+# Full clock-delivery setpoint, resolved host-side (string-keyed dict lookups are
+# not permitted inside kernels) for the full-power readout pulse.
+CLOCK_DELIVERY_SETPOINT_V: float = constants.SUSERVOED_BEAMS["clock_delivery"].setpoint
 
 # 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
 _LABEL_BITMAPS = {
@@ -1044,6 +1047,26 @@ class NormalisedFastKineticsClockPulseMixin(
     def do_first_pulse(self):
         self.do_pulse()
         delay(self.delay_clock_after_first_pulse.get())
+
+        # Drive the delivery servo to full clock power for the readout pulse.
+        # A truncated sequence can leave the servo at whatever setpoint its last
+        # executed event set (e.g. the low shelving setpoint after a slice-only
+        # truncation), so the readout sets full power itself. This makes the
+        # readout a full-power, fast (Fourier-broad) DOWN pi identical in speed
+        # to the launch/mirror pulses - the M-state selection pulse.
+        self.set_clock_delivery_aom(
+            freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
+            setpoint_v=CLOCK_DELIVERY_SETPOINT_V,
+        )
+        delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
+
+        # Put the OPLL on the free-fall Doppler resonance the falling atoms
+        # actually see. Base (non-LMT) consumers have no OPLL to drive, so this
+        # is a no-op there; the LMT-corrected mixin overrides it. Called before
+        # the switch-DDS write so the OPLL write gets a ladder-like settling
+        # margin before the switch opens.
+        self.prepare_readout_opll_hook()
+
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.imaging_clock_pulse_detuning.get()
@@ -1053,11 +1076,18 @@ class NormalisedFastKineticsClockPulseMixin(
 
         delay(1e-6)
 
-        # PI PULSE
-
         self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
+        delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def prepare_readout_opll_hook(self):
+        """Set the readout-pulse OPLL frequency, called just before the pulse.
+
+        Default no-op: the plain :class:`ClockSpectroscopyBase` consumers of
+        this mixin have no OPLL tracker. The LMT-corrected mixin overrides this
+        to add the free-fall gravity Doppler the ladder pulses carry.
+        """
 
 
 class NormalisedFastKineticsDoubleTrapRepumpedMixin(
