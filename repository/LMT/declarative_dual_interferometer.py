@@ -203,3 +203,196 @@ DeclarativeLMTSplitDiscriminator = make_fragment_scan_exp(
 DeclarativeLMTSplitWide = make_fragment_scan_exp(
     DeclarativeLMTSplitWideFrag, max_rtio_underflow_retries=0
 )
+
+
+# ---------------------------------------------------------------------------
+# Selective-pulse machinery
+# ---------------------------------------------------------------------------
+# Primary evidence from the 2026-06-20 split RIDs (75378-85) shows a single
+# dim blob with a comet tail, not two clouds: the full-power ~56-68 us pulses
+# (Fourier width ~ the 9.4 kHz recoil spacing) leak on pulses addressing pairs
+# only ~2 spacings from a parked cloud, stranding population all along the
+# separation ladder. The 2026-01..03 rig working point for frequency-selective
+# pulses was ~95 us at reduced power (legacy path: 10.5 dB switch attenuation).
+#
+# At a shared delivery set point the down beam cannot be attenuated
+# independently (the legacy path balanced the switch-AOM attenuations, 13 dB
+# up / 12.5 dB down, to equalise durations), so here the down pi time scales
+# with the same delivery-intensity factor instead of matching 95 us exactly.
+# All durations/setpoints spawn as scannable params for rig tuning.
+
+SELECTIVE_PI_TIME = 95e-6
+_SELECTIVE_INTENSITY_SCALE = (constants.CLOCK_PI_TIME / SELECTIVE_PI_TIME) ** 2
+SELECTIVE_SETPOINT = CLOCK_BEAM_DELIVERY_INFO.setpoint * _SELECTIVE_INTENSITY_SCALE
+SELECTIVE_RABI_UP = 1 / (2 * SELECTIVE_PI_TIME)
+SELECTIVE_RABI_DOWN = (1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME)) * (
+    constants.CLOCK_PI_TIME / SELECTIVE_PI_TIME
+)
+
+
+def _selective_setpoint(label="selective"):
+    return SetPoint(
+        setpoint=SELECTIVE_SETPOINT,
+        rabi_up=SELECTIVE_RABI_UP,
+        rabi_down=SELECTIVE_RABI_DOWN,
+        label=label,
+    )
+
+
+def _full_setpoint(label=""):
+    return SetPoint(
+        setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+        rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+        rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        label=label,
+    )
+
+
+def _split_and_separate_selective(sep, separation_time, n_selective):
+    """As :func:`_split_and_separate`, with the split pi/2 and the first
+    ``n_selective`` separation pulses at the reduced-power selective set point.
+
+    Those pulses address pairs only ~2 recoil spacings from the parked cloud,
+    where the full-power pulses are Fourier-broad enough to leak (the comet
+    tail); from ``n_selective`` onwards the moving arm is far enough detuned
+    for full power. The extra SetPoints cost two servo settles - irrelevant
+    here (no interferometer to keep symmetric).
+    """
+    if sep % 2 != 1:
+        raise ValueError("sep must be odd so both parked arms end excited")
+    if not 1 <= n_selective <= sep:
+        raise ValueError("n_selective must be in 1..sep")
+    events = [
+        _selective_setpoint("split"),
+        pi2(Beam.DOWN, m=M_TOP, state=EXCITED, label="split"),
+    ]
+    m = M_TOP + 1
+    state = GROUND
+    for j in range(sep):
+        if j == n_selective:
+            events.append(_full_setpoint("sepfull"))
+        if state == GROUND:
+            events.append(pi(Beam.UP, m=m, state=GROUND, label="sep%d" % j))
+            state = EXCITED
+        else:
+            events.append(pi(Beam.DOWN, m=m, state=EXCITED, label="sep%d" % j))
+            state = GROUND
+        m += 1
+    events.append(Wait(t=separation_time, label="separate"))
+    return events
+
+
+class DeclarativeLMTSplitSelectiveFrag(_SplitOnlyBase):
+    """Geometry-A split with SELECTIVE split + early-separation pulses.
+
+    Identical recoil-gap geometry to :class:`DeclarativeLMTSplitDiscriminatorFrag`
+    (M_TOP=5, sep=19, ~33 px at a 4 ms wait) but the split pi/2 and first 3
+    separation pulses run at the 95 us selective working point. If ladder
+    leakage caused the prior comet tail, this converts it into a clean second
+    cloud; compare against the full-power discriminator at the same wait.
+    """
+
+    lmt_sequence = [
+        *_slice_launch_prefix(),
+        *_split_and_separate_selective(
+            sep=19, separation_time=SEPARATION_TIME, n_selective=3
+        ),
+    ]
+
+
+DeclarativeLMTSplitSelective = make_fragment_scan_exp(
+    DeclarativeLMTSplitSelectiveFrag, max_rtio_underflow_retries=0
+)
+
+
+# ---------------------------------------------------------------------------
+# Geometry B - same-momentum split (the job card's recipe)
+# ---------------------------------------------------------------------------
+# pi/2 -> climb arm B (launch) -> wait -> climb arm A (launch) -> final pi/2
+# -> clear out the ground state => two clouds in the SAME momentum state, both
+# excited. The spatial separation comes from the inter-arm WAIT (arm B moves
+# at M_B recoils while arm A parks at 1), so no long separation ladder runs
+# with a parked cloud nearby: only the ~2 pulses at each ladder's near end
+# need selectivity. The merge pi/2 addresses the pair holding BOTH arms - (g,
+# M_B-1) from arm A and (e, M_B) from arm B - so each cloud pays the 50 %
+# clearout cost, leaving two EQUAL-brightness clouds at (e, M_B). That cost is
+# the geometry's price for ending at identical momentum (the card's spec).
+#
+# Separation = (M_B - 1) recoils x the `separate` wait ~ 3.3 px/ms at M_B=9
+# (26 px at the 8 ms default; scan 4-12 ms). Survival ~92 % over the 16 pi
+# pulses, then the merge halves each arm.
+
+M_B = 9  # must be odd so both ladders end in the merge pair
+SEPARATION_TIME_B = 8e-3
+
+
+def _climb(m_start, state_start, n, label_prefix):
+    """n alternating-beam pi pulses walking one arm up from (state, m) by n
+    recoils, each tagged with its arm's state (two branches are populated, so
+    implicit resolution is not available)."""
+    pulses = []
+    m = m_start
+    state = state_start
+    for j in range(n):
+        if state == GROUND:
+            pulses.append(
+                pi(Beam.UP, m=m, state=GROUND, label="%s%d" % (label_prefix, j))
+            )
+            state = EXCITED
+        else:
+            pulses.append(
+                pi(Beam.DOWN, m=m, state=EXCITED, label="%s%d" % (label_prefix, j))
+            )
+            state = GROUND
+        m += 1
+    return pulses
+
+
+def _same_momentum_sequence(m_top, separation_time):
+    if m_top % 2 != 1:
+        raise ValueError("m_top must be odd: both arms must meet in one pair")
+    n_climb = m_top - 2  # arm B: (g,2)->(e,m_top); arm A: (e,1)->(g,m_top-1)
+    arm_b = _climb(2, GROUND, n_climb, "b")
+    arm_a = _climb(1, EXCITED, n_climb, "a")
+    return [
+        SetPoint(
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        pi(Beam.UP, m=0, label="slice"),
+        _full_setpoint("clear"),
+        Clearout(),
+        # Split at (e,1): arm A parks there, arm B leaves at (g,2)
+        _selective_setpoint("split"),
+        pi2(Beam.DOWN, m=1, state=EXCITED, label="split"),
+        # Arm B climbs to (e, m_top); its first 2 pulses sit ~2 recoil
+        # spacings from parked arm A -> selective, rest full power
+        *arm_b[:2],
+        _full_setpoint("bfull"),
+        *arm_b[2:],
+        Clearout(),
+        Wait(t=separation_time, label="separate"),
+        # Arm A climbs to (g, m_top - 1); its last 2 pulses approach parked
+        # arm B -> selective (the merge stays selective too)
+        *arm_a[: n_climb - 2],
+        _selective_setpoint("amerge"),
+        *arm_a[n_climb - 2 :],
+        # Merge: pi/2 on the pair (g, m_top-1) <-> (e, m_top) holding BOTH
+        # arms; the ground halves are then cleared, leaving two equal clouds
+        # parked at (e, m_top)
+        pi2(Beam.UP, m=m_top - 1, state=GROUND, label="merge"),
+        Clearout(),
+    ]
+
+
+class DeclarativeLMTSameMomentumSplitFrag(_SplitOnlyBase):
+    """Milestone B1, the job card's geometry: two clouds, SAME momentum, both
+    excited at (e, M_B), separation set by the scannable `separate` wait."""
+
+    lmt_sequence = _same_momentum_sequence(M_B, SEPARATION_TIME_B)
+
+
+DeclarativeLMTSameMomentumSplit = make_fragment_scan_exp(
+    DeclarativeLMTSameMomentumSplitFrag, max_rtio_underflow_retries=0
+)
