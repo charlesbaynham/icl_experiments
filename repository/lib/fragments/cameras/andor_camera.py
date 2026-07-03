@@ -3,7 +3,6 @@ import logging
 import typing as ty
 
 import numpy as np
-from andor_artiq_ndsp.driver import AndorDriver
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
@@ -26,6 +25,9 @@ from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 
 from repository.lib import constants
+
+if ty.TYPE_CHECKING:
+    from andor_artiq_ndsp.driver import AndorDriver
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +377,7 @@ class AndorCameraControl(Fragment):
         )
 
         if self.use_andor_driver.get():
-            self.cam: AndorDriver = self.get_device("andor_camera")
+            self.cam: "AndorDriver" = self.get_device("andor_camera")
             if self.cam.get_status() == 20072:
                 logger.warning("Andor still acquiring, stopping acquisition")
                 self.cam.stop_acquisition()

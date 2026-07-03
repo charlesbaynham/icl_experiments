@@ -2,7 +2,6 @@ from functools import partial
 from typing import Iterable
 from typing import Optional
 
-import matplotlib.pyplot as plt
 import numpy as np
 from ndscan.experiment.default_analysis import CustomAnalysis
 from ndscan.experiment.parameters import ParamHandle
