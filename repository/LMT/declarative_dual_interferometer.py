@@ -39,6 +39,8 @@ import logging
 
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -63,6 +65,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 )
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
@@ -395,4 +398,54 @@ class DeclarativeLMTSameMomentumSplitFrag(_SplitOnlyBase):
 
 DeclarativeLMTSameMomentumSplit = make_fragment_scan_exp(
     DeclarativeLMTSameMomentumSplitFrag, max_rtio_underflow_retries=0
+)
+
+
+# ---------------------------------------------------------------------------
+# Milestone C1 - Mach-Zehnder on BOTH split clouds
+# ---------------------------------------------------------------------------
+# Because geometry B leaves the two clouds at the SAME momentum (e, M_B), one
+# MZ pulse train addresses the pair (g, M_B-1) <-> (e, M_B) for both clouds at
+# once: each cloud runs its own interferometer, spatially separated, driven by
+# the same three pulses. This is the 2026-07-01 symmetric-MZ tail (bs1 fixes
+# the phase reference; mirror and bs2 share the scannable
+# interferometer_phase), run at full power after the reduced-power merge.
+
+MZ_TIME = 100e-6
+
+
+def _same_momentum_mz_sequence(m_top, separation_time):
+    return [
+        *_same_momentum_sequence(m_top, separation_time),
+        _full_setpoint("mz"),
+        Phase(phase=0.0, label="bs1"),
+        pi2(Beam.UP, m=m_top, label="bs1"),
+        Wait(t=MZ_TIME, label="T"),
+        Phase(param="interferometer_phase", label="mirror"),
+        pi(Beam.UP, m=m_top, label="mirror"),
+        Wait(t=MZ_TIME, label="T"),
+        Phase(param="interferometer_phase", label="bs2"),
+        pi2(Beam.UP, m=m_top, label="bs2"),
+    ]
+
+
+class DeclarativeLMTSameMomentumSplitMZFrag(_SplitOnlyBase):
+    """Milestone C1: simultaneous symmetric MZ on both same-momentum split
+    clouds. Scan interferometer_phase for fringes; per-cloud excitation from
+    the raw frames (two blobs per FK sub-frame, ~29 px apart at the 8 ms
+    default separation) until the two-ROI readout lands."""
+
+    lmt_sequence = _same_momentum_mz_sequence(M_B, SEPARATION_TIME_B)
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "interferometer_phase", FloatParam, "Interferometer phase", default=0.0
+        )
+        self.interferometer_phase: FloatParamHandle
+
+
+DeclarativeLMTSameMomentumSplitMZ = make_fragment_scan_exp(
+    DeclarativeLMTSameMomentumSplitMZFrag, max_rtio_underflow_retries=0
 )
