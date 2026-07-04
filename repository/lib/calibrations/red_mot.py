@@ -97,14 +97,10 @@ class RedMOTCalibration(Calibration):
         )
 
         self._atom_sum_sink = LastValueSink()
+        self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
         self._stores = None
 
-    def host_setup(self):
-        super().host_setup()
-        self.meas.host_setup()
-
-        self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
-
+    def _ensure_stores(self):
         if self._stores is None:
             self._stores = {}
             _, self._stores["aom_frequency"] = self.meas.override_param(
@@ -125,10 +121,6 @@ class RedMOTCalibration(Calibration):
             # kernel call; the calibration judges atom number itself
             self.meas.override_param("enable_check", False)
 
-    def host_cleanup(self):
-        self.meas.host_cleanup()
-        super().host_cleanup()
-
     @kernel
     def _measure(self):
         self.core.break_realtime()
@@ -137,6 +129,7 @@ class RedMOTCalibration(Calibration):
         self.meas.device_cleanup()
 
     def check_own_state(self):
+        self._ensure_stores()
         self._stores["aom_frequency"].set_value(self.aom_frequency.get())
         for axis in "xyz":
             self._stores[f"bias_{axis}"].set_value(getattr(self, f"bias_{axis}").get())
@@ -144,10 +137,15 @@ class RedMOTCalibration(Calibration):
             self.BlueMOTCalibration.push_setpoint.get()
         )
 
+        # Arm the (detached) measurement only around the measurement itself
+        # (shared FLIR cameras - see BlueMOTCalibration.check_own_state)
+        self.meas.host_setup()
         try:
             self._measure()
         except TransitoryError:
             return CalibrationResult.BAD_DATA, 0.0
+        finally:
+            self.meas.host_cleanup()
 
         atom_sum = self._atom_sum_sink.get_last()
         if atom_sum is None:

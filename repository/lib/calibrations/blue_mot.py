@@ -54,25 +54,10 @@ class BlueMOTCalibration(Calibration):
         self.set_optimization_type("max")
 
         self._fluorescence_sink = LastValueSink()
-        self._push_store = None
-
-    def host_setup(self):
-        super().host_setup()
-        self.meas.host_setup()
-
         self.meas.bg_corrected_measurement.image_vertical_mean.set_sink(
             self._fluorescence_sink
         )
-        if self._push_store is None:
-            _, self._push_store = (
-                self.meas.mot_controller.all_beam_default_setter.override_param(
-                    "setpoint_blue_push_beam", self.push_setpoint.get()
-                )
-            )
-
-    def host_cleanup(self):
-        self.meas.host_cleanup()
-        super().host_cleanup()
+        self._push_store = None
 
     @kernel
     def _measure(self):
@@ -82,8 +67,22 @@ class BlueMOTCalibration(Calibration):
         self.meas.device_cleanup()
 
     def check_own_state(self):
+        if self._push_store is None:
+            _, self._push_store = (
+                self.meas.mot_controller.all_beam_default_setter.override_param(
+                    "setpoint_blue_push_beam", self.push_setpoint.get()
+                )
+            )
         self._push_store.set_value(self.push_setpoint.get())
-        self._measure()
+
+        # Arm the (detached) measurement only around the measurement itself:
+        # the FLIR cameras are shared with other calibrations' measurements
+        # in the same tree, and a second open gets GigEVision access-denied
+        self.meas.host_setup()
+        try:
+            self._measure()
+        finally:
+            self.meas.host_cleanup()
 
         fluorescence = self._fluorescence_sink.get_last()
         if fluorescence is None:
