@@ -1,2 +1,2 @@
-707f75c2fa7bb5086f3b1490564a82086818350f
+9d6fd54c7ceaf5d862f38566fdf025975a96dba2
 github.com/charlesbaynham/qbutler branch hardware-mot-calibrations — vendored copy; upstream fixes go to that repo.
