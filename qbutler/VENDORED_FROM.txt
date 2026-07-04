@@ -1,0 +1,2 @@
+707f75c2fa7bb5086f3b1490564a82086818350f
+github.com/charlesbaynham/qbutler branch hardware-mot-calibrations — vendored copy; upstream fixes go to that repo.
