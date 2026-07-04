@@ -117,9 +117,9 @@ class RedMOTCalibration(Calibration):
                     self.BlueMOTCalibration.push_setpoint.get(),
                 )
             )
-            # Retry-on-low-atoms would raise straight through our manual
-            # kernel call; the calibration judges atom number itself
-            self.meas.override_param("enable_check", False)
+            # NB the atom-number retry check (enable_check) defaults to False;
+            # if enabled it would raise TransitoryError straight through our
+            # manual kernel call - caught in check_own_state as BAD_DATA
 
     @kernel
     def _measure(self):
