@@ -14,11 +14,20 @@ from qbutler.calibration import CalibrationResult
 from qbutler.optimizers import coordinate_descent_optimizer
 from repository.lib import constants
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
-from repository.red_mot.measure_red_mot import MeasureNarrowbandMOTBGCorrectedFrag
+from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
+    BGCorrectedAndorImageMixin,
+)
+from repository.red_mot.measure_red_mot import _MeasureNarrowbandMOTFrag
 
 logger = logging.getLogger(__name__)
 
 _AOM_DEFAULT = constants.URUKULED_BEAMS["red_doublepass_injection"].frequency
+
+
+class _RedMOTAndorOnlyMeasFrag(BGCorrectedAndorImageMixin, _MeasureNarrowbandMOTFrag):
+    """Narrowband red MOT + BG-corrected Andor imaging, WITHOUT the FLIR
+    mixin: the FLIRs stay free for the blue calibration's measurement (one
+    GigE control channel per camera, and the wrapper can't re-arm)."""
 
 
 class RedMOTCalibration(Calibration):
@@ -42,8 +51,8 @@ class RedMOTCalibration(Calibration):
         self.add_dependency(BlueMOTCalibration)
         self.BlueMOTCalibration: BlueMOTCalibration
 
-        self.setattr_fragment("meas", MeasureNarrowbandMOTBGCorrectedFrag)
-        self.meas: MeasureNarrowbandMOTBGCorrectedFrag
+        self.setattr_fragment("meas", _RedMOTAndorOnlyMeasFrag)
+        self.meas: _RedMOTAndorOnlyMeasFrag
         self.detach_fragment(self.meas)
 
         self.setattr_param_optimizable(
@@ -99,6 +108,7 @@ class RedMOTCalibration(Calibration):
         self._atom_sum_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
         self._stores = None
+        self._armed = False
 
     def _ensure_stores(self):
         if self._stores is None:
@@ -137,15 +147,15 @@ class RedMOTCalibration(Calibration):
             self.BlueMOTCalibration.push_setpoint.get()
         )
 
-        # Arm the (detached) measurement only around the measurement itself
-        # (shared FLIR cameras - see BlueMOTCalibration.check_own_state)
-        self.meas.host_setup()
+        # Arm the (detached) measurement lazily, once per process
+        # (see BlueMOTCalibration.check_own_state)
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
         try:
             self._measure()
         except TransitoryError:
             return CalibrationResult.BAD_DATA, 0.0
-        finally:
-            self.meas.host_cleanup()
 
         atom_sum = self._atom_sum_sink.get_last()
         if atom_sum is None:

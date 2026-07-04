@@ -58,6 +58,7 @@ class BlueMOTCalibration(Calibration):
             self._fluorescence_sink
         )
         self._push_store = None
+        self._armed = False
 
     @kernel
     def _measure(self):
@@ -75,14 +76,14 @@ class BlueMOTCalibration(Calibration):
             )
         self._push_store.set_value(self.push_setpoint.get())
 
-        # Arm the (detached) measurement only around the measurement itself:
-        # the FLIR cameras are shared with other calibrations' measurements
-        # in the same tree, and a second open gets GigEVision access-denied
-        self.meas.host_setup()
-        try:
-            self._measure()
-        finally:
-            self.meas.host_cleanup()
+        # Arm the (detached) measurement lazily, ONCE per process: the FLIR
+        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle
+        # (aravis __getattr__ RecursionError), so never disarm. Other
+        # calibrations must not use the FLIRs (red is Andor-only).
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+        self._measure()
 
         fluorescence = self._fluorescence_sink.get_last()
         if fluorescence is None:
