@@ -109,6 +109,7 @@ class RedMOTCalibration(Calibration):
         self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
         self._stores = None
         self._armed = False
+        self._measure_precompiled = None
 
     def _ensure_stores(self):
         if self._stores is None:
@@ -152,8 +153,12 @@ class RedMOTCalibration(Calibration):
         if not self._armed:
             self.meas.host_setup()
             self._armed = True
+        # Precompile once (see BlueMOTCalibration: ~1 s re-upload per check,
+        # no attribute writeback)
+        if self._measure_precompiled is None:
+            self._measure_precompiled = self.core.precompile(self._measure)
         try:
-            self._measure()
+            self._measure_precompiled()
         except TransitoryError:
             return CalibrationResult.BAD_DATA, 0.0
 
