@@ -24,10 +24,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (  # noqa: E501
-    DynamicROIImagingMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (  # noqa: E501
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
@@ -62,21 +59,9 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _DEMO_LAUNCH_RECOILS = 2
 
 
-class DynamicROIRepumpedImagingMixin(
-    NormalisedFastKineticsRepumpedMixin, DynamicROIImagingMixin
-):
-    """Dynamic-ROI imaging with the 679/707 repump readout.
-
-    The repump mixin wins ``do_first_pulse`` (ground frame, then repumpers on)
-    while ``DynamicROIImagingMixin`` keeps the ROI-prediction hooks. Atoms ending
-    in |e> are dark to 461 imaging and must be repumped first, so a host fragment
-    must also provide ``blue_3d_mot`` via :class:`FLIRBlueMOTMeasurementMixin`.
-    """
-
-
 class DemoDeclarativeLMTFrag(
     DeclarativeLMTBase,
-    DynamicROIRepumpedImagingMixin,
+    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
     EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,

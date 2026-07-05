@@ -7,7 +7,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
-    NormalisedFastKineticsLMTCorrectedMixin,
+    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
@@ -34,7 +34,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 class NarrowDownAfterSliceFrag(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedMixin,
+    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -87,7 +87,7 @@ class NarrowDownAfterSliceFrag(
 
 class NarrowUpAfterSliceFrag(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedMixin,
+    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,

@@ -45,6 +45,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsClockPulseMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsRepumpedMixin,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 from repository.lib.physics import lmt_resonance
@@ -723,3 +726,35 @@ class NormalisedFastKineticsLMTCorrectedMixin(
             _START_OPLL_OFFSET
             + _READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
         )
+
+
+class NormalisedFastKineticsLMTCorrectedRepumpedMixin(
+    DynamicROIImagingMixin,
+    NormalisedFastKineticsRepumpedMixin,
+):
+    """
+    Re-pumped sibling of :class:`~.NormalisedFastKineticsLMTCorrectedMixin`.
+
+    Same dynamic, trajectory-predicted ROIs from :class:`~.DynamicROIImagingMixin`,
+    but the readout ``do_first_pulse`` comes from
+    :class:`~.NormalisedFastKineticsRepumpedMixin` (679/707 repump) instead of a
+    clock pi pulse. The readout is therefore parameter-independent, so it works
+    when the correct clock parameters are not yet known.
+
+    This is the imaging mixin for CALIBRATION sequences (e.g. slice/Stark tuning,
+    clock-ratio calibration): a calibration cannot read out via a clock pulse
+    whose parameters it is itself trying to determine. Multi-pulse LMT and
+    Mach-Zehnder sequences, which read out momentum classes through the clock,
+    keep :class:`~.NormalisedFastKineticsLMTCorrectedMixin`. The choice is made
+    at compile time by which of the two a sequence names in its bases.
+
+    ``DynamicROIImagingMixin`` is listed first (matching its sibling) so its
+    precedence over the static-config base hooks
+    (``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` /
+    ``before_start_hook``) is explicit; the repump mixin, which overrides only
+    ``do_first_pulse``, still wins the readout. See
+    :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract; a host
+    fragment must also provide ``blue_3d_mot`` (via
+    :class:`~repository.lib.experiment_templates.red_mot_experiment.RedMOTWithExperimentBase`,
+    which every declarative-LMT base already inherits).
+    """
