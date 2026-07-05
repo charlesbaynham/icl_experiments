@@ -5,7 +5,9 @@ from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import LastValueSink
 
 from qbutler.calibration import Calibration
@@ -19,14 +21,15 @@ logger = logging.getLogger(__name__)
 _CLOCK_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 
-#: Half-width of the delivery-frequency search window. A post-relock drift can be
-#: tens of kHz; the narrow down_spec pulse is Fourier-narrow, so the centre must
-#: be found precisely within this window.
-_SEARCH_HALF_SPAN = 100e3
+#: Half-width of the delivery-frequency search window. The carrier is known to
+#: sit within a few kHz of nominal (independent broad clock spectroscopy), so this
+#: is a precision window, not an acquisition one; the narrow down_spec pulse is
+#: Fourier-narrow (~1 kHz), refined to sub-grid precision by the parabolic fit.
+_SEARCH_HALF_SPAN = 30e3
 
-#: Points in one delivery-frequency sweep during a fix (+/-100 kHz over 41 points
-#: = 5 kHz grid, refined to sub-grid precision by the parabolic peak fit below).
-_SWEEP_POINTS = 41
+#: Points in one delivery-frequency sweep during a fix (+/-30 kHz over 61 points
+#: = 1 kHz grid, refined to sub-grid precision by the parabolic peak fit below).
+_SWEEP_POINTS = 61
 
 
 def _delivery_fit_optimizer(param_specs):
@@ -92,6 +95,16 @@ class ClockDeliveryAOMCalibration(Calibration):
         )
         self.min_ok_excitation: FloatParamHandle
 
+        # The down_spec de-shelves only the small v=0 class the up-slice shelved
+        # (the clearout blasts the rest), so a single shot is SNR-poor; average.
+        self.setattr_param(
+            "num_averages",
+            IntParam,
+            "Shots averaged per delivery-frequency check",
+            default=5,
+        )
+        self.num_averages: IntParamHandle
+
         # Clock delivery drifts ~1 kHz/day (<< the narrow-pulse linewidth per
         # hour), but a relock can jump it; re-check hourly.
         self.set_timeout(3600.0)
@@ -126,11 +139,16 @@ class ClockDeliveryAOMCalibration(Calibration):
             self._armed = True
         if self._measure_precompiled is None:
             self._measure_precompiled = self.core.precompile(self._measure)
-        self._measure_precompiled()
 
-        excitation = self._excitation_sink.get_last()
-        if excitation is None:
+        samples = []
+        for _ in range(int(self.num_averages.get())):
+            self._measure_precompiled()
+            value = self._excitation_sink.get_last()
+            if value is not None:
+                samples.append(value)
+        if not samples:
             return CalibrationResult.INVALID_DATA, 0.0
+        excitation = float(np.mean(samples))
 
         logger.info(
             "Clock delivery check: %.6f MHz -> excitation %.3f",
