@@ -95,9 +95,7 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
         self.setattr_param(
             "lmt_clearout_both_excited",
             BoolParam,
-            "Insert a 461 clearout at every point where both arms are excited "
-            "(with an equal-duration dark delay in the other arm; set once, not "
-            "scannable)",
+            "Insert clearouts automatically",
             default=False,
             is_scannable=False,
         )
