@@ -61,12 +61,6 @@ DROP = 100e-6
 
 class DeclarativeLMTSymmetricMachZehnderFrag(
     DeclarativeLMTBase,
-    # Repositions the camera ROIs along the ballistic trajectory predicted
-    # from the recorded pulse sequence, with t=0 at the dipole-trap drop
-    # recorded by DeclarativeLMTBase. NB: do not also mix in one of the
-    # static-config imaging mixins (e.g. NormalisedDipoleTrapFastKineticsMixin)
-    # - it would win get_andor_camera_config_hook in the MRO and install a
-    # config without calculate_atom_positions.
     NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
