@@ -55,17 +55,17 @@ class ClockDeliveryAOMCalibration(Calibration):
     """Centre the shared clock ``clock_delivery`` SUServo delivery AOM frequency.
 
     The delivery AOM is common to the up and down clock beams (split by the OPLL
-    offset), so its frequency is the common-mode centring knob. A velocity-
-    selecting up-slice followed by a deliberately weak, long (Fourier-narrow) down
-    pulse -- :class:`NarrowDownAfterSliceFrag` -- is hypersensitive to the delivery
-    centring; re-pumped imaging reads out the survivors independently of any clock
-    parameter, so the peak of the excitation fraction versus delivery frequency
-    locates the centred frequency.
+    offset), so its frequency is the common-mode centring knob.
+    :class:`NarrowDownAfterSliceFrag` velocity-slices with a narrow (~1.3 kHz)
+    up-slice -- which gives the sharp centring sensitivity -- then de-shelves with
+    a NORMAL-power down pulse (overridden below) so the whole shelved class is
+    recovered and imaged with the dual-image re-pumped readout: healthy atoms and
+    a sharp, high-SNR peak in the shelved fraction versus delivery frequency.
 
     Optimizable parameter: the ``frequency_clock_delivery`` SUServo delivery
     frequency (persisted to dataset
     ``calibrations.ClockDeliveryAOMCalibration.delivery_frequency``; ``constants.py``
-    holds the fallback default). The narrow down pulse gives the sharp centring peak.
+    holds the fallback default).
     """
 
     def build_calibration(self):
@@ -77,6 +77,15 @@ class ClockDeliveryAOMCalibration(Calibration):
         # The optimizer re-measures many times inside one fix, so the measurement
         # owns its own lifecycle and channels (see the MOT calibrations).
         self.detach_fragment(self.meas)
+
+        # The narrow up-slice gives the sharp centring peak; run the down_spec at
+        # NORMAL power + duration so it fully de-shelves the shelved class. The
+        # experiment's default is a deliberately weak, long (/100, 10x-pi) probe,
+        # too under-powered to recover atoms - it tanks SNR (Charles, 2026-07-06).
+        self.meas.override_param("p03_setpoint", _CLOCK_DELIVERY_INFO.setpoint)
+        self.meas.override_param(
+            "p04_pi_d_m1_down_spec_duration", constants.DOWN_CLOCK_BEAM_PI_TIME
+        )
 
         self.setattr_param_optimizable(
             "delivery_frequency",
@@ -95,8 +104,8 @@ class ClockDeliveryAOMCalibration(Calibration):
         )
         self.min_ok_excitation: FloatParamHandle
 
-        # The down_spec de-shelves only the small v=0 class the up-slice shelved
-        # (the clearout blasts the rest), so a single shot is SNR-poor; average.
+        # Average a few shots to tighten the fitted carrier centre (the narrow
+        # up-slice signal is real but shot-to-shot noisy).
         self.setattr_param(
             "num_averages",
             IntParam,
