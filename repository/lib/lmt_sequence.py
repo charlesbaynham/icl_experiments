@@ -447,6 +447,7 @@ def symmetric_mach_zehnder_sequence(
     rabi_down: float,
     dark_param_1: str = "lmt_dark_time_1",
     dark_param_2: str = "lmt_dark_time_2",
+    phase_param: str = "lmt_interferometry_phase",
 ) -> list:
     """Build the canonical velocity-selected launch + symmetric LMT Mach-Zehnder
     sequence.
@@ -535,10 +536,12 @@ def symmetric_mach_zehnder_sequence(
             sequence.append(pulse)
 
     separate()
+    sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))
     sequence.append(Wait(param=dark_param_1, label="dark1"))
     rejoin()
     sequence.append(pi(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="mirror"))
     separate()
+    sequence.append(Phase(param=phase_param, multiplier=4.0, label="bs2"))
     sequence.append(Wait(param=dark_param_2, label="dark2"))
     rejoin()
     sequence.append(pi2(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="bs2"))
