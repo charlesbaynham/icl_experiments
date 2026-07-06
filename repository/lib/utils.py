@@ -100,7 +100,7 @@ class FastIntChecksum:
         return checksum
 
 
-class Stub(EnvExperiment):
+class _Stub(EnvExperiment):
     def build(self):
         pass
 

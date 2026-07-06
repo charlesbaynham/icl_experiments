@@ -1,7 +1,7 @@
-from repository.lib.utils import Stub
+from repository.lib.utils import _Stub
 
 
-class NarrowDownAfterSlice(Stub):
+class NarrowDownAfterSlice(_Stub):
     """
     Narrow down after slice
 
@@ -9,7 +9,7 @@ class NarrowDownAfterSlice(Stub):
     """
 
 
-class NarrowUpAfterSlice(Stub):
+class NarrowUpAfterSlice(_Stub):
     """
     Narrow up after slice
 

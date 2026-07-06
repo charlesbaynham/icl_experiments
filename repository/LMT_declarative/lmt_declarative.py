@@ -10,10 +10,10 @@ which scannable per-pulse parameters (detuning offsets and durations) are
 generated with model-predicted defaults.
 """
 
-from repository.lib.utils import Stub
+from repository.lib.utils import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(Stub):
+class DeclarativeLMTSymmetricMachZehnder(_Stub):
     """
     Declarative symmetric LMT interferometry
     """
