@@ -812,7 +812,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4363e6,
+        99.4262e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1591,5 +1591,5 @@ LMT_N_RECOILS_DEFAULT = 1
 # Dynamic ROI
 # (x,y) position of the atom cloud at t0, i.e. before it is dropped from the dipole trap
 # TODO: Merge with the (several) other ways of expressing this
-ATOM_POSITION_T0 = (180, 297)
+ATOM_POSITION_T0 = (180, 288)
 DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
