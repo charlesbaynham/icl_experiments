@@ -1591,5 +1591,5 @@ LMT_N_RECOILS_DEFAULT = 1
 # Dynamic ROI
 # (x,y) position of the atom cloud at t0, i.e. before it is dropped from the dipole trap
 # TODO: Merge with the (several) other ways of expressing this
-ATOM_POSITION_T0 = (180, 288)
+ATOM_POSITION_T0 = (180, 297)
 DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
