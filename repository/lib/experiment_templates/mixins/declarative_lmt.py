@@ -243,9 +243,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.setattr_param(
             "skip_after",
             IntParam,
-            "Stop the LMT sequence after this event index (-1 = run all "
-            "events). Index counts flat sequence events after ladder() "
-            "expansion.",
+            "Stop LMT after event (-1 = run all)",
             default=-1,
             min=-1,
         )
