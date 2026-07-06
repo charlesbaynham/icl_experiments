@@ -94,9 +94,6 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.dma_actions_after_drop import (
-    DMAActionsAfterDropMixin,
-)
 from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
     ClockOPLLTrackingMixin,
 )
@@ -939,49 +936,6 @@ class DeclarativeLMTBase(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
-        self._prepare_switch_dds_nominal()
-        self.run_lmt_sequence()
-
-
-class DeclarativeLMTRedMOTBase(DeclarativeLMTCoreBase, DMAActionsAfterDropMixin):
-    """
-    Runs a declared LMT sequence directly from the red MOT (no dipole trap),
-    via :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`.
-    For when the 1064 nm dipole laser is unavailable.
-
-    t=0 for the gravity Doppler is the red-MOT light-off (the atoms'
-    release). The sequence runs inside the DMA-recorded
-    ``actions_after_drop``, whose timeline cursor starts at zero at what
-    will be the playback start - which run_once schedules ``expansion_time``
-    AFTER light-off. In the recording-relative timebase the release
-    therefore happened at ``-expansion_time``, which is what
-    :meth:`get_doppler_t_ref_mu` returns (the ``pre_experiment_delay``
-    between the post-drop actions and the experiment is *inside* the
-    recording, so it needs no correction).
-
-    See :class:`DeclarativeLMTCoreBase` for the sequence language and engine.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_experiment_after_drop_hook`
-    """
-
-    @portable
-    def get_doppler_t_ref_mu(self) -> int64:
-        """
-        Release time in the recording-relative timebase the sequence runs in.
-
-        run_once: light-off (release) -> delay(expansion_time) -> playback
-        starts. The DMA recording's cursor starts at zero at the playback
-        start, so the release sits at ``-expansion_time`` in the recording
-        frame.
-        """
-        return -self.core.seconds_to_mu(self.expansion_time.get())
-
-    @kernel
-    def do_experiment_after_drop_hook(self):
         self.prepare_clock_delivery_aom()
         delay_mu(16)
         self._prepare_switch_dds_nominal()
