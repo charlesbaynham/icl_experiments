@@ -448,6 +448,7 @@ def symmetric_mach_zehnder_sequence(
     dark_param_1: str = "lmt_dark_time_1",
     dark_param_2: str = "lmt_dark_time_2",
     phase_param: str = "lmt_interferometry_phase",
+    clearout_both_excited: bool = False,
 ) -> list:
     """Build the canonical velocity-selected launch + symmetric LMT Mach-Zehnder
     sequence.
@@ -485,6 +486,16 @@ def symmetric_mach_zehnder_sequence(
         dark_param_1: Fragment attribute name of the first dark-time parameter.
         dark_param_2: Fragment attribute name of the second dark-time parameter.
         phase_param: Fragment attribute name of the interferometry phase parameter.
+        clearout_both_excited: Opt-in leakage scrub. When true, a 461
+            :class:`Clearout` is inserted at every augmentation point where both
+            arms are momentarily excited (between a step's two arm pulses), with
+            an equal-duration :class:`Wait` in the mirror-symmetric slot right
+            after the step's second pulse so the interferometer stays balanced.
+            Both the clearout and the wait reuse the shared ``clearout_duration``
+            handle, guaranteeing equal duration. The pair is inert in the ideal
+            population walk (at that instant no arm is in the ground state, so
+            the clearout removes nothing and the wait costs only time, which the
+            compiler does not model), so closure is unchanged.
 
     Returns:
         A list of event dataclasses suitable for :func:`compile_sequence` with
@@ -520,21 +531,42 @@ def symmetric_mach_zehnder_sequence(
         # bs1 on (g, m_top) populates the pair (g, m_top) <-> (e, m_top - 1)
         arm_lo, arm_hi = Arm(EXCITED, m_top - 1), Arm(GROUND, m_top)
 
+    def _clearout_if_both_excited() -> bool:
+        # Between a step's two arm pulses the arms are transiently both excited
+        # (parity permitting); there a clearout scrubs leaked ground population
+        # without touching a real arm. Inert in the ideal walk (no ground state
+        # present), so closure is unchanged; the matching Wait below keeps the
+        # interferometer time-symmetric, reusing the shared clearout_duration.
+        if (
+            clearout_both_excited
+            and arm_hi.state == EXCITED
+            and arm_lo.state == EXCITED
+        ):
+            sequence.append(Clearout(label="both_excited"))
+            return True
+        return False
+
     def separate():
         nonlocal arm_hi, arm_lo
         for _ in range(n_recoils):
             pulse, arm_hi = _raise_arm(arm_hi)
             sequence.append(pulse)
+            cleared = _clearout_if_both_excited()
             pulse, arm_lo = _lower_arm(arm_lo)
             sequence.append(pulse)
+            if cleared:
+                sequence.append(Wait(param="clearout_duration", label="clearout_delay"))
 
     def rejoin():
         nonlocal arm_hi, arm_lo
         for _ in range(n_recoils):
             pulse, arm_hi = _lower_arm(arm_hi)
             sequence.append(pulse)
+            cleared = _clearout_if_both_excited()
             pulse, arm_lo = _raise_arm(arm_lo)
             sequence.append(pulse)
+            if cleared:
+                sequence.append(Wait(param="clearout_duration", label="clearout_delay"))
 
     separate()
     sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))

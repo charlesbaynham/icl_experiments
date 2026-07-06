@@ -13,12 +13,15 @@ from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Pulse
+from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
 from repository.lib.physics.lmt_resonance import GROUND
 
 
-def _make(n_launch, n_recoils):
+def _make(n_launch, n_recoils, **kwargs):
     return symmetric_mach_zehnder_sequence(
         n_launch=n_launch,
         n_recoils=n_recoils,
@@ -27,6 +30,7 @@ def _make(n_launch, n_recoils):
         full_setpoint=2.6,
         rabi_up=9e3,
         rabi_down=7e3,
+        **kwargs,
     )
 
 
@@ -111,6 +115,88 @@ def test_negative_counts_raise():
         _make(n_launch=-1, n_recoils=0)
     with pytest.raises(ValueError):
         _make(n_launch=2, n_recoils=-1)
+
+
+# --- both-arms-excited clearout scrub ------------------------------------
+
+
+@pytest.mark.parametrize("n_launch", range(0, 7))
+@pytest.mark.parametrize("n_recoils", range(0, 5))
+def test_clearout_both_excited_leaves_closure_unchanged(n_launch, n_recoils):
+    """The inserted clearout/wait pairs are inert in the ideal population walk,
+    so the interferometer closes to the same final population as with the flag
+    off."""
+    off = compile_sequence(
+        _make(n_launch, n_recoils), initial_population={(GROUND, 0)}
+    ).final_population
+    on = compile_sequence(
+        _make(n_launch, n_recoils, clearout_both_excited=True),
+        initial_population={(GROUND, 0)},
+    ).final_population
+    assert on == off
+    assert len(on) == 2
+
+
+def test_clearout_both_excited_off_is_byte_for_byte_current():
+    """Default off ⇒ the event list is exactly the current one."""
+    for n_launch in range(0, 7):
+        for n_recoils in range(0, 4):
+            assert _make(n_launch, n_recoils, clearout_both_excited=False) == _make(
+                n_launch, n_recoils
+            )
+
+
+def test_clearout_both_excited_adds_clearout_wait_pairs():
+    """With the flag on and at least one recoil, the sequence gains equal, non-zero
+    numbers of clearouts and waits, all bound to the shared clearout_duration."""
+    off = compile_sequence(_make(2, 2), initial_population={(GROUND, 0)}).events
+    on = compile_sequence(
+        _make(2, 2, clearout_both_excited=True), initial_population={(GROUND, 0)}
+    ).events
+
+    n_clearouts_off = sum(e.kind == EVENT_CLEAROUT for e in off)
+    n_waits_off = sum(e.kind == EVENT_WAIT for e in off)
+    n_clearouts_on = sum(e.kind == EVENT_CLEAROUT for e in on)
+    n_waits_on = sum(e.kind == EVENT_WAIT for e in on)
+
+    extra_clearouts = n_clearouts_on - n_clearouts_off
+    extra_waits = n_waits_on - n_waits_off
+    assert extra_clearouts == extra_waits
+    assert extra_clearouts > 0
+
+    # Every clearout (existing and inserted) reuses the shared handle; the
+    # inserted waits reuse it too (the pre-existing dark waits do not).
+    for e in on:
+        if e.kind == EVENT_CLEAROUT:
+            assert e.duration_param_ref == "clearout_duration"
+    on_wait_refs = sorted(e.duration_param_ref for e in on if e.kind == EVENT_WAIT)
+    assert on_wait_refs == sorted(
+        ["lmt_dark_time_1", "lmt_dark_time_2"] + ["clearout_duration"] * extra_waits
+    )
+
+
+def test_clearout_both_excited_noop_without_recoils():
+    """No augmentation steps ⇒ no both-excited window, so the flag inserts
+    nothing even when on."""
+    assert _make(2, 0, clearout_both_excited=True) == _make(2, 0)
+
+
+def test_clearout_sits_between_arm_pulses_with_following_wait():
+    """Each inserted clearout falls between its step's two arm pulses, and the
+    matching wait immediately follows the second pulse."""
+    seq = _make(2, 3, clearout_both_excited=True)
+    inserted = [
+        i
+        for i, ev in enumerate(seq)
+        if isinstance(ev, Clearout) and ev.label == "both_excited"
+    ]
+    assert inserted  # at least one for n_recoils >= 1
+    for i in inserted:
+        assert isinstance(seq[i - 1], Pulse)  # first arm pulse
+        assert isinstance(seq[i + 1], Pulse)  # second arm pulse
+        assert isinstance(seq[i + 2], Wait)
+        assert seq[i + 2].label == "clearout_delay"
+        assert seq[i + 2].param == "clearout_duration"
 
 
 # --- binding hooks -------------------------------------------------------
