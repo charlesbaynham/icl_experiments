@@ -123,7 +123,6 @@ class _RabiPiTimeCalibrationBase(Calibration):
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
         self._probe_store = None
         self._armed = False
-        self._measure_precompiled = None
 
     @kernel
     def _measure(self):
@@ -142,9 +141,7 @@ class _RabiPiTimeCalibrationBase(Calibration):
         if not self._armed:
             self.meas.host_setup()
             self._armed = True
-        if self._measure_precompiled is None:
-            self._measure_precompiled = self.core.precompile(self._measure)
-        self._measure_precompiled()
+        self._measure()
 
         excitation = self._excitation_sink.get_last()
         if excitation is None:

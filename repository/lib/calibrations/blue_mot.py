@@ -59,7 +59,6 @@ class BlueMOTCalibration(Calibration):
         )
         self._push_store = None
         self._armed = False
-        self._measure_precompiled = None
 
     @kernel
     def _measure(self):
@@ -84,13 +83,7 @@ class BlueMOTCalibration(Calibration):
         if not self._armed:
             self.meas.host_setup()
             self._armed = True
-        # Precompile once: repeat checks pay ~1 s of binary re-upload instead
-        # of a full recompile. NB precompiled kernels skip attribute
-        # writeback (e.g. the measurement's first_run stays True host-side,
-        # so it re-inits every shot - same as the clearout default).
-        if self._measure_precompiled is None:
-            self._measure_precompiled = self.core.precompile(self._measure)
-        self._measure_precompiled()
+        self._measure()
 
         fluorescence = self._fluorescence_sink.get_last()
         if fluorescence is None:

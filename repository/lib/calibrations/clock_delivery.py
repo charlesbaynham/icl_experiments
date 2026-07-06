@@ -124,7 +124,6 @@ class ClockDeliveryAOMCalibration(Calibration):
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
         self._delivery_store = None
         self._armed = False
-        self._measure_precompiled = None
 
     @kernel
     def _measure(self):
@@ -146,12 +145,10 @@ class ClockDeliveryAOMCalibration(Calibration):
         if not self._armed:
             self.meas.host_setup()
             self._armed = True
-        if self._measure_precompiled is None:
-            self._measure_precompiled = self.core.precompile(self._measure)
 
         samples = []
         for _ in range(int(self.num_averages.get())):
-            self._measure_precompiled()
+            self._measure()
             value = self._excitation_sink.get_last()
             if value is not None:
                 samples.append(value)
