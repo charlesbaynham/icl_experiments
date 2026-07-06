@@ -20,6 +20,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMG
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
     NormalisedFastKineticsLMTCorrectedMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
+    NormalisedFastKineticsLMTCorrectedClockMixin,
+)
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
 )
@@ -77,4 +80,46 @@ class DeclarativeLMTGlobalSymmetricMachZehnderFrag(
 
 DeclarativeLMTGlobalSymmetricMachZehnder = make_fragment_scan_exp(
     DeclarativeLMTGlobalSymmetricMachZehnderFrag
+)
+
+
+class DeclarativeLMTGlobalSymmetricMachZehnderClockReadoutFrag(
+    FLIRBlueMOTMeasurementMixin,
+    LMTGlobalParamsSymmetricMachZehnderMixin,
+    DeclarativeLMTBase,
+    # As DeclarativeLMTGlobalSymmetricMachZehnderFrag but with the full-power
+    # broad clock selection pulse readout (M-state/momentum resolved via
+    # imaging_clock_pulse_detuning) instead of the 679/707 repump readout.
+    NormalisedFastKineticsLMTCorrectedClockMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Momentum-resolved clock-pulse readout of the global-parameter symmetric
+    Mach-Zehnder. Walk the event ladder with ``skip_after`` and scan
+    ``imaging_clock_pulse_detuning`` to map state + momentum populations rung by
+    rung.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+DeclarativeLMTGlobalSymmetricMachZehnderClockReadout = make_fragment_scan_exp(
+    DeclarativeLMTGlobalSymmetricMachZehnderClockReadoutFrag
 )

@@ -74,6 +74,9 @@ from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConf
 logger = logging.getLogger(__name__)
 
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+# Full clock-delivery setpoint, resolved host-side (string-keyed dict lookups are
+# not permitted inside kernels) for the full-power readout selection pulse.
+CLOCK_DELIVERY_SETPOINT_V: float = constants.SUSERVOED_BEAMS["clock_delivery"].setpoint
 
 # 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
 _LABEL_BITMAPS = {
@@ -1044,6 +1047,18 @@ class NormalisedFastKineticsClockPulseMixin(
     def do_first_pulse(self):
         self.do_pulse()
         delay(self.delay_clock_after_first_pulse.get())
+
+        # A truncated sequence can leave the delivery servo at whatever setpoint
+        # its last executed event set (e.g. the low shelving setpoint after a
+        # slice-only truncation), so drive it to full power here. This makes the
+        # readout a full-power, fast (Fourier-broad) DOWN pi identical in speed
+        # to the launch/mirror pulses - the M-state-resolving selection pulse.
+        self.set_clock_delivery_aom(
+            freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
+            setpoint_v=CLOCK_DELIVERY_SETPOINT_V,
+        )
+        delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
+
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.imaging_clock_pulse_detuning.get()
@@ -1053,10 +1068,8 @@ class NormalisedFastKineticsClockPulseMixin(
 
         delay(1e-6)
 
-        # PI PULSE
-
         self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
+        delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
         self.clock_down_dds.sw.off()
 
 

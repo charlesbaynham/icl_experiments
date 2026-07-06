@@ -44,6 +44,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsClockPulseMixin,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 from repository.lib.physics import lmt_resonance
@@ -689,15 +692,33 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 class NormalisedFastKineticsLMTCorrectedMixin(
     DynamicROIImagingMixin,
     NormalisedFastKineticsRepumpedMixin,
-    # NormalisedFastKineticsClockPulseMixin  FIXME Put back the clock pulse imaging
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
     ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` in the MRO)
-    plus the clock pi pulse of :class:`~.NormalisedFastKineticsClockPulseMixin`
-    (which still wins ``do_first_pulse``).
+    plus the 679/707 repump of :class:`~.NormalisedFastKineticsRepumpedMixin`
+    (which wins ``do_first_pulse``).
+
+    This is the default LMT readout. For momentum-resolved state readout use
+    :class:`~.NormalisedFastKineticsLMTCorrectedClockMixin` instead.
 
     ``DynamicROIImagingMixin`` is listed first so its precedence over the
     static-config base hooks is explicit. See
     :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract.
+    """
+
+
+class NormalisedFastKineticsLMTCorrectedClockMixin(
+    DynamicROIImagingMixin,
+    NormalisedFastKineticsClockPulseMixin,
+):
+    """
+    As :class:`~.NormalisedFastKineticsLMTCorrectedMixin`, but the ``do_first_pulse``
+    hook is the full-power broad clock selection pulse of
+    :class:`~.NormalisedFastKineticsClockPulseMixin` instead of the 679/707 repump.
+
+    Scanning ``imaging_clock_pulse_detuning`` then resolves adjacent momentum
+    (M-)states, reading out atom number per state and momentum class. Repumped vs
+    clock readout is a compile-time choice: name whichever aggregator you want in
+    the experiment Frag's bases.
     """
