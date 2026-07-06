@@ -484,6 +484,7 @@ def symmetric_mach_zehnder_sequence(
         rabi_down: Down-beam Rabi frequency declared at the full set point.
         dark_param_1: Fragment attribute name of the first dark-time parameter.
         dark_param_2: Fragment attribute name of the second dark-time parameter.
+        phase_param: Fragment attribute name of the interferometry phase parameter.
 
     Returns:
         A list of event dataclasses suitable for :func:`compile_sequence` with
