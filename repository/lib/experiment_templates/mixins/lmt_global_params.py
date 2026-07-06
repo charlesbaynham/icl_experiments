@@ -25,6 +25,8 @@ See :mod:`repository.lib.lmt_sequence` for the generated interferometer shape
 
 import logging
 
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -87,6 +89,17 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
             is_scannable=False,
         )
         self.lmt_n_recoils: IntParamHandle
+
+        # Set-once like the counts (it changes the event count via inserted
+        # clearout/wait pairs), so is_scannable=False and read in host_setup.
+        self.setattr_param(
+            "lmt_clearout_both_excited",
+            BoolParam,
+            "Insert clearouts automatically",
+            default=False,
+            is_scannable=False,
+        )
+        self.lmt_clearout_both_excited: BoolParamHandle
 
         # Per-beam detuning offsets (added to the model-predicted resonance)
         self.setattr_param(
@@ -190,6 +203,18 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
         )
         self.lmt_dark_time_2: FloatParamHandle
 
+        self.setattr_param(
+            "lmt_interferometry_phase",
+            FloatParam,
+            "Phase of the interferometry pulses",
+            default=0.0,
+            unit="turns",
+            scale=1,
+            min=None,
+            max=None,
+        )
+        self.lmt_interferometry_phase: FloatParamHandle
+
     def lmt_make_sequence(self) -> list:
         n_launch = self.lmt_n_launch_pulses.get()
         n_recoils = self.lmt_n_recoils.get()
@@ -206,6 +231,8 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
             rabi_down=1.0 / (2.0 * self.lmt_down_duration.get()),
             dark_param_1="lmt_dark_time_1",
             dark_param_2="lmt_dark_time_2",
+            phase_param="lmt_interferometry_phase",
+            clearout_both_excited=self.lmt_clearout_both_excited.get(),
         )
 
     @staticmethod

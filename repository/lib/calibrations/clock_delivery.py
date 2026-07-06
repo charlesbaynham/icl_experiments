@@ -14,7 +14,7 @@ from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib import constants
-from repository.LMT.lmt_tune_slice import NarrowDownAfterSliceFrag
+from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
 logger = logging.getLogger(__name__)
 

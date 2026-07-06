@@ -49,7 +49,7 @@ def test_both_aggregators_keep_dynamic_roi_hooks():
 
 
 def test_calibration_sequences_use_repumped_readout():
-    from repository.LMT.lmt_tune_slice import (
+    from repository.LMT_declarative.lmt_tune_slice import (
         NarrowDownAfterSliceFrag,
         NarrowUpAfterSliceFrag,
     )
@@ -61,7 +61,7 @@ def test_calibration_sequences_use_repumped_readout():
 
 
 def test_interferometer_sequences_keep_clock_readout():
-    from repository.LMT.lmt_declarative import DeclarativeLMTSymmetricMachZehnderFrag
+    from repository.LMT_declarative.lmt_declarative import DeclarativeLMTSymmetricMachZehnderFrag
 
     assert (
         DeclarativeLMTSymmetricMachZehnderFrag.do_first_pulse

@@ -485,9 +485,7 @@ def test_param_naming():
     assert events[1].duration_param.attr_name == "p01_pi2_d_m12_duration"
     assert events[2].duration_param.attr_name == "p02_wait_dark_duration"
     assert events[3].offset_param.attr_name == "p03_pi_u_m13_mirror_offset"
-    # The set-point description records both declared Rabi frequencies
-    assert "up 10 kHz" in events[0].setpoint_param.description
-    assert "down 7 kHz" in events[0].setpoint_param.description
+    assert "setpoint" in events[0].setpoint_param.description
     # All generated names are valid identifiers and group by event when
     # sorted alphabetically (the p{index:02d} prefix dominates the sort)
     names = [

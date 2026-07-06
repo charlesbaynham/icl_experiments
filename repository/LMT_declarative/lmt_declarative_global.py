@@ -26,6 +26,9 @@ from repository.lib.experiment_templates.mixins.declarative_lmt import (
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
 from repository.lib.experiment_templates.mixins.lmt_global_params import (
     LMTGlobalParamsSymmetricMachZehnderMixin,
 )
@@ -39,6 +42,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 
 
 class DeclarativeLMTGlobalSymmetricMachZehnderFrag(
+    FLIRBlueMOTMeasurementMixin,
     LMTGlobalParamsSymmetricMachZehnderMixin,
     DeclarativeLMTBase,
     # See DeclarativeLMTSymmetricMachZehnderFrag: repositions the camera ROIs along the

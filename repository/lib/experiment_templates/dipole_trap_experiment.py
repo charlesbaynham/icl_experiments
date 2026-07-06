@@ -53,9 +53,6 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dma_actions_after_drop import (
     DMAActionsAfterDropMixin,
 )
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
 from repository.lib.experiment_templates.mixins.external_triggering import (
     External50HzTriggerMixin,
 )
@@ -68,9 +65,7 @@ logger = logging.getLogger(__name__)
 BUFFER_DEPTH = 300
 
 
-class DipoleTrapWithExperimentBase(
-    External50HzTriggerMixin, ConstantBeamsMixin, DMAActionsAfterDropMixin
-):
+class DipoleTrapWithExperimentBase(External50HzTriggerMixin, DMAActionsAfterDropMixin):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then

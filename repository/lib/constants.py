@@ -812,7 +812,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4363e6,
+        99.4262e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1575,7 +1575,7 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
-DOWN_CLOCK_BEAM_PI_TIME = 68e-6
+DOWN_CLOCK_BEAM_PI_TIME = 67e-6
 # Doppler shift per photon recoil, = 2x recoil frequency
 MOMENTUM_KICK_DETUNING = scipy_constants.h / (SR_ATOM_MASS_KG * CLOCK_WAVELENGTH_M**2)
 LMT_OFFSET_DETUNING = 0.2e3
@@ -1584,8 +1584,8 @@ LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 # Defaults for the global-parameter symmetric Mach-Zehnder generator. The
 # velocity-selective pulse provides the first kick, so the launch ladder runs
 # from m = 1 and ends at m = 1 + LMT_N_LAUNCH_DEFAULT.
-LMT_N_LAUNCH_DEFAULT = 5
-LMT_N_RECOILS_DEFAULT = 1
+LMT_N_LAUNCH_DEFAULT = 0
+LMT_N_RECOILS_DEFAULT = 2
 
 
 # Dynamic ROI

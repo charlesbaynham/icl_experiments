@@ -179,20 +179,27 @@ def test_single_pulses_match_legacy_helpers():
 
 def test_v0_doppler_term_tethered_to_first_pulse():
     """The v0 Doppler term is tethered to the first pulse: the reference (up)
-    pulse carries 0, the down pulse carries +2*v0/lambda (~+40 kHz at default v0).
+    pulse carries 0, the down pulse carries +2*v0/lambda (~+40 kHz at 14 mm/s).
 
     This is the corrected, differential form. The first pulse selects the
     velocity class, so it cannot carry the v0 term itself; every other pulse is
     corrected against it. With an up first pulse (reference_beam_sign = +1):
     up reference -> 0, down -> +2*v0/lambda.
+
+    A representative velocity is passed explicitly: the test guards the tether
+    formula, not the (rig-tunable) ``DEFAULT_INITIAL_VELOCITY_M_S`` calibration.
     """
-    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    v0 = 14e-3
     lam = constants.CLOCK_WAVELENGTH_M
-    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=+1)
-    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=+1)
+    up = lmt_resonance.v0_doppler_term_hz(
+        +1, reference_beam_sign=+1, initial_velocity_m_s=v0
+    )
+    down = lmt_resonance.v0_doppler_term_hz(
+        -1, reference_beam_sign=+1, initial_velocity_m_s=v0
+    )
     assert up == pytest.approx(0.0)
     assert down == pytest.approx(+2.0 * v0 / lam)
-    # ~ +40 kHz for the default v0 ~ 14 mm/s (twice the old single-beam term)
+    # ~ +40 kHz at 14 mm/s (twice the old single-beam term)
     assert down == pytest.approx(40.0e3, abs=0.4e3)
     # Slope is 2/lambda = 2.865 kHz per mm/s on the down pulse
     assert lmt_resonance.v0_doppler_term_hz(
@@ -203,10 +210,14 @@ def test_v0_doppler_term_tethered_to_first_pulse():
 def test_v0_doppler_term_down_reference_mirrors():
     """If the first pulse were a down pulse (reference_beam_sign = -1) the roles
     mirror: the down reference carries 0 and an up pulse carries -2*v0/lambda."""
-    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    v0 = 14e-3
     lam = constants.CLOCK_WAVELENGTH_M
-    down = lmt_resonance.v0_doppler_term_hz(-1, reference_beam_sign=-1)
-    up = lmt_resonance.v0_doppler_term_hz(+1, reference_beam_sign=-1)
+    down = lmt_resonance.v0_doppler_term_hz(
+        -1, reference_beam_sign=-1, initial_velocity_m_s=v0
+    )
+    up = lmt_resonance.v0_doppler_term_hz(
+        +1, reference_beam_sign=-1, initial_velocity_m_s=v0
+    )
     assert down == pytest.approx(0.0)
     assert up == pytest.approx(-2.0 * v0 / lam)
 
@@ -219,7 +230,8 @@ def test_v0_doppler_term_invalid_beam_sign():
 
 
 def test_probe_stark_term_sign_and_scaling():
-    """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
+    """The Stark term is -alpha*rabi**2: it scales with intensity and carries
+    the opposite sign to the (rig-tunable) alpha coefficient."""
     alpha = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
     rabi = 9.1e3
     assert lmt_resonance.probe_stark_term_hz(rabi, alpha) == pytest.approx(
@@ -229,27 +241,30 @@ def test_probe_stark_term_sign_and_scaling():
     assert lmt_resonance.probe_stark_term_hz(2 * rabi, alpha) == pytest.approx(
         4 * lmt_resonance.probe_stark_term_hz(rabi, alpha)
     )
-    # Always reduces the OPLL centre frequency (negative)
-    assert lmt_resonance.probe_stark_term_hz(rabi) < 0.0
+    # The correction opposes alpha (correction = -alpha*rabi**2)
+    assert lmt_resonance.probe_stark_term_hz(rabi) * alpha < 0.0
 
 
-def test_probe_stark_magnitude_matches_clock_shift_measurement():
-    """The default alpha reproduces the measured AC-Stark magnitude.
+def test_probe_stark_magnitude_is_kilohertz_scale():
+    """The default alpha carries the linear-vs-angular Rabi unit convention.
 
-    Guards the linear-vs-angular Rabi unit convention. The clock-shift
-    calibration ("2026-06-09 Clock shift gap-filling even Omega2 grid") measured
-    ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi`` (rad/s) and
-    ``alpha_ang ~= 3.25e-7 Hz*s**2``. For a 55 us pi pulse that is ~1 kHz of
-    light shift. ``probe_stark_term_hz`` uses the LINEAR Rabi (``rabi =
-    1/(2*T_pi)`` Hz), so the default coefficient must carry the 4*pi**2 factor.
-    A regression to the angular-convention number (3.24e-7) would under-count
-    this by ~39.5x (it would predict ~25 Hz), which this pins against.
+    Guards the 4*pi**2 factor between the angular-convention slope from the
+    clock-shift calibration ("2026-06-09 Clock shift gap-filling even Omega2
+    grid", ``omega_probe = alpha_ang * Omega**2`` with ``Omega = pi / T_pi``)
+    and the LINEAR Rabi (``rabi = 1/(2*T_pi)`` Hz) that ``probe_stark_term_hz``
+    uses. A 55 us pi pulse must give a ~kHz light shift, not the ~tens of Hz
+    that plugging the angular coefficient straight into the linear formula would
+    predict (a ~39.5x under-count). The coefficient itself is a rig-tuned
+    calibration, so only the order of magnitude is pinned here.
     """
     t_pi = 55e-6
     rabi_hz = 1.0 / (2.0 * t_pi)
     shift = lmt_resonance.probe_stark_term_hz(rabi_hz)
-    # ~1 kHz from the measurement; magnitude, sign is negative (OPLL moves down).
-    assert abs(shift) == pytest.approx(1060.0, rel=0.05)
+    assert abs(shift) == pytest.approx(
+        abs(constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2) * rabi_hz**2
+    )
+    # ~kHz scale: rules out the angular-convention regression (~25 Hz)
+    assert 500.0 < abs(shift) < 3000.0
 
 
 def test_first_beam_splitter_anchor():

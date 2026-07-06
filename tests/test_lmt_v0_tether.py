@@ -27,6 +27,11 @@ from repository.lib.physics.lmt_resonance import GROUND
 
 INV_LAMBDA = 1.0 / constants.CLOCK_WAVELENGTH_M
 
+# Representative velocity for exercising the tether formula. These tests guard
+# the differential v0 bookkeeping, not the calibration; the default constant
+# (``DEFAULT_INITIAL_VELOCITY_M_S``) is a rig-tunable number that may be 0.
+V0_REPRESENTATIVE_M_S = 14e-3
+
 
 def _canonical_sequence():
     """The compiled ev0-ev4 sequence of DeclarativeLMTSymmetricMachZehnder
@@ -80,7 +85,7 @@ def test_reference_beam_sign_is_first_pulse():
 def test_up_slice_carries_no_v0_down_pulse_carries_double():
     """On the canonical sequence: up slice (ev1) v0 term == 0, down ladder
     pulse (ev4) v0 term == +2*v0/lambda."""
-    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    v0 = V0_REPRESENTATIVE_M_S
     inst = _assemble(_canonical_sequence())
 
     # ev1 is the up slice, ev4 the down ladder pulse
@@ -89,7 +94,7 @@ def test_up_slice_carries_no_v0_down_pulse_carries_double():
 
     assert _kernel_v0_term(inst, 1, v0) == pytest.approx(0.0)
     assert _kernel_v0_term(inst, 4, v0) == pytest.approx(2.0 * v0 * INV_LAMBDA)
-    # ~ +40 kHz at the default ~14 mm/s
+    # ~ +40 kHz at 14 mm/s
     assert _kernel_v0_term(inst, 4, v0) == pytest.approx(40.0e3, abs=0.4e3)
 
 
@@ -113,7 +118,7 @@ def test_slice_offset_shift_versus_pre_fix():
     """The fix changes the slice v0 term from -v0/lambda (old, wrong) to 0, so
     at the default v0 the slice OPLL moves by +v0/lambda (~+20 kHz) versus the
     pre-fix code - the documented caveat for re-finding the slice line."""
-    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    v0 = V0_REPRESENTATIVE_M_S
     inst = _assemble(_canonical_sequence())
     old_slice_term = -inst._lmt_beam_sign[1] * v0 * INV_LAMBDA  # pre-fix formula
     new_slice_term = _kernel_v0_term(inst, 1, v0)
