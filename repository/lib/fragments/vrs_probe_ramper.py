@@ -46,10 +46,6 @@ class VRS_Probe_Ramper(Fragment):
             unit="MHz",
         )
 
-        # Afterall, why shouldn't I follow the narrowband mot epxerimetn
-        self.override_param("delay_after_experiment", 0)
-        self.override_param("spectroscopy_field_gradient", 0)
-
         # set the maximum frequency, this needs to be larger than the VRS as we
         # plan on overshooting this value.
 

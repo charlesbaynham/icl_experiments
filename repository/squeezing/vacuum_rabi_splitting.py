@@ -115,6 +115,10 @@ class SingleVRSSweepFrag(
         # Bind the sweep time to be the acquisition time of the scope
         self.probe_ramper.bind_param("sweep_time", self.acquisition_time)
 
+        # Afterall, why shouldn't I follow the narrowband mot epxerimetn
+        self.override_param("delay_after_experiment", 0)
+        self.override_param("spectroscopy_field_gradient", 0)
+
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
