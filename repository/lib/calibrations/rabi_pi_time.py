@@ -1,69 +1,23 @@
 import logging
 
-import numpy as np
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import LastValueSink
 
+from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
-from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalDownFrag
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalUpFrag
 
 logger = logging.getLogger(__name__)
-
-#: Points in one probe-duration sweep during a fix. 31 over [1 us, 2.5 x pi_nom]
-#: resolves the flop (>1 full oscillation) with ~12 points up to the first max.
-_SWEEP_POINTS = 31
-
-#: Fractional band around the nominal (anchor) pi time within which a fitted pi
-#: time is trusted; outside it, flag rather than silently persist.
-_SANE_BAND = 0.4
-
-
-def _make_rabi_flop_optimizer(nominal_pi_time):
-    """Build a qbutler optimizer generator that sweeps the probe duration once,
-    finds the first Rabi-flop maximum (= pi time) by a parabolic peak fit, and
-    returns it -- unless it lands outside the sane band, in which case it returns
-    None so the framework raises rather than persisting a bad value.
-    """
-
-    def _optimizer(param_specs):
-        (spec,) = param_specs
-        durations = np.linspace(spec.min, spec.max, _SWEEP_POINTS)
-
-        excitations = []
-        for t in durations:
-            _, data = yield {spec.name: float(t)}
-            excitations.append(data if isinstance(data, (int, float)) else np.nan)
-
-        pi_time = fit_peak_x(durations, excitations)
-        if pi_time is None:
-            logger.warning("Rabi flop fit failed: no finite excitation data")
-            return None
-
-        lo, hi = (1 - _SANE_BAND) * nominal_pi_time, (1 + _SANE_BAND) * nominal_pi_time
-        if not (lo <= pi_time <= hi):
-            logger.warning(
-                "Fitted pi time %.2f us outside sane band [%.2f, %.2f] us "
-                "(nominal %.2f); not persisting",
-                1e6 * pi_time,
-                1e6 * lo,
-                1e6 * hi,
-                1e6 * nominal_pi_time,
-            )
-            return None
-
-        logger.info("Rabi flop fit: pi time %.2f us", 1e6 * pi_time)
-        return {spec.name: float(pi_time)}
-
-    return _optimizer
 
 
 class _RabiPiTimeCalibrationBase(Calibration):
@@ -74,6 +28,11 @@ class _RabiPiTimeCalibrationBase(Calibration):
     flop, not nonsense). Re-pumped imaging reads out the flop independently of any
     clock parameter. Depends on :class:`ClockDeliveryAOMCalibration` -- a pi time is
     only trustworthy once the delivery is centred.
+
+    The optimizer sweeps the probe duration and keeps the grid point of maximum
+    excitation (the first Rabi-flop peak = pi time). ``check_own_state`` is a
+    kernel and the default (grid-search) optimizer is batchable, so a fix sweep
+    runs in a single kernel call.
 
     Subclasses set the measurement fragment, the probe-duration handle name, and
     the nominal pi time (anchor + fallback default).
@@ -117,45 +76,63 @@ class _RabiPiTimeCalibrationBase(Calibration):
 
         self.set_timeout(3600.0)
         self.set_optimization_type("max")
-        self.set_optimizer(_make_rabi_flop_optimizer(self._nominal_pi_time))
 
         self._excitation_sink = LastValueSink()
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
-        self._probe_store = None
+
+        # Bind the swept probe duration to a store now, at build time, so the
+        # kernel can set it on-core. The initial value is a placeholder that
+        # check_own_state overwrites on-core (params aren't readable via .get()
+        # until init_params(), after build).
+        _, self._probe_store = self.meas.override_param(
+            self._probe_duration_handle, self._nominal_pi_time
+        )
         self._armed = False
 
+    def host_setup(self):
+        super().host_setup()
+        # Arm the whole calibration chain (this node + its clock-delivery
+        # dependency) here, on the host: the measurements are detached, and their
+        # kernels read attributes set in host_setup, which must exist before
+        # check_own_state compiles (see the MOT calibrations).
+        for cal in dag.get_dependencies(self):
+            cal._ensure_armed()
+
+    def _ensure_armed(self):
+        # Arm the (detached) measurement once per process (see the MOT calibrations).
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+
+    @rpc
+    def _read_excitation(self, pi_time: TFloat) -> TFloat:
+        e = self._excitation_sink.get_last()
+        if e is None:
+            return float("nan")
+        logger.info(
+            "%s check: pi time %.2f us -> excitation %.3f",
+            self.__class__.__name__,
+            1e6 * pi_time,
+            e,
+        )
+        return float(e)
+
     @kernel
-    def _measure(self):
+    def check_own_state(self):
+        pi_time = self.pi_time.get()
+        self._probe_store.set_value(pi_time)
+
         self.core.break_realtime()
         self.meas.device_setup()
         self.meas.run_once()
         self.meas.device_cleanup()
 
-    def check_own_state(self):
-        if self._probe_store is None:
-            _, self._probe_store = self.meas.override_param(
-                self._probe_duration_handle, self.pi_time.get()
-            )
-        self._probe_store.set_value(self.pi_time.get())
-
-        if not self._armed:
-            self.meas.host_setup()
-            self._armed = True
-        self._measure()
-
-        excitation = self._excitation_sink.get_last()
-        if excitation is None:
+        excitation = self._read_excitation(pi_time)
+        if excitation != excitation:  # NaN: the measurement produced no data
             return CalibrationResult.INVALID_DATA, 0.0
-
-        logger.info(
-            "%s check: pi time %.2f us -> excitation %.3f",
-            self.__class__.__name__,
-            1e6 * self.pi_time.get(),
-            excitation,
-        )
         if excitation >= self.min_ok_excitation.get():
-            return CalibrationResult.OK, float(excitation)
-        return CalibrationResult.BAD_DATA, float(excitation)
+            return CalibrationResult.OK, excitation
+        return CalibrationResult.BAD_DATA, excitation
 
 
 class RabiUpPiTimeCalibration(_RabiPiTimeCalibrationBase):

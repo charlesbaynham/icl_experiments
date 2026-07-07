@@ -1,18 +1,19 @@
-import functools
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import LastValueSink
 
+from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
-from qbutler.optimizers import coordinate_descent_optimizer
 from repository.lib import constants
+from repository.lib.calibrations.blue_mot import PUSH_SETPOINT_DEFAULT
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageMixin,
@@ -31,17 +32,19 @@ class _RedMOTAndorOnlyMeasFrag(BGCorrectedAndorImageMixin, _MeasureNarrowbandMOT
 
 
 class RedMOTCalibration(Calibration):
-    """The narrowband red MOT loads well; optimizes 689 AOM frequency and
-    narrowband bias fields.
+    """The narrowband red MOT loads well; optimizes the 689 injection AOM
+    frequency.
 
-    Depends on :class:`BlueMOTCalibration` — a red MOT needs a healthy blue
+    Depends on :class:`BlueMOTCalibration` -- a red MOT needs a healthy blue
     MOT to load from, and this calibration feeds the blue-optimized push
     setpoint into its own loading stage.
 
     Metric: background-corrected Andor fluorescence sum of the in-situ
-    narrowband MOT (no dipole trap needed). Four optimizable parameters, so
-    the optimizer is a coordinate descent (7 points/axis, 2 rounds = 56
-    shots) rather than a grid.
+    narrowband MOT (no dipole trap needed).
+
+    ``check_own_state`` is a kernel, and the default (grid-search) optimizer is
+    batchable, so a fix sweep runs in a single kernel call -- one compile, one
+    upload -- instead of recompiling per point.
     """
 
     def build_calibration(self):
@@ -64,33 +67,6 @@ class RedMOTCalibration(Calibration):
         )
         self.aom_frequency: FloatParamHandle
 
-        self.setattr_param_optimizable(
-            "bias_x",
-            "Narrowband bias X",
-            min=constants.RED_NARROWBAND_BIAS_FIELD_X - 0.15,
-            max=constants.RED_NARROWBAND_BIAS_FIELD_X + 0.15,
-            default=constants.RED_NARROWBAND_BIAS_FIELD_X,
-        )
-        self.bias_x: FloatParamHandle
-
-        self.setattr_param_optimizable(
-            "bias_y",
-            "Narrowband bias Y",
-            min=constants.RED_NARROWBAND_BIAS_FIELD_Y - 0.15,
-            max=constants.RED_NARROWBAND_BIAS_FIELD_Y + 0.15,
-            default=constants.RED_NARROWBAND_BIAS_FIELD_Y,
-        )
-        self.bias_y: FloatParamHandle
-
-        self.setattr_param_optimizable(
-            "bias_z",
-            "Narrowband bias Z",
-            min=constants.RED_NARROWBAND_BIAS_FIELD_Z - 0.3,
-            max=constants.RED_NARROWBAND_BIAS_FIELD_Z + 0.3,
-            default=constants.RED_NARROWBAND_BIAS_FIELD_Z,
-        )
-        self.bias_z: FloatParamHandle
-
         self.setattr_param(
             "min_ok_atom_sum",
             FloatParam,
@@ -101,77 +77,65 @@ class RedMOTCalibration(Calibration):
 
         self.set_timeout(1800.0)
         self.set_optimization_type("max")
-        self.set_optimizer(
-            functools.partial(coordinate_descent_optimizer, num_points=7, n_rounds=2)
-        )
 
         self._atom_sum_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
-        self._stores = None
+
+        # Bind the swept AOM frequency and the (blue-optimized) push setpoint to
+        # stores now, at build time, so the kernel can set them on-core. The
+        # initial values are placeholders that check_own_state overwrites on-core
+        # (params aren't readable via .get() until init_params(), after build).
+        _, self._aom_store = self.meas.override_param(
+            "injection_aom_static_frequency", _AOM_DEFAULT
+        )
+        _, self._push_store = (
+            self.meas.blue_3d_mot.all_beam_default_setter.override_param(
+                "setpoint_blue_push_beam", PUSH_SETPOINT_DEFAULT
+            )
+        )
         self._armed = False
 
-    def _ensure_stores(self):
-        if self._stores is None:
-            self._stores = {}
-            _, self._stores["aom_frequency"] = self.meas.override_param(
-                "injection_aom_static_frequency", self.aom_frequency.get()
-            )
-            for axis in "xyz":
-                _, self._stores[f"bias_{axis}"] = self.meas.red_mot.override_param(
-                    f"narrowband_bias_{axis}", getattr(self, f"bias_{axis}").get()
-                )
-            # The blue-MOT stage of this sequence follows the blue calibration
-            _, self._stores["push_setpoint"] = (
-                self.meas.blue_3d_mot.all_beam_default_setter.override_param(
-                    "setpoint_blue_push_beam",
-                    self.BlueMOTCalibration.push_setpoint.get(),
-                )
-            )
-            # NB the atom-number retry check (enable_check) defaults to False;
-            # if enabled it would raise TransitoryError straight through our
-            # manual kernel call - caught in check_own_state as BAD_DATA
+    def host_setup(self):
+        super().host_setup()
+        # Arm the whole calibration chain (this node + its blue-MOT dependency)
+        # here, on the host: the measurements are detached, and their kernels
+        # read attributes set in host_setup, which must exist before
+        # check_own_state compiles (see BlueMOTCalibration).
+        for cal in dag.get_dependencies(self):
+            cal._ensure_armed()
+
+    def _ensure_armed(self):
+        # Arm the (detached) measurement once per process (see BlueMOTCalibration).
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+
+    @rpc
+    def _read_atom_sum(self, aom_frequency: TFloat) -> TFloat:
+        s = self._atom_sum_sink.get_last()
+        if s is None:
+            return float("nan")
+        logger.info("Red MOT check: AOM %.6f MHz -> sum %.3g", 1e-6 * aom_frequency, s)
+        return float(s)
 
     @kernel
-    def _measure(self):
+    def check_own_state(self):
+        aom_frequency = self.aom_frequency.get()
+        self._aom_store.set_value(aom_frequency)
+        # Blue's committed push setpoint is fixed during our sweep; feed it in.
+        self._push_store.set_value(self.BlueMOTCalibration.push_setpoint.get())
+
         self.core.break_realtime()
         self.meas.device_setup()
         self.meas.run_once()
         self.meas.device_cleanup()
 
-    def check_own_state(self):
-        self._ensure_stores()
-        self._stores["aom_frequency"].set_value(self.aom_frequency.get())
-        for axis in "xyz":
-            self._stores[f"bias_{axis}"].set_value(getattr(self, f"bias_{axis}").get())
-        self._stores["push_setpoint"].set_value(
-            self.BlueMOTCalibration.push_setpoint.get()
-        )
-
-        # Arm the (detached) measurement lazily, once per process
-        # (see BlueMOTCalibration.check_own_state)
-        if not self._armed:
-            self.meas.host_setup()
-            self._armed = True
-        try:
-            self._measure()
-        except TransitoryError:
-            return CalibrationResult.BAD_DATA, 0.0
-
-        atom_sum = self._atom_sum_sink.get_last()
-        if atom_sum is None:
+        atom_sum = self._read_atom_sum(aom_frequency)
+        if atom_sum != atom_sum:  # NaN: the measurement produced no data
             return CalibrationResult.INVALID_DATA, 0.0
-
-        logger.info(
-            "Red MOT check: AOM %.6f MHz, bias (%.3f, %.3f, %.3f) A -> sum %.3g",
-            1e-6 * self.aom_frequency.get(),
-            self.bias_x.get(),
-            self.bias_y.get(),
-            self.bias_z.get(),
-            atom_sum,
-        )
         if atom_sum >= self.min_ok_atom_sum.get():
-            return CalibrationResult.OK, float(atom_sum)
-        return CalibrationResult.BAD_DATA, float(atom_sum)
+            return CalibrationResult.OK, atom_sum
+        return CalibrationResult.BAD_DATA, atom_sum
 
 
 RedMOTCalibrationExp = make_fragment_scan_exp(RedMOTCalibration)

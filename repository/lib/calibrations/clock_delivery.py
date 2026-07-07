@@ -1,18 +1,17 @@
 import logging
 
-import numpy as np
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import LastValueSink
 
+from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
-from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib import constants
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
@@ -22,33 +21,9 @@ _CLOCK_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 
 #: Half-width of the delivery-frequency search window. The carrier is known to
-#: sit within a few kHz of nominal (independent broad clock spectroscopy), so this
-#: is a precision window, not an acquisition one; the narrow down_spec pulse is
-#: Fourier-narrow (~1 kHz), refined to sub-grid precision by the parabolic fit.
+#: sit within a few kHz of nominal (independent broad clock spectroscopy), so
+#: this is a precision window, not an acquisition one.
 _SEARCH_HALF_SPAN = 30e3
-
-#: Points in one delivery-frequency sweep during a fix (+/-30 kHz over 61 points
-#: = 1 kHz grid, refined to sub-grid precision by the parabolic peak fit below).
-_SWEEP_POINTS = 61
-
-
-def _delivery_fit_optimizer(param_specs):
-    """qbutler optimizer generator: sweep the delivery frequency once across the
-    search window, then return the parabolic-fitted line centre as the best
-    param. Reuses the framework persist + re-verify path in _run_optimizer_host.
-    """
-    (spec,) = param_specs
-    freqs = np.linspace(spec.min, spec.max, _SWEEP_POINTS)
-
-    excitations = []
-    for f in freqs:
-        _, data = yield {spec.name: float(f)}
-        excitations.append(data if isinstance(data, (int, float)) else np.nan)
-
-    centre = fit_peak_x(freqs, excitations)
-    if centre is None:
-        return None
-    return {spec.name: float(centre)}
 
 
 class ClockDeliveryAOMCalibration(Calibration):
@@ -59,13 +34,15 @@ class ClockDeliveryAOMCalibration(Calibration):
     :class:`NarrowDownAfterSliceFrag` velocity-slices with a narrow (~1.3 kHz)
     up-slice -- which gives the sharp centring sensitivity -- then de-shelves with
     a NORMAL-power down pulse (overridden below) so the whole shelved class is
-    recovered and imaged with the dual-image re-pumped readout: healthy atoms and
-    a sharp, high-SNR peak in the shelved fraction versus delivery frequency.
+    recovered and imaged with the dual-image re-pumped readout.
 
     Optimizable parameter: the ``frequency_clock_delivery`` SUServo delivery
     frequency (persisted to dataset
-    ``calibrations.ClockDeliveryAOMCalibration.delivery_frequency``; ``constants.py``
-    holds the fallback default).
+    ``calibrations.ClockDeliveryAOMCalibration.delivery_frequency``). Metric:
+    the shelved ``excitation_fraction``, peaked at line centre.
+
+    ``check_own_state`` is a kernel, and the default (grid-search) optimizer is
+    batchable, so a fix sweep runs in a single kernel call.
     """
 
     def build_calibration(self):
@@ -104,66 +81,67 @@ class ClockDeliveryAOMCalibration(Calibration):
         )
         self.min_ok_excitation: FloatParamHandle
 
-        # Average a few shots to tighten the fitted carrier centre (the narrow
-        # up-slice signal is real but shot-to-shot noisy).
-        self.setattr_param(
-            "num_averages",
-            IntParam,
-            "Shots averaged per delivery-frequency check",
-            default=5,
-        )
-        self.num_averages: IntParamHandle
-
         # Clock delivery drifts ~1 kHz/day (<< the narrow-pulse linewidth per
         # hour), but a relock can jump it; re-check hourly.
         self.set_timeout(3600.0)
         self.set_optimization_type("max")
-        self.set_optimizer(_delivery_fit_optimizer)
 
         self._excitation_sink = LastValueSink()
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
-        self._delivery_store = None
+
+        # Bind the swept delivery frequency to a store now, at build time, so the
+        # kernel can set it on-core. The initial value is a placeholder that
+        # check_own_state overwrites on-core (params aren't readable via .get()
+        # until init_params(), after build).
+        _, self._delivery_store = self.meas.clock_default_setter.override_param(
+            "frequency_clock_delivery", _NOMINAL_DELIVERY_FREQUENCY
+        )
         self._armed = False
 
+    def host_setup(self):
+        super().host_setup()
+        # Arm the detached measurement here, on the host: its kernels read
+        # attributes set in host_setup, which must exist before check_own_state
+        # compiles (see the MOT calibrations).
+        for cal in dag.get_dependencies(self):
+            cal._ensure_armed()
+
+    def _ensure_armed(self):
+        # Arm the (detached) measurement once per process (the imaging wrapper
+        # does not survive a host_setup/host_cleanup/host_setup cycle; see the
+        # MOT calibrations).
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+
+    @rpc
+    def _read_excitation(self, delivery_frequency: TFloat) -> TFloat:
+        e = self._excitation_sink.get_last()
+        if e is None:
+            return float("nan")
+        logger.info(
+            "Clock delivery check: %.6f MHz -> excitation %.3f",
+            1e-6 * delivery_frequency,
+            e,
+        )
+        return float(e)
+
     @kernel
-    def _measure(self):
+    def check_own_state(self):
+        delivery_frequency = self.delivery_frequency.get()
+        self._delivery_store.set_value(delivery_frequency)
+
         self.core.break_realtime()
         self.meas.device_setup()
         self.meas.run_once()
         self.meas.device_cleanup()
 
-    def check_own_state(self):
-        if self._delivery_store is None:
-            _, self._delivery_store = self.meas.clock_default_setter.override_param(
-                "frequency_clock_delivery", self.delivery_frequency.get()
-            )
-        self._delivery_store.set_value(self.delivery_frequency.get())
-
-        # Arm the (detached) measurement lazily, ONCE per process (the imaging
-        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle;
-        # see the MOT calibrations).
-        if not self._armed:
-            self.meas.host_setup()
-            self._armed = True
-
-        samples = []
-        for _ in range(int(self.num_averages.get())):
-            self._measure()
-            value = self._excitation_sink.get_last()
-            if value is not None:
-                samples.append(value)
-        if not samples:
+        excitation = self._read_excitation(delivery_frequency)
+        if excitation != excitation:  # NaN: the measurement produced no data
             return CalibrationResult.INVALID_DATA, 0.0
-        excitation = float(np.mean(samples))
-
-        logger.info(
-            "Clock delivery check: %.6f MHz -> excitation %.3f",
-            1e-6 * self.delivery_frequency.get(),
-            excitation,
-        )
         if excitation >= self.min_ok_excitation.get():
-            return CalibrationResult.OK, float(excitation)
-        return CalibrationResult.BAD_DATA, float(excitation)
+            return CalibrationResult.OK, excitation
+        return CalibrationResult.BAD_DATA, excitation
 
 
 ClockDeliveryAOMCalibrationExp = make_fragment_scan_exp(ClockDeliveryAOMCalibration)
