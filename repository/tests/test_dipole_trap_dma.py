@@ -1,30 +1,17 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockRabiSpectroscopyDipoleTrapMixin,
-)
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class SimpleClockSpectroscopyFrag(
-    ClockRabiSpectroscopyDipoleTrapMixin,
-    BGCorrectedAndorImageMixin,
-    DipoleTrapWithExperimentBase,
-):
+class SimpleClockSpectroscopy(_Stub):
     """
     SimpleClockSpectroscopy
 
     As a test, do clock spec with non-normalised imaging
     """
-
-
-SimpleClockSpectroscopy = make_fragment_scan_exp(SimpleClockSpectroscopyFrag)

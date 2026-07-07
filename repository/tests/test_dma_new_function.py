@@ -1,31 +1,13 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.coredevice.core import Core
-from artiq.coredevice.dma import CoreDMA
-from artiq.coredevice.dma import dma_is_recording
-from artiq.experiment import EnvExperiment
-from artiq.language import kernel
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class TestDMADetection(EnvExperiment):
-    def build(self):
-        self.setattr_device("core")
-        self.core: Core
-
-        self.setattr_device("core_dma")
-        self.core_dma: CoreDMA
-
-    @kernel
-    def run(self):
-        self.core.break_realtime()
-
-        num0 = dma_is_recording()
-
-        with self.core_dma.record("dma1"):
-            num1 = dma_is_recording()
-
-        num2 = dma_is_recording()
-
-        logging.info("num0: %s", num0)
-        logging.info("num1: %s", num1)
-        logging.info("num2: %s", num2)
+class TestDMADetection(_Stub):
+    pass

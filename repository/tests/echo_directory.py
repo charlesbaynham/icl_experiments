@@ -1,15 +1,13 @@
-from artiq.experiment import EnvExperiment
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class EchoEnvironment(EnvExperiment):
-    def build(self):
-        pass
-
-    def run(self):
-        import os
-        import sys
-
-        ppath = "\n".join(sys.path)
-
-        print(f"sys.path = {ppath}")
-        print(f"os.getcwd() = {os.getcwd()}")
+class EchoEnvironment(_Stub):
+    pass

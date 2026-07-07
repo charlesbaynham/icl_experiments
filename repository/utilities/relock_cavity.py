@@ -1,51 +1,42 @@
-from artiq.coredevice.core import Core
-from artiq.language import kernel
-from artiq.language.core import kernel
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.fragments.relock_689_and_698 import Control689Shutters
-from repository.lib.fragments.relock_689_and_698 import Relock689Frag
-from repository.lib.fragments.relock_689_and_698 import Relock698Frag
-from repository.lib.fragments.relock_689_and_698 import Relock1379Frag
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class SetShutters689Frag(ExpFragment):
+class Relock1379Cavity(_Stub):
+    """
+    Relock the 1379  to the doubled 689 PLL
+
+    Change the WAND exposures before doing the relock, but be sure to change
+    them back afterwards
+    """
+
+
+class Relock689Cavity(_Stub):
+    """
+    Relock the 689 master to the laser stabilization cavity
+
+    To do this, we must handle the shutters for the 689 & 1379 wavemeter
+    multiplexing. This will involve blocking the 1379 light, unlocking its PLL.
+    So this will need to be relocked next: see :class:`~.Relock1379Frag`.
+    """
+
+
+class Relock698Cavity(_Stub):
+    """
+    Relock the 698 to the laser stabilization cavity
+
+    For the 698, this is straightforward
+    """
+
+
+class SetShutters689(_Stub):
     """
     Manually set the 689 and 1379 wavemeter shutters
     """
-
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.core: Core
-        self.setattr_fragment("shutter_control", Control689Shutters)
-        self.shutter_control: Control689Shutters
-
-        self.setattr_param(
-            "open_689",
-            BoolParam,
-            default=True,
-            description="Open the master 689 shutter",
-        )
-        self.setattr_param(
-            "open_1379",
-            BoolParam,
-            default=True,
-            description="Open the doubled 1379 shutter",
-        )
-        self.open_689: BoolParamHandle
-        self.open_1379: BoolParamHandle
-
-    @kernel
-    def run_once(self):
-        self.shutter_control.set_shutters(
-            open_689=self.open_689.get(), open_1379=self.open_1379.get()
-        )
-
-
-Relock698Cavity = make_fragment_scan_exp(Relock698Frag)
-Relock689Cavity = make_fragment_scan_exp(Relock689Frag)
-Relock1379Cavity = make_fragment_scan_exp(Relock1379Frag)
-SetShutters689 = make_fragment_scan_exp(SetShutters689Frag)

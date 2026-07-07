@@ -1,35 +1,15 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.experiment import BooleanValue
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.tasmota_crates import confirm_with_code
-from repository.lib.tasmota_crates import power_off_all
-
-logger = logging.getLogger(__name__)
-
-DATASET_NAME = "shutdown_code"
+from repository.stub_experiment import _Stub
 
 
-class ShutdownARTIQCrates(EnvExperiment):
-    "Shut down the artiq crates by powering them off"
-
-    def build(self):
-        self.setattr_argument(
-            "confirmation_code",
-            NumberValue(default=-1, precision=0, scale=1, step=1, min=0, type="int"),
-        )
-        self.setattr_argument(
-            "include_oven",
-            BooleanValue(default=False),
-        )
-        self.confirmation_code: int
-        self.include_oven: bool
-
-    def run(self):
-        if not confirm_with_code(self, DATASET_NAME):
-            return
-
-        logger.warning("Shutting down ARTIQ crates now")
-        power_off_all(include_oven=self.include_oven)
+class ShutdownARTIQCrates(_Stub):
+    """
+    Shut down the artiq crates by powering them off
+    """

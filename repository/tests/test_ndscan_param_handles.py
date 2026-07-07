@@ -1,19 +1,13 @@
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import StringParam
-from ndscan.experiment.parameters import StringParamHandle
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class TestParamHandleNamesFrag(ExpFragment):
-    def build_fragment(self):
-        self.setattr_param(
-            "testparam", StringParam, description="test param", default='"hello"'
-        )
-        self.testparam: StringParamHandle
-
-    def run_once(self):
-        print(self.testparam.name)
-        print(self.testparam.get())
-
-
-TestParamHandleNames = make_fragment_scan_exp(TestParamHandleNamesFrag)
+class TestParamHandleNames(_Stub):
+    pass

@@ -1,16 +1,13 @@
-import time
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.experiment import EnvExperiment
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.test import this_str
+from repository.stub_experiment import _Stub
 
 
-class TestEcho(EnvExperiment):
-    def build(self):
-        pass
-
-    def run(self):
-        print("Hello, I'm an experiment!")
-        print(this_str)
-
-        time.sleep(3)
+class TestEcho(_Stub):
+    pass

@@ -1,38 +1,13 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-import numpy as np
-from artiq.coredevice.rtio import rtio_input_timestamped_data
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class InputTimeout(EnvExperiment):
-    def build(self):
-        self.setattr_device("core")
-
-        self.setattr_argument(
-            "channel", NumberValue(default=0, precision=0, scale=1, step=1)
-        )
-        self.setattr_argument(
-            "timeout", NumberValue(default=1, precision=2, scale=1, unit="s")
-        )
-
-    @kernel
-    def run(self):
-        timeout_mu = self.core.seconds_to_mu(self.timeout)
-
-        logger.info("timeout_mu = %s", timeout_mu)
-
-        self.core.reset()
-
-        # This should timeout since there's no input
-        timestamp, data = rtio_input_timestamped_data(
-            now_mu() + np.int64(timeout_mu), self.channel
-        )
-
-        print(timestamp)
-        print(data)
+class InputTimeout(_Stub):
+    pass

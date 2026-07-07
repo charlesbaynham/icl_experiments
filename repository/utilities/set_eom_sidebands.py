@@ -1,5 +1,13 @@
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-SetEOMSidebands = make_fragment_scan_exp(SetAllEOMSidebandsFrag)
+from repository.stub_experiment import _Stub
+
+
+class SetEOMSidebands(_Stub):
+    pass

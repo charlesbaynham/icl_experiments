@@ -1,25 +1,17 @@
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
-from repository.lib.fragments.cameras.flir_camera import Chamber2VerticalCamera
-from repository.lib.fragments.cameras.flir_camera import MonitorCameraExp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-
-class MonitorChamber2HorizCameraFrag(MonitorCameraExp):
-    def build_fragment(self):
-        self.set_default_scheduling(pipeline_name="cam_h")
-        super().build_fragment()
-
-    camera_class = Chamber2HorizontalCamera
+from repository.stub_experiment import _Stub
 
 
-class MonitorChamber2VertCameraFrag(MonitorCameraExp):
-    def build_fragment(self):
-        self.set_default_scheduling(pipeline_name="cam_v")
-        super().build_fragment()
-
-    camera_class = Chamber2VerticalCamera
+class MonitorChamber2HorizCamera(_Stub):
+    pass
 
 
-MonitorChamber2HorizCamera = make_fragment_scan_exp(MonitorChamber2HorizCameraFrag)
-MonitorChamber2VertCamera = make_fragment_scan_exp(MonitorChamber2VertCameraFrag)
+class MonitorChamber2VertCamera(_Stub):
+    pass

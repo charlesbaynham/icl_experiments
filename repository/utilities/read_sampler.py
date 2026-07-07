@@ -1,33 +1,15 @@
-from artiq.coredevice.core import Core
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import FloatChannel
-from ndscan.experiment import kernel
-from ndscan.experiment import make_fragment_scan_exp
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.fragments.read_adc import ReadSamplerADC
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class ReadSamplerFrag(ExpFragment):
+class ReadSampler(_Stub):
     """
     Take a reading from a sampler
     """
-
-    def build_fragment(self) -> None:
-        self.core: Core = self.get_device("core")
-
-        self.setattr_fragment("sampler_reader", ReadSamplerADC)
-        self.sampler_reader: ReadSamplerADC
-
-        self.setattr_param_rebind("sampler_channel_number", self.sampler_reader)
-
-        self.setattr_result("reading", FloatChannel)
-        self.reading: FloatChannel
-
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        measurement = self.sampler_reader.read_adc()
-        self.reading.push(measurement)
-
-
-ReadSampler = make_fragment_scan_exp(ReadSamplerFrag)

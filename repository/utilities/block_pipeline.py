@@ -1,22 +1,15 @@
-import time
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.experiment import EnvExperiment
-from artiq.master.scheduler import Scheduler
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class BlockPipeline(EnvExperiment):
+class BlockPipeline(_Stub):
     """
     Block a pipeline until cancelled
     """
-
-    def build(self):
-        self.setattr_device("scheduler")
-        self.scheduler: Scheduler
-
-    def run(self):
-        time.sleep(0.1)
-
-        while True:
-            if self.scheduler.check_pause():
-                print("Quitting")
-                return

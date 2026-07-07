@@ -1,100 +1,13 @@
-import logging
-from typing import *
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import *
-from artiq.language import delay
-from artiq.language import kernel
-from artiq.language import now_mu
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import *
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib import constants
-from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
-
-logger = logging.getLogger(__name__)
-
-PHASE_DURATION = 100e-3
+from repository.stub_experiment import _Stub
 
 
-class NarrowRedCapturePhase100ms(NarrowRedCapturePhase):
-    # Ensure that we have known duration and time_step for this test
-    duration_default = PHASE_DURATION
-    time_step_default = 100e-6
-
-
-class TestRampLaneUse(ExpFragment):
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.core: Core
-
-        self.setattr_fragment(
-            "beam_setter",
-            make_set_beams_to_default(
-                [
-                    constants.SUSERVOED_BEAMS["red_mot_diagonal"],
-                    constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
-                    constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
-                    constants.SUSERVOED_BEAMS["red_up"],
-                ],
-                name="beam_setter",
-            ),
-        )
-        self.beam_setter: SetBeamsToDefaults
-
-        self.setattr_fragment(
-            "chamber_2_field_setter",
-            SetMagneticFieldsQuick,
-        )
-        self.chamber_2_field_setter: SetMagneticFieldsQuick
-
-        self.setattr_fragment(
-            "test_phase",
-            NarrowRedCapturePhase,
-        )
-        self.test_phase: NarrowRedCapturePhase
-
-        self.test_phase.bind_suservo_setpoint_params_to_default_beam_setter(
-            self.beam_setter
-        )
-
-        self.setattr_device("TTL_shutter_461_pushbeam")
-        self.ttl_tester: TTLOut = self.TTL_shutter_461_pushbeam
-
-    @kernel
-    def run_once(self):
-        logger.info("Precomputing handle")
-        self.test_phase.precalculate_dma_handle()
-
-        logger.info("Starting test phase")
-
-        self.core.break_realtime()
-
-        # This should cause an RTIO sequence error unless we're only using a single lane
-        with parallel:
-            with sequential:
-                delay(PHASE_DURATION / 2)
-                self.ttl_tester.pulse(1e-6)
-
-            self.test_phase.do_phase()
-
-        logger.info("Phase queuing completed")
-
-        logger.info(
-            "now_mu = %d, get_rtio_counter_mu = %d, diff=%fs",
-            now_mu(),
-            self.core.get_rtio_counter_mu(),
-            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
-        )
-
-        self.core.wait_until_mu(now_mu())
-
-        logger.info("Phase output completed")
-
-
-TestRampLaneUseExp = make_fragment_scan_exp(TestRampLaneUse)
+class TestRampLaneUseExp(_Stub):
+    pass

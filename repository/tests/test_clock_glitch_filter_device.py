@@ -1,14 +1,13 @@
-from artiq.experiment import EnvExperiment
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class TestClockGlitchFilterDeviceExp(EnvExperiment):
-
-    def build(self):
-        self.setattr_device("clock_glitch_filter")
-        self.clock_glitch_filter: ClockGlitchFilter
-
-    def run(self):
-        print(self.clock_glitch_filter)
-        print(self.clock_glitch_filter.get_identity())
+class TestClockGlitchFilterDeviceExp(_Stub):
+    pass

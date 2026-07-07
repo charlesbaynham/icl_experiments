@@ -1,37 +1,15 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalisedMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
-from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.red_spectroscopy import (
-    RedSpectroscopyDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class RedSpectroscopyFromXXODTFrag(
-    RedSpectroscopyDipoleTrapMixin,
-    DoubleTrapImagingRepumpedNormalisedMixin,
-    EMGainMixin,
-    FLIRBlueMOTMeasurementMixin,
-    LoadXXODTMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperimentBase,
-):
+class RedSpectroscopyFromXXODT(_Stub):
     """
     689 spectroscopy from dropped XXODT
 
@@ -41,6 +19,3 @@ class RedSpectroscopyFromXXODTFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
-
-
-RedSpectroscopyFromXXODT = make_fragment_scan_exp(RedSpectroscopyFromXXODTFrag)

@@ -1,105 +1,27 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.language import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODTMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
-)
-from repository.lib.experiment_templates.mixins.flir_measurement import (
-    FLIRMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_loading import (
-    LoadSingleXODTWithPainterMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTRetroedMolassesPlusDipoleRampMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusDipoleRampMixin,
-)
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class MeasureEvaporatedXODTFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    LoadSingleXODTWithPainterMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-):
+class MeasureEvaporatedXODT(_Stub):
     """
     Measure a Single XODT with evaporation
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureXODTNewMolassesFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    LoadSingleXODTMixin,
-    XODTRetroedMolassesPlusDipoleRampMixin,
-):
-    """
-    Measure a Single XODT with retroed molasses
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureExaporatedXODTAbsFrag(
-    AbsorptionDipoleTrapMixin,
-    LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-):
+class MeasureExaporatedXODTAbs(_Stub):
     """
     Measure a single XODT with evaporation & absorption imaging
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-MeasureEvaporatedXODT = make_fragment_scan_exp(MeasureEvaporatedXODTFrag)
-MeasureExaporatedXODTAbs = make_fragment_scan_exp(MeasureExaporatedXODTAbsFrag)
-MeasureXODTNewMolasses = make_fragment_scan_exp(MeasureXODTNewMolassesFrag)
+class MeasureXODTNewMolasses(_Stub):
+    """
+    Measure a Single XODT with retroed molasses
+    """

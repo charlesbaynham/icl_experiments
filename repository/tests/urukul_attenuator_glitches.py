@@ -1,96 +1,13 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.core import Core
-from artiq.coredevice.urukul import CFG_RST
-from artiq.coredevice.urukul import CPLD
-from artiq.coredevice.urukul import now_mu
-from artiq.coredevice.urukul import urukul_sta_ifc_mode
-from artiq.coredevice.urukul import urukul_sta_pll_lock
-from artiq.coredevice.urukul import urukul_sta_proto_rev
-from artiq.coredevice.urukul import urukul_sta_rf_sw
-from artiq.coredevice.urukul import urukul_sta_smp_err
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
-from artiq.language import delay
-from artiq.language import kernel
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-logger = logging.getLogger(__name__)
-REG_ADDR = 0x05
+from repository.stub_experiment import _Stub
 
 
-class SetUrukulAttenuatorRepeatedly(EnvExperiment):
-    def build(self):
-        self.setattr_device("core")
-        self.core: Core
-
-        self.channel: AD9910 = self.get_device(
-            "urukul9910_aom_doublepass_689_red_injection"
-        )
-
-        self.setattr_argument(
-            "n_repeats", NumberValue(default=10, precision=0, step=1, type="int")
-        )
-        self.n_repeats: int
-
-        self.setattr_argument(
-            "att", NumberValue(default=0.0, precision=1, step=0.1, type="float")
-        )
-        self.att: float
-
-    def prepare(self):
-        self.urukul: CPLD = self.channel.cpld
-
-    @kernel
-    def urukul_rst(self, dds):
-        # type:(CPLD) -> None
-
-        """Pulse MASTER_RESET"""
-
-        dds.cfg_write(dds.cfg_reg | (1 << CFG_RST))
-        delay(100e-3)
-        dds.cfg_write(dds.cfg_reg & ~(1 << CFG_RST))
-        delay(2000e-3)
-
-    @kernel
-    def read_freq(self):
-        logger.info("Reading from dds...")
-
-        self.core.break_realtime()
-        freq, phase, amp = self.channel.get()
-
-        logger.info("freq = %s", freq)
-        logger.info("phase = %s", phase)
-        logger.info("amp = %s", amp)
-
-    @kernel
-    def read_status(self):
-        self.core.break_realtime()
-        status = self.urukul.sta_read()
-
-        logger.info("Read status register: 0x%X", status)
-
-        logger.info("urukul_sta_rf_sw = %s", urukul_sta_rf_sw(status))
-        logger.info("urukul_sta_smp_err = %s", urukul_sta_smp_err(status))
-        logger.info("urukul_sta_pll_lock = %s", urukul_sta_pll_lock(status))
-        logger.info("urukul_sta_ifc_mode = %s", urukul_sta_ifc_mode(status))
-        logger.info("urukul_sta_proto_rev = %s", urukul_sta_proto_rev(status))
-
-    @kernel
-    def run(self):
-        self.read_freq()
-        self.read_status()
-
-        logger.warning("Starting set_att with att = %f...", self.att)
-
-        for _ in range(self.n_repeats):
-            self.core.break_realtime()
-            self.channel.set_att(self.att)
-            delay(1.0)
-            self.core.wait_until_mu(now_mu())
-            logger.info("Setting")
-
-        logger.warning("Completed")
-
-        self.read_freq()
-        self.read_status()
+class SetUrukulAttenuatorRepeatedly(_Stub):
+    pass

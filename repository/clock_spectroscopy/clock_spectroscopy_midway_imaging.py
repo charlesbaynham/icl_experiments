@@ -1,36 +1,15 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.language import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
-from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging import (
-    MidSequenceAndorImageMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusFieldRampMixin,
-)
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class ClockSpecMidwayImagingFrag(
-    MidSequenceAndorImageMixin,
-    EMGainMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperimentBase,
-):
+class ClockSpecMidwayImaging(_Stub):
     """
     Midway imaging of clock sequence
 
@@ -42,17 +21,3 @@ class ClockSpecMidwayImagingFrag(
 
     Finally, take a background image at the end of the sequence.
     """
-
-    @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
-        self.start_of_red_broadband_hook_midway_imaging()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-
-
-ClockSpecMidwayImaging = make_fragment_scan_exp(ClockSpecMidwayImagingFrag)

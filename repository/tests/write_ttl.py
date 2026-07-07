@@ -1,17 +1,13 @@
-from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import BooleanValue
-from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class WriteTTL(EnvExperiment):
-    def build(self):
-        self.setattr_device("core")
-        self.ttl: TTLOut = self.get_device("ttl_urukul2_sw2")
-
-        self.setattr_argument("state", BooleanValue(default=True))
-
-    @kernel
-    def run(self):
-        self.core.break_realtime()
-        self.ttl.set_o(self.state)
+class WriteTTL(_Stub):
+    pass

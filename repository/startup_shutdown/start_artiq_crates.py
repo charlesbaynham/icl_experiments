@@ -1,23 +1,15 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.experiment import BooleanValue
-from artiq.experiment import EnvExperiment
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.tasmota_crates import power_on_all
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class StartARTIQCrates(EnvExperiment):
-    "Start the artiq crates by powering them on"
-
-    def build(self):
-        self.setattr_argument(
-            "include_oven",
-            BooleanValue(default=False),
-        )
-        self.include_oven: bool
-
-    def run(self):
-        logger.warning("Starting ARTIQ crates now")
-        power_on_all(include_oven=self.include_oven)
+class StartARTIQCrates(_Stub):
+    """
+    Start the artiq crates by powering them on
+    """

@@ -1,157 +1,33 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.language import delay
-from artiq.language import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib import constants
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODTMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationSingleRampMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    FieldOnlyRampInEvapMixin,
-)
-from repository.lib.experiment_templates.mixins.flir_measurement import (
-    FLIRMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.painted_quadratic import (
-    AdiabaticCoolingWithPaintedQuadraticMixin,
-)
-from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
-    HorizontalKickMixin,
-)
-from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
-    SwitchHODTMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_loading import (
-    LoadSingleXODTWithPainterMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusDipoleRampMixin,
-)
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class MeasureSingleXODTBGCorrectedFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    LoadSingleXODTMixin,
-):
+class MeasureCooledXODT(_Stub):
+    """
+    Measure a Single XODT with adiabatic cooling and delta kick
+    """
+
+
+class MeasureSingleXODTAbs(_Stub):
+    """
+    Measure a single XODT with absorption imaging
+    """
+
+
+class MeasureSingleXODTBGCorrected(_Stub):
     """
     Make Single XODT and image twice for BG subtraction
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class SingleXODTSloshedFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    LoadSingleXODTMixin,
-):
-    """
-    Slosh a single XODT
-
-    Make Single XODT, hold it for some time, turn off the vertical trap, let it
-    slosh then image
-    """
-
-    def build_fragment(self):
-        self.setattr_param(
-            "slosh_time",
-            FloatParam,
-            "Time to slosh the XODT for",
-            default=0,
-            unit="ms",
-            min=0,
-        )
-        self.slosh_time: FloatParamHandle
-
-        self.setattr_fragment(
-            "down_813_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["down_813"].suservo_device,
-        )
-        self.down_813_suservo: LibSetSUServoStatic
-
-        super().build_fragment()
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
-    def post_dipole_trap_hook(self):
-        """
-        Override post_dipole_trap_hook so that the beams are not turned off
-        """
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        """
-        Turn off the vertical trap then wait then image
-        """
-
-        self.down_813_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
-        delay(self.slosh_time.get())
-
-
-class SingleXODTVerticalSloshedFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    LoadSingleXODTMixin,
-    XODTSingleMolassesMixin,
-    EvaporationSingleRampMixin,
-    SwitchHODTMixin,
-):
-    """
-    Vertically slosh a single XODT
-
-    Make Single XODT, decrease HODT depth to displace the atoms under gravity,
-    switch up the HODT depth and let it slosh, then drop and image
-    """
-
-
-class SingleXODTHorizontalYSloshedFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    EMGainMixin,
-    LoadSingleXODTMixin,
-    XODTSingleMolassesMixin,
-    EvaporationThreeRampsMixin,
-    HorizontalKickMixin,
-):
+class SingleXODTHorizontalYSloshed(_Stub):
     """
     Horizontally slosh a single XODT
 
@@ -159,69 +35,20 @@ class SingleXODTHorizontalYSloshedFrag(
     to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
 
-    # TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureSingleXODTAbsFrag(
-    AbsorptionDipoleTrapMixin,
-    LoadSingleXODTMixin,
-):
+class SingleXODTSloshed(_Stub):
     """
-    Measure a single XODT with absorption imaging
+    Slosh a single XODT
+
+    Make Single XODT, hold it for some time, turn off the vertical trap, let it
+    slosh then image
     """
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureCooledXODTFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
-    AdiabaticCoolingWithPaintedQuadraticMixin,
-    LoadSingleXODTWithPainterMixin,
-):
+class SingleXODTVerticalSloshed(_Stub):
     """
-    Measure a Single XODT with adiabatic cooling and delta kick
+    Vertically slosh a single XODT
+
+    Make Single XODT, decrease HODT depth to displace the atoms under gravity,
+    switch up the HODT depth and let it slosh, then drop and image
     """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_narrowband_hook_default()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-MeasureSingleXODTBGCorrected = make_fragment_scan_exp(MeasureSingleXODTBGCorrectedFrag)
-MeasureSingleXODTAbs = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
-MeasureCooledXODT = make_fragment_scan_exp(MeasureCooledXODTFrag)
-SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
-SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)
-SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)

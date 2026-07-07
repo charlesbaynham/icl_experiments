@@ -1,18 +1,13 @@
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import kernel
-from ndscan.experiment import make_fragment_scan_exp
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-
-class ResetBeamsFrag(ExpFragment):
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.setattr_fragment("reset", ResetAllICLBeams)
-
-    @kernel
-    def run_once(self) -> None:
-        print("Running...")
+from repository.stub_experiment import _Stub
 
 
-ResetBeams = make_fragment_scan_exp(ResetBeamsFrag)
+class ResetBeams(_Stub):
+    pass

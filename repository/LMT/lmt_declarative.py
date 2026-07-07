@@ -1,25 +1,15 @@
-"""
-LMT interferometry driven by the declarative sequence language.
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-This is the reference experiment for the declarative LMT stack
-(:mod:`repository.lib.lmt_sequence` +
-:class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`):
-the velocity-selective pulse, the launch and a symmetric Mach-Zehnder
-interferometer are declared as a single list of pulse descriptions, from
-which scannable per-pulse parameters (detuning offsets and durations) are
-generated with model-predicted defaults.
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
 """
 
-from artiq.language import EnvExperiment
+from repository.stub_experiment import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(EnvExperiment):
+class DeclarativeLMTSymmetricMachZehnder(_Stub):
     """
-    Declarative symmetric LMT interferometry
+    Velocity selection, launch and Mach-Zehnder from a declared pulse sequence
     """
-
-    def build(self):
-        pass
-
-    def run(self):
-        raise NotImplementedError("This experiment is a stub")

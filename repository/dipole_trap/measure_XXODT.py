@@ -1,48 +1,15 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.language import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionDoubleDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBGSubtractedMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
-from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_loading import (
-    LoadXXODTWithTransparencyBeamMixin,
-)
-from repository.lib.fragments.stark_shifter import StarkShifter
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class MeasureXXODTWithTransparancyFrag(
-    DoubleTrapImagingBGSubtractedMixin,
-    FLIRBlueMOTMeasurementMixin,
-    LoadXXODTWithTransparencyBeamMixin,
-    EMGainMixin,
-):
-    """
-    Measure a double XODT with transparency beam
-    """
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureXXODTFrag(
-    DoubleTrapImagingBGSubtractedMixin,
-    FLIRBlueMOTMeasurementMixin,
-    LoadXXODTMixin,
-    EMGainMixin,
-):
+class MeasureXXODT(_Stub):
     """
     Measure a double XODT
 
@@ -50,17 +17,20 @@ class MeasureXXODTFrag(
     second XODT then turn the light back on.
     """
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
+
+class MeasureXXODTAbsorption(_Stub):
+    """
+    Measure a double XODT with absorption imaging
+    """
 
 
-class StarkBlastXXODTFrag(
-    DoubleTrapImagingBGSubtractedMixin,
-    FLIRBlueMOTMeasurementMixin,
-    LoadXXODTMixin,
-    EMGainMixin,
-):
+class MeasureXXODTWithTransparency(_Stub):
+    """
+    Measure a double XODT with transparency beam
+    """
+
+
+class StarkBlastXXODT(_Stub):
     """
     Blast an XXODT with the Stark shifter
 
@@ -69,57 +39,3 @@ class StarkBlastXXODTFrag(
     0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
     beam will be ~ 100 MHz from resonance.
     """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_fragment("stark_shifter", StarkShifter)
-        self.stark_shifter: StarkShifter
-
-        # Keep old naming for backwards compatibility
-        self.setattr_param_rebind(
-            "stark_689_destroy_atoms_in_XODT_duration",
-            self.stark_shifter,
-            "stark_pulse_duration",
-            default=10e-3,
-            description="Duration of the Stark shifter pulse to destroy atoms in the XXODT",
-        )
-
-    @kernel
-    def dipole_trap_evaporation_hook(self):
-        # Turns off red MOT beams - helpful!
-        self.dipole_trap_evaporation_hook_default()
-
-        # Blast the atoms with the stark pulse during the evap stage
-        self.stark_shifter.do_stark_pulse()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureXXODTAbsorptionFrag(
-    AbsorptionDoubleDipoleTrapMixin,
-    LoadXXODTMixin,
-):
-    """
-    Measure a double XODT with absorption imaging
-    """
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-MeasureXXODT = make_fragment_scan_exp(MeasureXXODTFrag, max_rtio_underflow_retries=0)
-
-
-StarkBlastXXODT = make_fragment_scan_exp(
-    StarkBlastXXODTFrag, max_rtio_underflow_retries=0
-)
-MeasureXXODTAbsorption = make_fragment_scan_exp(
-    MeasureXXODTAbsorptionFrag, max_rtio_underflow_retries=0
-)
-MeasureXXODTWithTransparency = make_fragment_scan_exp(
-    MeasureXXODTWithTransparancyFrag, max_rtio_underflow_retries=0
-)

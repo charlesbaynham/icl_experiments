@@ -1,104 +1,33 @@
-import logging
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.language import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionRedMOTMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.atom_number_check import (
-    AtomNumberCheckMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImageMixin,
-)
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
-from repository.lib.experiment_templates.mixins.external_triggering import (
-    External50HzTriggerMixin,
-)
-from repository.lib.experiment_templates.mixins.flir_measurement import (
-    FLIRMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
-    ExponentialDecayMixin,
-)
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperimentBase,
-)
-
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class _MeasureNarrowbandMOTFrag(External50HzTriggerMixin, RedMOTWithExperimentBase):
-    def build_fragment(self):
-        super().build_fragment()
-
-        # Remove unused parameters
-        self.override_param("delay_after_experiment", 0)
-        self.override_param("spectroscopy_field_gradient", 0)
-
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        # No spectroscopy needed - just do nothing and move straight to imaging
-        pass
-
-
-class MeasureNarrowbandMOTFrag(
-    FLIRMeasurementMixin,
-    ExponentialDecayMixin,
-    SingleAndorImageMixin,
-    ConstantBeamsMixin,
-    _MeasureNarrowbandMOTFrag,
-):
-    """
-    Make a narrowband MOT, image with the ANDOR and leave lattice light on
-    """
-
-
-class MeasureNarrowbandMOTBGCorrectedWithTrapsFrag(
-    BGCorrectedAndorImageMixin,
-    FLIRMeasurementMixin,
-    ConstantBeamsMixin,
-    _MeasureNarrowbandMOTFrag,
-):
-    """
-    Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
-    """
-
-
-class MeasureNarrowbandMOTBGCorrectedFrag(
-    AtomNumberCheckMixin,
-    BGCorrectedAndorImageMixin,
-    FLIRMeasurementMixin,
-    _MeasureNarrowbandMOTFrag,
-):
-    """
-    Make a narrowband MOT, image twice for BG subtraction with the ANDOR
-    """
-
-
-# TODO: This is disabled because it was failing unit tests on master
-class MeasureNarrowbandMOTAbsFrag(
-    AbsorptionRedMOTMixin,
-    _MeasureNarrowbandMOTFrag,
-):
+class MeasureNarrowbandMOTAbs(_Stub):
     """
     Do absorption imaging with a narrowband MOT
     """
 
 
-MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
+class MeasureNarrowbandRedMOT(_Stub):
+    """
+    Make a narrowband MOT, image with the ANDOR and leave lattice light on
+    """
 
-MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
-    MeasureNarrowbandMOTBGCorrectedFrag
-)
-MeasureNarrowbandRedMOTBGCorrectedWithTrap = make_fragment_scan_exp(
-    MeasureNarrowbandMOTBGCorrectedWithTrapsFrag
-)
 
-MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)
+class MeasureNarrowbandRedMOTBGCorrected(_Stub):
+    """
+    Make a narrowband MOT, image twice for BG subtraction with the ANDOR
+    """
+
+
+class MeasureNarrowbandRedMOTBGCorrectedWithTrap(_Stub):
+    """
+    Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
+    """

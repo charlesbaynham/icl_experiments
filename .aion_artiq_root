@@ -1,3 +1,0 @@
-This file identifies this directory as the root of an AION ARTIQ installation.
-It can be relied on by automated code to exist only in the root directory of an
-AION ARTIQ experiment repository.

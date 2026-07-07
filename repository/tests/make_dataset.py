@@ -1,30 +1,15 @@
-import logging
-from datetime import datetime
+"""AUTO-GENERATED stub file - do not edit by hand.
 
-from artiq.experiment import EnvExperiment
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
 
-logger = logging.getLogger(__name__)
+from repository.stub_experiment import _Stub
 
 
-class DataWriter(EnvExperiment):
-    """Make some data"""
-
-    def build(self):
-        pass
-
-    def run(self):
-        self.set_dataset(
-            "my_local_data",
-            f"{datetime.utcnow()}  This is local data. It stays on the core and never reaches the PC. I ran at {datetime.utcnow()}",
-        )
-        self.set_dataset(
-            "my_broadcast_data",
-            f"{datetime.utcnow()}  This is broadcast data - it is sent to the PC and archived, but will not be reloaded on artiq_master restarts",
-            broadcast=True,
-        )
-
-        self.set_dataset(
-            "my_persistent_data",
-            f"{datetime.utcnow()}  This is persistent data - it is sent to the PC, archived and will be available after artiq_master restarts",
-            persist=True,
-        )
+class DataWriter(_Stub):
+    """
+    Make some data
+    """

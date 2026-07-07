@@ -1,21 +1,13 @@
-from artiq.experiment import EnvExperiment
-from wand.server import ControlInterface as WANDControlInterface
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class TestWANDControl(EnvExperiment):
-    def build(self):
-        self.setattr_device("wand_server")
-        self.wand_server: WANDControlInterface
-
-    def run(self):
-        lasers = self.wand_server.get_laser_db()
-        for laser in lasers:
-            meas = self.wand_server.get_freq(
-                laser,
-                priority=3,
-                get_osa_trace=False,
-                blocking=True,
-                mute=False,
-                offset_mode=False,
-            )
-            print(f"{laser} --- {meas}")
+class TestWANDControl(_Stub):
+    pass

@@ -1,110 +1,41 @@
-from qbutler.calibration import Calibration
-from qbutler.calibration import CalibrationResult
-from toptica_wrapper.driver import TopticaDLCPro
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
 
 
-class _MonitorToptica(Calibration):
-    """
-    LogTopticaLaser
-
-    Logs the voltage, current, temperature of a Toptica DLCPro laser
-    """
-
-    laser_name: str = None  # Name of the laser in the device_db
-
-    def __init__(self, *args, **kwargs):
-        if self.laser_name is None:
-            raise NotImplementedError(
-                "You must subclass this interface class and set cls.laser_device_name"
-            )
-
-        super().__init__(*args, **kwargs)
-
-    def build_calibration(self):
-        self.set_timeout(10)
-
-    def host_setup(self):
-        super().host_setup()
-
-        self.dlcpro: TopticaDLCPro = self.get_device(self.laser_name)
-        self.laser = None
-
-    def host_cleanup(self):
-        try:
-            self.raw_dlcpro.close()
-        except ConnectionError:
-            pass
-
-        super().host_cleanup()
-
-    def check_own_state(self):
-        if not self.laser:
-            # Open a connection
-            self.raw_dlcpro = self.dlcpro.get_dlcpro()
-            self.raw_dlcpro.open()
-
-            # Save the laser
-            self.laser = self.dlcpro.get_laser()
-
-        out = {}
-
-        try:
-            out["voltage_setpoint"] = self.laser.dl.pc.voltage_set.get()
-            out["voltage_actual"] = self.laser.dl.pc.voltage_act.get()
-            out["current_setpoint"] = self.laser.dl.cc.current_set.get()
-            out["current_actual"] = self.laser.dl.cc.current_act.get()
-            out["temperature_setpoint"] = self.laser.dl.tc.temp_set.get()
-            out["temperature_actual"] = self.laser.dl.tc.temp_act.get()
-
-            result = CalibrationResult.OK
-
-        except (AttributeError, ConnectionError):
-            # The connection to the controller failed
-            out["status"] = "ERROR"
-            result = CalibrationResult.BAD_DATA
-
-            try:
-                self.raw_dlcpro.close()
-            finally:
-                self.laser = None
-
-        return result, {
-            "tags": {
-                "type": "TopticaLogger",
-                "device": self.laser_name,
-                "parent": _MonitorToptica.__name__,
-            },
-            "fields": out,
-        }
+class MonitorToptica1379(_Stub):
+    pass
 
 
-class MonitorToptica461(_MonitorToptica):
-    laser_name = "toptica_461"
+class MonitorToptica461(_Stub):
+    pass
 
 
-class MonitorToptica679(_MonitorToptica):
-    laser_name = "toptica_679"
+class MonitorToptica487(_Stub):
+    pass
 
 
-class MonitorToptica1379(_MonitorToptica):
-    laser_name = "toptica_1379"
+class MonitorToptica641(_Stub):
+    pass
 
 
-class MonitorToptica698(_MonitorToptica):
-    laser_name = "toptica_698"
+class MonitorToptica679(_Stub):
+    pass
 
 
-class MonitorToptica707(_MonitorToptica):
-    laser_name = "toptica_707"
+class MonitorToptica689(_Stub):
+    pass
 
 
-class MonitorToptica689(_MonitorToptica):
-    laser_name = "toptica_689"
+class MonitorToptica698(_Stub):
+    pass
 
 
-class MonitorToptica487(_MonitorToptica):
-    laser_name = "toptica_487"
-
-
-class MonitorToptica641(_MonitorToptica):
-    laser_name = "toptica_641"
+class MonitorToptica707(_Stub):
+    pass
