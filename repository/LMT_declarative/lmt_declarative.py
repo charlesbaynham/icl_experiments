@@ -10,16 +10,10 @@ which scannable per-pulse parameters (detuning offsets and durations) are
 generated with model-predicted defaults.
 """
 
-from artiq.language import EnvExperiment
+from repository.lib.utils import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(EnvExperiment):
+class DeclarativeLMTSymmetricMachZehnder(_Stub):
     """
     Declarative symmetric LMT interferometry
     """
-
-    def build(self):
-        pass
-
-    def run(self):
-        raise NotImplementedError("This experiment is a stub")
