@@ -1,7 +1,7 @@
 from repository.lib.utils import _Stub
 
 
-class SingleVRSSweepFrag(_Stub):
+class SingleVRSSweep(_Stub):
     """
     Single sided RF sweep on the 689 VRS AM
 
