@@ -21,13 +21,13 @@ live on several feature branches at once.
 Usage
 -----
     # regenerate this working tree's stubs from master
-    python scripts/generate_stubs.py --branches master
+    nix run .#generate_stubs -- --branches master
 
     # union of several branches (earlier branches win doc conflicts)
-    python scripts/generate_stubs.py --branches master feature/a feature/b
+    nix run .#generate_stubs -- --branches master feature/a feature/b
 
     # inspect what would change without touching the tree
-    python scripts/generate_stubs.py --branches master --dry-run
+    nix run .#generate_stubs -- --branches master --dry-run
 
 The script only reads the source branches through ``git`` (it never checks
 them out) and writes the result into ``--output-dir`` (the current
@@ -35,8 +35,6 @@ directory by default), which is expected to be a checkout of the stubs
 branch. Everything under ``repository/`` in the output directory that the
 script manages is rewritten from scratch on every run.
 """
-
-from __future__ import annotations
 
 import argparse
 import ast
@@ -68,7 +66,7 @@ STUB_BASE_MODULE = "repository.stub_experiment"
 
 GENERATED_HEADER = (
     '"""AUTO-GENERATED stub file - do not edit by hand.\n\n'
-    "Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors\n"
+    "To regenerate see ``nix run .#generate_stubs -- --help``. Every class here mirrors\n"
     "the name and docstring of a real experiment on a source branch; the\n"
     "body is a no-op stub so the ARTIQ explorer can list it without any of\n"
     'the real dependencies.\n"""\n'
