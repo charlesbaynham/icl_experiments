@@ -9,7 +9,13 @@ the real dependencies.
 from repository.stub_experiment import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(_Stub):
+class DeclarativeClockRatioCalDown(_Stub):
     """
-    Declarative symmetric LMT interferometry
+    Down-beam clock Rabi/set-point ratio calibration.
+    """
+
+
+class DeclarativeClockRatioCalUp(_Stub):
+    """
+    Up-beam clock Rabi/set-point ratio calibration.
     """

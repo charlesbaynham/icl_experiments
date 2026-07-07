@@ -9,7 +9,7 @@ the real dependencies.
 from repository.stub_experiment import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(_Stub):
+class TestTrajectoryApplet(_Stub):
     """
-    Declarative symmetric LMT interferometry
+    Launch the LMT trajectory applet against a synthetic intent record.
     """

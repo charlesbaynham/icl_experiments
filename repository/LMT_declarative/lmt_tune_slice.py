@@ -9,7 +9,17 @@ the real dependencies.
 from repository.stub_experiment import _Stub
 
 
-class DeclarativeLMTSymmetricMachZehnder(_Stub):
+class NarrowDownAfterSlice(_Stub):
     """
-    Declarative symmetric LMT interferometry
+    Narrow down after slice
+
+    Designed for tuning the SUServo offset to select v=0 atoms
+    """
+
+
+class NarrowUpAfterSlice(_Stub):
+    """
+    Narrow up after slice
+
+    Designed for tuning the alpha Stark coefficient
     """
