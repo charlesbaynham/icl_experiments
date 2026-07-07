@@ -13,6 +13,7 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.blue_mot.measure_blue_mot import MeasureBlueMOTBGCorrectedFrag
+from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +26,9 @@ class BlueMOTCalibration(Calibration):
     """The blue MOT loads well; optimizes the push-beam SUServo setpoint.
 
     Metric: background-corrected vertical FLIR fluorescence after a normal
-    MOT load. The threshold parameter defaults (via dataset) to an impossibly
-    high value so the calibration fails closed until it has been set from
-    live data.
+    MOT load. The acceptance threshold is
+    ``constants.BLUE_MOT_MIN_OK_FLUORESCENCE``, so the node drives to green
+    from constants alone.
 
     ``check_own_state`` is a kernel. The default (grid-search) optimizer is
     batchable, so a whole fix sweep runs in a single kernel call -- one compile
@@ -57,7 +58,7 @@ class BlueMOTCalibration(Calibration):
             "min_ok_fluorescence",
             FloatParam,
             "bg-corrected image_vertical_mean threshold for OK",
-            default='dataset("calibrations.BlueMOTCalibration.min_ok_fluorescence", default=1.0e9)',
+            default=constants.BLUE_MOT_MIN_OK_FLUORESCENCE,
         )
         self.min_ok_fluorescence: FloatParamHandle
 

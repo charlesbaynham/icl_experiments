@@ -71,7 +71,7 @@ class RedMOTCalibration(Calibration):
             "min_ok_atom_sum",
             FloatParam,
             "andor_sum_bg_corrected threshold for OK",
-            default='dataset("calibrations.RedMOTCalibration.min_ok_atom_sum", default=1.0e12)',
+            default=constants.RED_MOT_MIN_OK_ATOM_SUM,
         )
         self.min_ok_atom_sum: FloatParamHandle
 

@@ -77,7 +77,7 @@ class ClockDeliveryAOMCalibration(Calibration):
             "min_ok_excitation",
             FloatParam,
             "excitation_fraction threshold for OK",
-            default='dataset("calibrations.ClockDeliveryAOMCalibration.min_ok_excitation", default=1.0)',
+            default=constants.CLOCK_REFINED_MIN_OK_EXCITATION,
         )
         self.min_ok_excitation: FloatParamHandle
 

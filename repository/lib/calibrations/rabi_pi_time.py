@@ -66,11 +66,7 @@ class _RabiPiTimeCalibrationBase(Calibration):
             "min_ok_excitation",
             FloatParam,
             "excitation_fraction threshold for OK at the pi time",
-            default=(
-                'dataset("calibrations.'
-                + self.__class__.__name__
-                + '.min_ok_excitation", default=1.0)'
-            ),
+            default=constants.CLOCK_RABI_MIN_OK_EXCITATION,
         )
         self.min_ok_excitation: FloatParamHandle
 
