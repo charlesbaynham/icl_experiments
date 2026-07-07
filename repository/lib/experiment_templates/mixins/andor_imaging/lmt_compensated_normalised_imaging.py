@@ -19,6 +19,7 @@ from artiq.language import TList
 from artiq.language import at_mu
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
@@ -44,6 +45,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsClockPulseMixin,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 from repository.lib.physics import lmt_resonance
@@ -52,6 +56,14 @@ from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
 
 logger = logging.getLogger(__name__)
+
+# OPLL offset the ladder resets to at sequence end. Computed host-side (string
+# dict subscript is not allowed in @kernel) so the readout override can put the
+# OPLL on the same free-fall resonance the ladder pulses use.
+_START_OPLL_OFFSET = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
+
+# DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
+_READOUT_BEAM_SIGN = -1.0
 
 
 # %% Utility functions
@@ -689,15 +701,47 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 class NormalisedFastKineticsLMTCorrectedMixin(
     DynamicROIImagingMixin,
     NormalisedFastKineticsRepumpedMixin,
-    # NormalisedFastKineticsClockPulseMixin  FIXME Put back the clock pulse imaging
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
     ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` in the MRO)
-    plus the clock pi pulse of :class:`~.NormalisedFastKineticsClockPulseMixin`
-    (which still wins ``do_first_pulse``).
+    plus the 679/707 repump of :class:`~.NormalisedFastKineticsRepumpedMixin`
+    (which wins ``do_first_pulse``).
+
+    This is the default LMT readout. For momentum-resolved state readout use
+    :class:`~.NormalisedFastKineticsLMTCorrectedClockMixin` instead.
 
     ``DynamicROIImagingMixin`` is listed first so its precedence over the
     static-config base hooks is explicit. See
     :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract.
     """
+
+
+class NormalisedFastKineticsLMTCorrectedClockMixin(
+    DynamicROIImagingMixin,
+    NormalisedFastKineticsClockPulseMixin,
+):
+    """
+    As :class:`~.NormalisedFastKineticsLMTCorrectedMixin`, but the ``do_first_pulse``
+    hook is the full-power broad clock selection pulse of
+    :class:`~.NormalisedFastKineticsClockPulseMixin` instead of the 679/707 repump.
+
+    Scanning ``imaging_clock_pulse_detuning`` then resolves adjacent momentum
+    (M-)states, reading out atom number per state and momentum class. Repumped vs
+    clock readout is a compile-time choice: name whichever aggregator you want in
+    the experiment Frag's bases.
+    """
+
+    @kernel
+    def prepare_readout_opll_hook(self):
+        # The ladder resets the OPLL to start_opll_offset at sequence end, but
+        # the atoms are still falling: the readout DOWN pi must carry the same
+        # gravity Doppler an in-sequence DOWN pulse would at this fall time.
+        # get_t_release_mu() is the live-timeline release stamp; now_mu() is the
+        # readout pi moment, so this covers a truncated (skip_after) sequence too
+        # - now_mu already reflects the post-truncation timeline.
+        t_fall = self.core.mu_to_seconds(now_mu() - self.get_t_release_mu())
+        self.set_clock_opll(
+            _START_OPLL_OFFSET
+            + _READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+        )

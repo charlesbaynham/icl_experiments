@@ -569,14 +569,14 @@ def symmetric_mach_zehnder_sequence(
                 sequence.append(Wait(param="clearout_duration", label="clearout_delay"))
 
     separate()
-    sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))
     sequence.append(Wait(param=dark_param_1, label="dark1"))
     rejoin()
+    sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))
     sequence.append(pi(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="mirror"))
     separate()
-    sequence.append(Phase(param=phase_param, multiplier=4.0, label="bs2"))
     sequence.append(Wait(param=dark_param_2, label="dark2"))
     rejoin()
+    sequence.append(Phase(param=phase_param, multiplier=4.0, label="bs2"))
     sequence.append(pi2(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="bs2"))
     return sequence
 
