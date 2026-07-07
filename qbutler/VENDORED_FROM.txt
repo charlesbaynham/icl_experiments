@@ -1,2 +1,6 @@
-5ff4622fba2acf36aa6098760de390a16435f935
-github.com/charlesbaynham/qbutler branch hardware-mot-calibrations — vendored copy; upstream fixes go to that repo.
+2c5fe52ed4bc3a00c0a1580b621893beb80d945a
+github.com/charlesbaynham/qbutler branch kernel-optimizer-revival — vendored copy; upstream fixes go to that repo.
+Includes the kernel-mode optimizer (_run_optimizer_kernel / _kernel_sweep_all):
+a batchable optimizer's whole sweep runs in one kernel call (device-side param
+setting), so calibrations with an @kernel check_own_state pay one compile+upload
+per fix instead of recompiling per point.
