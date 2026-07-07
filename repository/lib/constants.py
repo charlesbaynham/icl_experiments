@@ -1561,4 +1561,4 @@ LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 
 # Squeezing / Vacuum Rabi splitting stuff
 # This is in a glitch free urukul, so need to restart the crate for it take effect!
-VRS_SWEEP_ATTENUATION = 0.0
+VRS_SWEEP_ATTENUATION = 1.0
