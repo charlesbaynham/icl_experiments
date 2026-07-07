@@ -1,0 +1,28 @@
+"""AUTO-GENERATED stub file - do not edit by hand.
+
+Regenerate with ``scripts/generate_stubs.py``. Every class here mirrors
+the name and docstring of a real experiment on a source branch; the
+body is a no-op stub so the ARTIQ explorer can list it without any of
+the real dependencies.
+"""
+
+from repository.stub_experiment import _Stub
+
+
+class ClockDeliveryAOMCalibrationExp(_Stub):
+    """
+    Centre the shared clock ``clock_delivery`` SUServo delivery AOM frequency.
+
+    The delivery AOM is common to the up and down clock beams (split by the OPLL
+    offset), so its frequency is the common-mode centring knob.
+    :class:`NarrowDownAfterSliceFrag` velocity-slices with a narrow (~1.3 kHz)
+    up-slice -- which gives the sharp centring sensitivity -- then de-shelves with
+    a NORMAL-power down pulse (overridden below) so the whole shelved class is
+    recovered and imaged with the dual-image re-pumped readout: healthy atoms and
+    a sharp, high-SNR peak in the shelved fraction versus delivery frequency.
+
+    Optimizable parameter: the ``frequency_clock_delivery`` SUServo delivery
+    frequency (persisted to dataset
+    ``calibrations.ClockDeliveryAOMCalibration.delivery_frequency``; ``constants.py``
+    holds the fallback default).
+    """
