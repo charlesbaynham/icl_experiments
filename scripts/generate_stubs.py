@@ -43,7 +43,8 @@ import ast
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 
 # --- experiment classification -------------------------------------------
 
@@ -213,7 +214,7 @@ def output_path_for(source_path: str) -> str:
     """Map a source file path to its stub path (drop the ``lib/`` segment)."""
     prefix = "repository/lib/"
     if source_path.startswith(prefix):
-        return "repository/" + source_path[len(prefix):]
+        return "repository/" + source_path[len(prefix) :]
     return source_path
 
 
@@ -327,7 +328,9 @@ def write_output(
     existing = managed_repository_files(output_dir)
     obsolete = existing - set(wanted)
 
-    print(f"stub files: {sum(1 for p in wanted if p.endswith('.py') and '__init__' not in p) - 1}")
+    print(
+        f"stub files: {sum(1 for p in wanted if p.endswith('.py') and '__init__' not in p) - 1}"
+    )
     print(f"experiments: {sum(len(v) for v in by_path.values())}")
     print(f"files to write: {len(wanted)}   obsolete to remove: {len(obsolete)}")
 
