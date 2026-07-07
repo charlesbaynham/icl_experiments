@@ -1059,6 +1059,13 @@ class NormalisedFastKineticsClockPulseMixin(
         )
         delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
 
+        # Put the OPLL on the free-fall Doppler resonance the falling atoms
+        # actually see. Base (non-LMT) consumers have no OPLL to drive, so this
+        # is a no-op there; the LMT-corrected clock mixin overrides it. Called
+        # before the switch-DDS write so the OPLL write gets a ladder-like
+        # settling margin before the switch opens.
+        self.prepare_readout_opll_hook()
+
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.imaging_clock_pulse_detuning.get()
@@ -1071,6 +1078,16 @@ class NormalisedFastKineticsClockPulseMixin(
         self.clock_down_dds.sw.on()
         delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def prepare_readout_opll_hook(self):
+        """Set the readout-pulse OPLL frequency, called just before the pulse.
+
+        Default no-op: the plain :class:`ClockSpectroscopyBase` consumers of
+        this mixin have no OPLL tracker. The LMT-corrected clock mixin
+        overrides this to add the free-fall gravity Doppler the ladder pulses
+        carry.
+        """
 
 
 class NormalisedFastKineticsDoubleTrapRepumpedMixin(
