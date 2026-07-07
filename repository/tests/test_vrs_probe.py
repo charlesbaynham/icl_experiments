@@ -112,7 +112,6 @@ class TestRTBSetupFrag(ExpFragment):
 
         # There's probably a more elegant way of doing this
         self.rtb_device: RSDevice = self.get_device("vrs_scope")
-        self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Make an applet
         self.setattr_device("ccb")
@@ -125,6 +124,8 @@ class TestRTBSetupFrag(ExpFragment):
         # self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
         # Long timeout for visa
+        self.rtb: RsInstrument = self.rtb_device.get_instrument()
+
         self.rtb.visa_timeout = 50000
         self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
         self.rtb.write_str("TRIG:A:SOUR EXT")

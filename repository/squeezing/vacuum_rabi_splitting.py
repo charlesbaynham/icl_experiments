@@ -18,7 +18,6 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
-from device_db_config import get_configuration_from_db
 from repository.lib.constants import VRS_SWEEP_ATTENUATION
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImageMixin,
@@ -89,7 +88,6 @@ class SingleVRSSweepFrag(
 
         # RS Scope for the VRS measurement
         self.rtb_device: RSDevice = self.get_device("vrs_scope")
-        self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Make an applet
         self.setattr_device("ccb")
@@ -140,9 +138,11 @@ class SingleVRSSweepFrag(
         super().host_setup()
 
         # and write a bunch of stuff to the scope
-        self.rtb = RsInstrument(
-            get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
-        )
+        # self.rtb = RsInstrument(
+        #     get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
+        # )
+        self.rtb: RsInstrument = self.rtb_device.get_instrument()
+
         # Set a long Long timeout for visa
         self.rtb.visa_timeout = 50000
         # Set the trigger to an external signal
