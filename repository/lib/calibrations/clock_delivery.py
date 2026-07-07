@@ -15,17 +15,39 @@ from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib import constants
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
+from repository.lib.calibrations.coarse_clock_centre import (
+    CoarseClockCentreCalibration,
+)
 
 logger = logging.getLogger(__name__)
 
 _CLOCK_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 
-#: Half-width of the delivery-frequency search window. The carrier is known to
-#: sit within a few kHz of nominal (independent broad clock spectroscopy), so this
-#: is a precision window, not an acquisition one; the narrow down_spec pulse is
-#: Fourier-narrow (~1 kHz), refined to sub-grid precision by the parabolic fit.
+#: Half-width of the delivery-frequency search window, recentred on the coarse
+#: seed (see build_calibration). A precision window, not an acquisition one: the
+#: coarse node has already found the line to within a few kHz, and the narrow
+#: down_spec pulse is Fourier-narrow (~1 kHz), refined to sub-grid precision by
+#: the parabolic fit.
 _SEARCH_HALF_SPAN = 30e3
+
+#: Dataset the coarse line-finder persists its fitted centre to; the refined
+#: window recentres on it, falling back to nominal when the coarse node has
+#: never run.
+_COARSE_SEED_DATASET = f"{CoarseClockCentreCalibration.__name__}.delivery_frequency"
+
+#: The coarse node probes the UP beam (full-power up pi on the unsliced cloud)
+#: while this node's down_spec probes the DOWN beam, and the down-vs-up line
+#: centre offset in delivery frequency was measured at -37 +/- 3 kHz after the
+#: 2026-06 rebuild (lab notes; was -20.6 kHz before). Applied to the coarse
+#: seed when recentring so the down line sits mid-window rather than at its
+#: edge. Re-measure on atoms and update when it moves.
+_UP_TO_DOWN_DELIVERY_OFFSET = -37e3
+
+#: Edge guard for the fitted centre: if it lands within this fraction of the
+#: sweep span from either window edge, the window is recentred on the fit and
+#: doubled, and the sweep rerun once (guards a stale/wrong cross-beam offset).
+_EDGE_GUARD_FRACTION = 0.2
 
 #: Points in one delivery-frequency sweep during a fix (+/-30 kHz over 61 points
 #: = 1 kHz grid, refined to sub-grid precision by the parabolic peak fit below).
@@ -33,21 +55,44 @@ _SWEEP_POINTS = 61
 
 
 def _delivery_fit_optimizer(param_specs):
-    """qbutler optimizer generator: sweep the delivery frequency once across the
-    search window, then return the parabolic-fitted line centre as the best
+    """qbutler optimizer generator: sweep the delivery frequency across the
+    search window and return the parabolic-fitted line centre as the best
     param. Reuses the framework persist + re-verify path in _run_optimizer_host.
+
+    If the fitted centre lands within :data:`_EDGE_GUARD_FRACTION` of a window
+    edge (a mis-seeded window, e.g. a stale cross-beam offset), the window is
+    recentred on the fit and doubled, and the sweep rerun once.
     """
     (spec,) = param_specs
-    freqs = np.linspace(spec.min, spec.max, _SWEEP_POINTS)
+    lo, hi = spec.min, spec.max
 
-    excitations = []
-    for f in freqs:
-        _, data = yield {spec.name: float(f)}
-        excitations.append(data if isinstance(data, (int, float)) else np.nan)
+    centre = None
+    for _ in range(2):
+        freqs = np.linspace(lo, hi, _SWEEP_POINTS)
 
-    centre = fit_peak_x(freqs, excitations)
-    if centre is None:
-        return None
+        excitations = []
+        for f in freqs:
+            _, data = yield {spec.name: float(f)}
+            excitations.append(data if isinstance(data, (int, float)) else np.nan)
+
+        centre = fit_peak_x(freqs, excitations)
+        if centre is None:
+            return None
+
+        span = hi - lo
+        if min(centre - lo, hi - centre) >= _EDGE_GUARD_FRACTION * span:
+            break
+
+        logger.warning(
+            "Fitted delivery centre %.6f MHz is within %.0f%% of the window "
+            "edge [%.6f, %.6f] MHz; recentring and doubling the window",
+            1e-6 * centre,
+            100 * _EDGE_GUARD_FRACTION,
+            1e-6 * lo,
+            1e-6 * hi,
+        )
+        lo, hi = centre - span, centre + span
+
     return {spec.name: float(centre)}
 
 
@@ -72,6 +117,9 @@ class ClockDeliveryAOMCalibration(Calibration):
         self.setattr_device("core")
         self.core: Core
 
+        self.add_dependency(CoarseClockCentreCalibration)
+        self.CoarseClockCentreCalibration: CoarseClockCentreCalibration
+
         self.setattr_fragment("meas", NarrowDownAfterSliceFrag)
         self.meas: NarrowDownAfterSliceFrag
         # The optimizer re-measures many times inside one fix, so the measurement
@@ -87,12 +135,16 @@ class ClockDeliveryAOMCalibration(Calibration):
             "p04_pi_d_m1_down_spec_duration", constants.DOWN_CLOCK_BEAM_PI_TIME
         )
 
+        coarse_seed = self.get_dataset(
+            _COARSE_SEED_DATASET, default=_NOMINAL_DELIVERY_FREQUENCY, archive=False
+        )
+        window_centre = coarse_seed + _UP_TO_DOWN_DELIVERY_OFFSET
         self.setattr_param_optimizable(
             "delivery_frequency",
             "clock_delivery SUServo delivery AOM frequency",
-            min=_NOMINAL_DELIVERY_FREQUENCY - _SEARCH_HALF_SPAN,
-            max=_NOMINAL_DELIVERY_FREQUENCY + _SEARCH_HALF_SPAN,
-            default=_NOMINAL_DELIVERY_FREQUENCY,
+            min=window_centre - _SEARCH_HALF_SPAN,
+            max=window_centre + _SEARCH_HALF_SPAN,
+            default=window_centre,
         )
         self.delivery_frequency: FloatParamHandle
 
@@ -100,7 +152,7 @@ class ClockDeliveryAOMCalibration(Calibration):
             "min_ok_excitation",
             FloatParam,
             "excitation_fraction threshold for OK",
-            default='dataset("calibrations.ClockDeliveryAOMCalibration.min_ok_excitation", default=1.0)',
+            default=constants.CLOCK_REFINED_MIN_OK_EXCITATION,
         )
         self.min_ok_excitation: FloatParamHandle
 

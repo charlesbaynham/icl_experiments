@@ -70,3 +70,81 @@ def test_rabi_optimizer_finds_pi_and_gates_band():
     got = run(56e-6)
     assert got is not None and abs(got["pi_time"] - 56e-6) < 6e-6  # in-band, near pi
     assert run(120e-6) is None  # first max out of sane band -> not persisted
+
+
+def test_coarse_optimizer_finds_broad_line_centre():
+    from repository.lib.calibrations.coarse_clock_centre import _coarse_fit_optimizer
+    from repository.lib.calibrations.coarse_clock_centre import (
+        _NOMINAL_DELIVERY_FREQUENCY,
+    )
+    from repository.lib.calibrations.coarse_clock_centre import _SEARCH_HALF_SPAN
+    from qbutler.optimizers import ParamSpec
+
+    true_centre = _NOMINAL_DELIVERY_FREQUENCY + 40e3
+    spec = ParamSpec(
+        name="delivery_frequency",
+        min=_NOMINAL_DELIVERY_FREQUENCY - _SEARCH_HALF_SPAN,
+        max=_NOMINAL_DELIVERY_FREQUENCY + _SEARCH_HALF_SPAN,
+        handle=None,
+    )
+
+    gen = _coarse_fit_optimizer([spec])
+    params = next(gen)
+    try:
+        while True:
+            f = params["delivery_frequency"]
+            excitation = np.exp(-((f - true_centre) ** 2) / (2 * 30e3**2))
+            params = gen.send((0, excitation))  # 0 == CalibrationResult.OK
+    except StopIteration as e:
+        best = e.value
+
+    assert best is not None
+    assert abs(best["delivery_frequency"] - true_centre) < 10e3  # ~one grid step
+
+
+def _run_delivery_optimizer(spec, true_centre, width=3e3):
+    """Drive _delivery_fit_optimizer against an ideal Gaussian line."""
+    from repository.lib.calibrations.clock_delivery import _delivery_fit_optimizer
+
+    gen = _delivery_fit_optimizer([spec])
+    params = next(gen)
+    sweep_points = []
+    try:
+        while True:
+            f = params["delivery_frequency"]
+            sweep_points.append(f)
+            excitation = np.exp(-((f - true_centre) ** 2) / (2 * width**2))
+            params = gen.send((0, excitation))  # 0 == CalibrationResult.OK
+    except StopIteration as e:
+        return e.value, sweep_points
+
+
+def test_delivery_optimizer_single_sweep_when_centred():
+    from repository.lib.calibrations.clock_delivery import _SWEEP_POINTS
+    from qbutler.optimizers import ParamSpec
+
+    centre = 99.44e6
+    spec = ParamSpec(
+        name="delivery_frequency", min=centre - 30e3, max=centre + 30e3, handle=None
+    )
+    best, sweep = _run_delivery_optimizer(spec, true_centre=centre + 5e3)
+    assert best is not None
+    assert abs(best["delivery_frequency"] - (centre + 5e3)) < 1e3
+    assert len(sweep) == _SWEEP_POINTS  # in-window centre: no rewiden
+
+
+def test_delivery_optimizer_edge_guard_rewidens_on_misseeded_window():
+    from repository.lib.calibrations.clock_delivery import _SWEEP_POINTS
+    from qbutler.optimizers import ParamSpec
+
+    # The true line sits at the window edge (e.g. a stale cross-beam offset):
+    # the guard must recentre + double the window and find it on the rerun.
+    centre = 99.44e6
+    true_centre = centre + 28e3
+    spec = ParamSpec(
+        name="delivery_frequency", min=centre - 30e3, max=centre + 30e3, handle=None
+    )
+    best, sweep = _run_delivery_optimizer(spec, true_centre=true_centre)
+    assert best is not None
+    assert len(sweep) == 2 * _SWEEP_POINTS  # rewidened once
+    assert abs(best["delivery_frequency"] - true_centre) < 1e3
