@@ -14,8 +14,6 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
 from repository.lib.constants import VRS_SWEEP_ATTENUATION
@@ -94,18 +92,6 @@ class SingleVRSSweepFrag(
         self.ccb: CCB
 
         # Params
-        self.setattr_param(
-            "attenuation",
-            IntParam,
-            "DDS attenuation",
-            min=0,
-            max=30,
-            default=30,
-            unit="dB",
-        )
-        self.attenuation: IntParamHandle
-
-        # TODO: Change this to automatically match the sweep time of the dds
         self.setattr_param(
             "acquisition_time",
             FloatParam,
