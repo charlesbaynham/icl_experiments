@@ -24,6 +24,7 @@ repository/
   <mirrors the experiment file tree of the source branch(es)>
 scripts/
   generate_stubs.py      # regenerates everything under repository/
+flake.nix, flake.lock    # minimal flake exposing the generator as a nix app
 ```
 
 The only file that is **not** regenerated is `repository/stub_experiment.py`
@@ -38,11 +39,14 @@ that stripping would ever collide with another file.
 
 ## Keeping in sync with master (and feature branches)
 
-Regenerate whenever the source branches change:
+Regenerate whenever the source branches change, either directly with Python or
+via the nix app (which just runs the same script with `git`/`python3` pinned
+to the same nixpkgs revision as master's flake):
 
 ```bash
 # just track master
 python scripts/generate_stubs.py --branches master
+nix run .#generate_stubs -- --branches master   # equivalent
 
 # union of several branches - the output is the union of every experiment
 # found on any of them (earlier branches win docstring conflicts)
@@ -61,6 +65,11 @@ git push
 
 Run `python scripts/generate_stubs.py --branches master --dry-run` to see what
 would change without touching the tree.
+
+This branch's `flake.nix` is intentionally minimal - a single `nixpkgs` input
+(no pyaion/ARTIQ) providing `git` and `python3` for the `generate_stubs` app.
+It is pinned to the exact nixpkgs commit master's flake resolves to, so update
+it by hand alongside master's pin rather than with `nix flake update`.
 
 ## What determines an "experiment"?
 
