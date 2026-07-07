@@ -70,3 +70,33 @@ def test_rabi_optimizer_finds_pi_and_gates_band():
     got = run(56e-6)
     assert got is not None and abs(got["pi_time"] - 56e-6) < 6e-6  # in-band, near pi
     assert run(120e-6) is None  # first max out of sane band -> not persisted
+
+
+def test_coarse_optimizer_finds_broad_line_centre():
+    from repository.lib.calibrations.coarse_clock_centre import _coarse_fit_optimizer
+    from repository.lib.calibrations.coarse_clock_centre import (
+        _NOMINAL_DELIVERY_FREQUENCY,
+    )
+    from repository.lib.calibrations.coarse_clock_centre import _SEARCH_HALF_SPAN
+    from qbutler.optimizers import ParamSpec
+
+    true_centre = _NOMINAL_DELIVERY_FREQUENCY + 40e3
+    spec = ParamSpec(
+        name="delivery_frequency",
+        min=_NOMINAL_DELIVERY_FREQUENCY - _SEARCH_HALF_SPAN,
+        max=_NOMINAL_DELIVERY_FREQUENCY + _SEARCH_HALF_SPAN,
+        handle=None,
+    )
+
+    gen = _coarse_fit_optimizer([spec])
+    params = next(gen)
+    try:
+        while True:
+            f = params["delivery_frequency"]
+            excitation = np.exp(-((f - true_centre) ** 2) / (2 * 30e3**2))
+            params = gen.send((0, excitation))  # 0 == CalibrationResult.OK
+    except StopIteration as e:
+        best = e.value
+
+    assert best is not None
+    assert abs(best["delivery_frequency"] - true_centre) < 10e3  # ~one grid step

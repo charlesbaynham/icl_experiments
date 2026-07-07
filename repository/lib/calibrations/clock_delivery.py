@@ -15,17 +15,26 @@ from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib import constants
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
+from repository.lib.calibrations.coarse_clock_centre import (
+    CoarseClockCentreCalibration,
+)
 
 logger = logging.getLogger(__name__)
 
 _CLOCK_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 _NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 
-#: Half-width of the delivery-frequency search window. The carrier is known to
-#: sit within a few kHz of nominal (independent broad clock spectroscopy), so this
-#: is a precision window, not an acquisition one; the narrow down_spec pulse is
-#: Fourier-narrow (~1 kHz), refined to sub-grid precision by the parabolic fit.
+#: Half-width of the delivery-frequency search window, recentred on the coarse
+#: seed (see build_calibration). A precision window, not an acquisition one: the
+#: coarse node has already found the line to within a few kHz, and the narrow
+#: down_spec pulse is Fourier-narrow (~1 kHz), refined to sub-grid precision by
+#: the parabolic fit.
 _SEARCH_HALF_SPAN = 30e3
+
+#: Dataset the coarse line-finder persists its fitted centre to; the refined
+#: window recentres on it, falling back to nominal when the coarse node has
+#: never run.
+_COARSE_SEED_DATASET = f"{CoarseClockCentreCalibration.__name__}.delivery_frequency"
 
 #: Points in one delivery-frequency sweep during a fix (+/-30 kHz over 61 points
 #: = 1 kHz grid, refined to sub-grid precision by the parabolic peak fit below).
@@ -72,6 +81,9 @@ class ClockDeliveryAOMCalibration(Calibration):
         self.setattr_device("core")
         self.core: Core
 
+        self.add_dependency(CoarseClockCentreCalibration)
+        self.CoarseClockCentreCalibration: CoarseClockCentreCalibration
+
         self.setattr_fragment("meas", NarrowDownAfterSliceFrag)
         self.meas: NarrowDownAfterSliceFrag
         # The optimizer re-measures many times inside one fix, so the measurement
@@ -87,12 +99,15 @@ class ClockDeliveryAOMCalibration(Calibration):
             "p04_pi_d_m1_down_spec_duration", constants.DOWN_CLOCK_BEAM_PI_TIME
         )
 
+        coarse_seed = self.get_dataset(
+            _COARSE_SEED_DATASET, default=_NOMINAL_DELIVERY_FREQUENCY, archive=False
+        )
         self.setattr_param_optimizable(
             "delivery_frequency",
             "clock_delivery SUServo delivery AOM frequency",
-            min=_NOMINAL_DELIVERY_FREQUENCY - _SEARCH_HALF_SPAN,
-            max=_NOMINAL_DELIVERY_FREQUENCY + _SEARCH_HALF_SPAN,
-            default=_NOMINAL_DELIVERY_FREQUENCY,
+            min=coarse_seed - _SEARCH_HALF_SPAN,
+            max=coarse_seed + _SEARCH_HALF_SPAN,
+            default=coarse_seed,
         )
         self.delivery_frequency: FloatParamHandle
 
