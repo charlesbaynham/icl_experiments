@@ -2,7 +2,6 @@ import numpy as np
 from artiq.experiment import HasEnvironment
 from artiq.experiment import TInt64
 from artiq.experiment import TList
-from artiq.language import EnvExperiment
 from artiq.language import portable
 from numpy import int64
 
@@ -98,11 +97,3 @@ class FastIntChecksum:
             ) & self.mask
 
         return checksum
-
-
-class _Stub(EnvExperiment):
-    def build(self):
-        pass
-
-    def run(self):
-        raise NotImplementedError("Stub")
