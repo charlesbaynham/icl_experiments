@@ -19,33 +19,16 @@ from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
 logger = logging.getLogger(__name__)
 
-_CLOCK_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
-_NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 
-#: Half-width of the delivery-frequency search window. The carrier is known to
-#: sit within a few kHz of nominal (independent broad clock spectroscopy), so
-#: this is a precision window, not an acquisition one.
-_SEARCH_HALF_SPAN = 30e3
+class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
+    """Check that the XODT is working
 
+    No optimisation here, just a check
 
-class ClockDeliveryAOMCalibration(InfluxRecalibrationLogMixin, Calibration):
-    """Centre the shared clock ``clock_delivery`` SUServo delivery AOM frequency.
-
-    The delivery AOM is common to the up and down clock beams (split by the OPLL
-    offset), so its frequency is the common-mode centring knob.
-    :class:`NarrowDownAfterSliceFrag` velocity-slices with a narrow (~1.3 kHz)
-    up-slice -- which gives the sharp centring sensitivity -- then de-shelves with
-    a NORMAL-power down pulse (overridden below) so the whole shelved class is
-    recovered and imaged with the dual-image re-pumped readout.
-
-    Optimizable parameter: the ``frequency_clock_delivery`` SUServo delivery
-    frequency (persisted to dataset
-    ``calibrations.ClockDeliveryAOMCalibration.delivery_frequency``). Metric:
-    the shelved ``excitation_fraction``, peaked at line centre.
-
-    ``check_own_state`` is a kernel, and the default (grid-search) optimizer is
-    batchable, so a fix sweep runs in a single kernel call.
+    TODO: Add optimization
     """
+
+    # FIXME WIP
 
     def build_calibration(self):
         self.setattr_device("core")
