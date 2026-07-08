@@ -381,6 +381,9 @@
             artiq_master = ''
               set -e
               STUBS_WT="$(${refresh_stubs_launcher}/bin/refresh_stubs)"
+
+              echo Stubs updated at: $STUBS_WT
+
               exec artiq_master \
                 --verbose \
                 --git \
