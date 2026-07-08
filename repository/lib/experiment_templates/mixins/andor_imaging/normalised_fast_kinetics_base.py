@@ -77,6 +77,14 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 # Full clock-delivery setpoint, resolved host-side (string-keyed dict lookups are
 # not permitted inside kernels) for the full-power readout selection pulse.
 CLOCK_DELIVERY_SETPOINT_V: float = constants.SUSERVOED_BEAMS["clock_delivery"].setpoint
+# OPLL offset the ladder resets to at sequence end. Resolved host-side (string
+# dict lookup is not allowed in @kernel) so readout can apply free-fall Doppler
+# at the live pulse time.
+READOUT_START_OPLL_OFFSET: float = constants.URUKULED_BEAMS[
+    "698_clock_OPLL_offset"
+].frequency
+# DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
+READOUT_BEAM_SIGN: float = -1.0
 
 # 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
 _LABEL_BITMAPS = {
@@ -1060,11 +1068,9 @@ class NormalisedFastKineticsClockPulseMixin(
         delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
 
         # Put the OPLL on the free-fall Doppler resonance the falling atoms
-        # actually see. Base (non-LMT) consumers have no OPLL to drive, so this
-        # is a no-op there; the LMT-corrected clock mixin overrides it. Called
-        # before the switch-DDS write so the OPLL write gets a ladder-like
-        # settling margin before the switch opens.
-        self.prepare_readout_opll_hook()
+        # actually see. Called before the switch-DDS write so the OPLL write
+        # gets a ladder-like settling margin before the switch opens.
+        self._set_readout_opll_for_fall()
 
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
@@ -1080,14 +1086,16 @@ class NormalisedFastKineticsClockPulseMixin(
         self.clock_down_dds.sw.off()
 
     @kernel
-    def prepare_readout_opll_hook(self):
-        """Set the readout-pulse OPLL frequency, called just before the pulse.
-
-        Default no-op: the plain :class:`ClockSpectroscopyBase` consumers of
-        this mixin have no OPLL tracker. The LMT-corrected clock mixin
-        overrides this to add the free-fall gravity Doppler the ladder pulses
-        carry.
-        """
+    def _set_readout_opll_for_fall(self):
+        """Set readout OPLL to the free-fall Doppler resonance at pulse time."""
+        t_release_mu = (
+            self.get_t_release_mu()
+        )  # pyright: ignore[reportAttributeAccessIssue]
+        t_fall = self.core.mu_to_seconds(now_mu() - t_release_mu)
+        self.set_clock_opll(  # pyright: ignore[reportAttributeAccessIssue]
+            READOUT_START_OPLL_OFFSET
+            + READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+        )
 
 
 class NormalisedFastKineticsDoubleTrapRepumpedMixin(

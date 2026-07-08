@@ -19,7 +19,6 @@ from artiq.language import TList
 from artiq.language import at_mu
 from artiq.language import host_only
 from artiq.language import kernel
-from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
@@ -56,14 +55,6 @@ from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
 
 logger = logging.getLogger(__name__)
-
-# OPLL offset the ladder resets to at sequence end. Computed host-side (string
-# dict subscript is not allowed in @kernel) so the readout override can put the
-# OPLL on the same free-fall resonance the ladder pulses use.
-_START_OPLL_OFFSET = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
-
-# DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
-_READOUT_BEAM_SIGN = -1.0
 
 
 # %% Utility functions
@@ -731,17 +722,3 @@ class NormalisedFastKineticsLMTCorrectedClockMixin(
     clock readout is a compile-time choice: name whichever aggregator you want in
     the experiment Frag's bases.
     """
-
-    @kernel
-    def prepare_readout_opll_hook(self):
-        # The ladder resets the OPLL to start_opll_offset at sequence end, but
-        # the atoms are still falling: the readout DOWN pi must carry the same
-        # gravity Doppler an in-sequence DOWN pulse would at this fall time.
-        # get_t_release_mu() is the live-timeline release stamp; now_mu() is the
-        # readout pi moment, so this covers a truncated (skip_after) sequence too
-        # - now_mu already reflects the post-truncation timeline.
-        t_fall = self.core.mu_to_seconds(now_mu() - self.get_t_release_mu())
-        self.set_clock_opll(  # FIXME needs doppler shift for midpoint. others too?
-            _START_OPLL_OFFSET
-            + _READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-        )
