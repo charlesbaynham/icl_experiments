@@ -130,6 +130,28 @@
         export PYTHONPATH=${self}:$PYTHONPATH
         exec ${overriddenOutputs.apps.dashboard.program} -s ${bind_settings.connection_ip}
       '';
+
+      # Rebuild the auto-generated stub catalog the master serves, and print the
+      # path of the resulting worktree (see scripts/refresh_stubs.sh). Operates
+      # on the current working directory's git repo, so run it from the repo root.
+      refresh_stubs_launcher = pkgs.writeShellScriptBin "refresh_stubs" ''
+        export PATH=${
+          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
+            ++ [pkgs.git])
+        }:$PATH
+        exec ./scripts/refresh_stubs.sh "$@"
+      '';
+
+      # Refresh the stub catalog AND ask a running master to rescan, so a branch
+      # newly added to stubs_sources.yaml appears without restarting the stack.
+      update_stubs_launcher = pkgs.writeShellScriptBin "update_stubs" ''
+        export PATH=${
+          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
+            ++ [pkgs.git])
+        }:$PATH
+        ./scripts/refresh_stubs.sh >/dev/null
+        exec artiq_client -s ${bind_settings.connection_ip} scan-repository
+      '';
     in {
       inherit (overriddenOutputs) formatter;
 
@@ -195,6 +217,16 @@
       apps =
         overriddenOutputs.apps
         // {
+          refresh_stubs = {
+            type = "app";
+            program = "${refresh_stubs_launcher}/bin/refresh_stubs";
+          };
+
+          update_stubs = {
+            type = "app";
+            program = "${update_stubs_launcher}/bin/update_stubs";
+          };
+
           backup_datasets = let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${
@@ -375,8 +407,29 @@
             # dashboards don't know where to connect to it.
             moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
 
-            # Automatic startup of database monitors
-            monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+            # Automatic startup of database monitors. Pin -r master: the served
+            # repository is the stub catalog, so an unpinned -R submit would run
+            # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
+            monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R -r master --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+
+            # Serve the experiment catalog from the auto-generated stub worktree
+            # rather than the launch checkout, so the dashboard lists experiments
+            # from every branch in stubs_sources.yaml. device_db is untouched: the
+            # master still loads it from the launch cwd (no --device-db here), and
+            # real experiments are launched by submitting with a real repository
+            # revision (a branch name), which resolves against the shared object DB.
+            artiq_master = ''
+              set -e
+              STUBS_WT="$(${refresh_stubs_launcher}/bin/refresh_stubs)"
+              exec artiq_master \
+                --verbose \
+                --git \
+                --repository "$STUBS_WT" \
+                --experiment-subdir repository \
+                --log-file log/artiq.log \
+                $ARTIQ_COMMANDLINE_ADDITIONS \
+                --name 'AION ARTIQ'
+            '';
           in
             overriddenOutputs.apps.full_stack.override (prev:
               {
@@ -384,6 +437,7 @@
                   prev.commands
                   // {
                     inherit
+                      artiq_master
                       backup_database
                       backup_datasets
                       backup_grafana
