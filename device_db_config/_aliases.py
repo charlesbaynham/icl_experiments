@@ -58,6 +58,7 @@ aliases = {
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_clock_small": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
+    "urukul9910_squeezing_probe": "urukul8_ch3",
     # %% TTLs
     # ttl0-3 bank set to In/Out
     "ttl_50hz_trigger": "ttl1",
@@ -82,6 +83,7 @@ aliases = {
     "ttl_shutter_red_axial_spin_pol": "ttl23",
     "ttl_shutter_red_wavemeter_689_master": "ttl24",
     "ttl_shutter_red_wavemeter_689_from_1379": "ttl25",
+    "ttl_vrs_scope_trigger": "ttl26",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch0",
     "mirny_eom_707_sideband_A": "mirny0_ch1",
