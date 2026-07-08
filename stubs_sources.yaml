@@ -26,5 +26,5 @@
 branches:
     - master
     - origin/dl-vrs
-    # - origin/declarative-lmt
+    - origin/declarative-lmt
     - origin/feature/calibrations
