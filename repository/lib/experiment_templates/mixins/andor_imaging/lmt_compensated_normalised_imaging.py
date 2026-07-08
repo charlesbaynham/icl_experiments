@@ -43,10 +43,10 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsClockPulseMixin,
+    NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
@@ -741,7 +741,7 @@ class NormalisedFastKineticsLMTCorrectedClockMixin(
         # readout pi moment, so this covers a truncated (skip_after) sequence too
         # - now_mu already reflects the post-truncation timeline.
         t_fall = self.core.mu_to_seconds(now_mu() - self.get_t_release_mu())
-        self.set_clock_opll(
+        self.set_clock_opll(  # FIXME needs doppler shift for midpoint. others too?
             _START_OPLL_OFFSET
             + _READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
         )
