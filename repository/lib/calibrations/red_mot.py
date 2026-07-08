@@ -13,6 +13,7 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.lib.calibrations.blue_mot import PUSH_SETPOINT_DEFAULT
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
@@ -31,7 +32,7 @@ class _RedMOTAndorOnlyMeasFrag(BGCorrectedAndorImageMixin, _MeasureNarrowbandMOT
     GigE control channel per camera, and the wrapper can't re-arm)."""
 
 
-class RedMOTCalibration(Calibration):
+class RedMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
     """The narrowband red MOT loads well; optimizes the 689 injection AOM
     frequency.
 

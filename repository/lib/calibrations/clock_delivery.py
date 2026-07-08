@@ -13,6 +13,7 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ _NOMINAL_DELIVERY_FREQUENCY = _CLOCK_DELIVERY_INFO.frequency
 _SEARCH_HALF_SPAN = 30e3
 
 
-class ClockDeliveryAOMCalibration(Calibration):
+class ClockDeliveryAOMCalibration(InfluxRecalibrationLogMixin, Calibration):
     """Centre the shared clock ``clock_delivery`` SUServo delivery AOM frequency.
 
     The delivery AOM is common to the up and down clock beams (split by the OPLL

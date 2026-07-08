@@ -6,6 +6,7 @@ applet).
 """
 
 import logging
+import time
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -17,6 +18,10 @@ from repository.lib.calibrations.rabi_pi_time import RabiDownPiTimeCalibration
 from repository.lib.calibrations.rabi_pi_time import RabiUpPiTimeCalibration
 
 logger = logging.getLogger(__name__)
+
+#: Idle wait per iteration so a "run forever" repeat throttles instead of
+#: hammering the calibration DAG back-to-back.
+IDLE_SLEEP_S = 30.0
 
 
 class EnsureClockPiTimesFrag(ExpFragment):
@@ -46,6 +51,8 @@ class EnsureClockPiTimesFrag(ExpFragment):
             logger.info("%s state: %s (data=%s)", cal, result, data)
             if result != CalibrationResult.OK:
                 raise RuntimeError(f"{cal} not OK after fix_state: {result}")
+
+        time.sleep(IDLE_SLEEP_S)
 
 
 EnsureClockPiTimes = make_fragment_scan_exp(EnsureClockPiTimesFrag)

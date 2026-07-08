@@ -7,6 +7,7 @@ at all (state is recalled from the calibrations.status dataset).
 """
 
 import logging
+import time
 
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import ExpFragment
@@ -23,6 +24,10 @@ DAG_APPLET_CMD = (
     "${python} -m repository.lib.applets.qbutler_dag_applet "
     "calibrations.dag calibrations.status"
 )
+
+#: Idle wait per iteration so a "run forever" repeat throttles instead of
+#: hammering the calibration DAG back-to-back.
+IDLE_SLEEP_S = 30.0
 
 
 class EnsureRedMOTFrag(ExpFragment):
@@ -52,6 +57,8 @@ class EnsureRedMOTFrag(ExpFragment):
         logger.info("Red MOT chain state: %s (data=%s)", result, data)
         if result != CalibrationResult.OK:
             raise RuntimeError(f"Red MOT chain not OK after fix_state: {result}")
+
+        time.sleep(IDLE_SLEEP_S)
 
 
 EnsureRedMOT = make_fragment_scan_exp(EnsureRedMOTFrag)

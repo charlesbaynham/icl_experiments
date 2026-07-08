@@ -13,6 +13,7 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalDownFrag
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalUpFrag
@@ -20,7 +21,7 @@ from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalU
 logger = logging.getLogger(__name__)
 
 
-class _RabiPiTimeCalibrationBase(Calibration):
+class _RabiPiTimeCalibrationBase(InfluxRecalibrationLogMixin, Calibration):
     """Measure the Rabi pi time on one clock beam after a STATIC velocity slice.
 
     Only the probe-pulse duration is scanned; the slice pulse duration is left at

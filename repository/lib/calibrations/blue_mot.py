@@ -14,6 +14,7 @@ from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.blue_mot.measure_blue_mot import MeasureBlueMOTBGCorrectedFrag
 from repository.lib import constants
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 PUSH_SETPOINT_DEFAULT = 0.8
 
 
-class BlueMOTCalibration(Calibration):
+class BlueMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
     """The blue MOT loads well; optimizes the push-beam SUServo setpoint.
 
     Metric: background-corrected vertical FLIR fluorescence after a normal

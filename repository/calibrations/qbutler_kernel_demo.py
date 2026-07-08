@@ -8,6 +8,7 @@ Two demos:
 """
 
 import logging
+import time
 
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
@@ -20,6 +21,10 @@ from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
 logger = logging.getLogger(__name__)
+
+#: Idle wait per iteration so a "run forever" repeat throttles instead of
+#: recompiling and re-running the kernel demos back-to-back.
+IDLE_SLEEP_S = 30.0
 
 
 class KernelDemoCalibration(Calibration):
@@ -77,9 +82,13 @@ class QbutlerKernelDemoFrag(ExpFragment):
 
         self.KernelFixDemoCalibration.fix_state(force=True)
         result, data = self.KernelFixDemoCalibration.check_state()
-        logger.info("KernelFixDemoCalibration after kernel fix: %s (data=%s)", result, data)
+        logger.info(
+            "KernelFixDemoCalibration after kernel fix: %s (data=%s)", result, data
+        )
         if result != CalibrationResult.OK:
             raise RuntimeError(f"Kernel fix demo failed: {result}")
+
+        time.sleep(IDLE_SLEEP_S)
 
 
 QbutlerKernelDemo = make_fragment_scan_exp(QbutlerKernelDemoFrag)
