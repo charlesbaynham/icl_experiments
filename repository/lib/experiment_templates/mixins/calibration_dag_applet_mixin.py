@@ -13,7 +13,6 @@ class CalibrationDAGAppletMixin(ExpFragment):
     """Open the calibration DAG applet in dashboard host setup."""
 
     def build_fragment(self):
-        super().build_fragment()
         self.setattr_device("ccb")
         self.ccb: CCB
 
