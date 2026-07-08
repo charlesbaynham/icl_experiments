@@ -240,7 +240,7 @@ Edit `flake.nix` to add system dependencies or override package builds.
 
 ### Network Configuration
 
-- Server binds to `10.137.3.254` (ICL AION lab server IP)
+- Server binds to `10.137.1.252` (ICL AION lab server IP)
 - This allows multiple ARTIQ sessions on different IPs
 
 ### WSL Support
