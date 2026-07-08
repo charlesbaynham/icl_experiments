@@ -20,5 +20,6 @@
 
 branches:
     - master
-    # - origin/declarative-lmt
-    # - origin/feature/qbutler-full-chain
+    - origin/dl-vrs
+    - origin/declarative-lmt
+    - origin/feature/calibrations
