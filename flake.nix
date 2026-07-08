@@ -141,6 +141,18 @@
         }:$PATH
         exec ./scripts/refresh_stubs.sh "$@"
       '';
+
+      # Background watcher: keep the served stub catalog in sync with
+      # origin/master (see scripts/watch_master.sh). Same PATH as the
+      # refresh_stubs launcher so git, artiq_client and python3+PyYAML resolve
+      # for both the watcher and the refresh_stubs.sh it calls.
+      watch_master_launcher = pkgs.writeShellScriptBin "watch_master" ''
+        export PATH=${
+          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
+            ++ [pkgs.git])
+        }:$PATH
+        exec ./scripts/watch_master.sh "$@"
+      '';
     in {
       inherit (overriddenOutputs) formatter;
 
@@ -209,6 +221,11 @@
           refresh_stubs = {
             type = "app";
             program = "${refresh_stubs_launcher}/bin/refresh_stubs";
+          };
+
+          watch_master = {
+            type = "app";
+            program = "${watch_master_launcher}/bin/watch_master";
           };
 
           backup_datasets = let
@@ -372,6 +389,12 @@
             # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
             monitor_launcher = "sleep 120 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R -r master --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
+            # Auto-refresh the served stub catalog when origin/master advances.
+            # Delay the first cycle until the master is up (like monitor_launcher
+            # / ndscan_janitor); the launcher inherits ARTIQ_CONNECTION_IP from
+            # makeConcurrentlyApp. The script loops forever, so no sleep infinity.
+            watch_master = "sleep 120 && ${watch_master_launcher}/bin/watch_master";
+
             # Serve the experiment catalog from the auto-generated stub worktree
             # rather than the launch checkout, so the dashboard lists experiments
             # from every branch in stubs_sources.yaml. device_db is untouched: the
@@ -401,6 +424,7 @@
                       backup_grafana
                       moninj_proxy_ctlmgr
                       monitor_launcher
+                      watch_master
                       ;
                     ndscan_janitor = "sleep 120 && ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
                   };

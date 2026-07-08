@@ -8,9 +8,14 @@
 # submit. That runs the real code from that branch.
 #
 # To change what appears in the catalog: edit this list, then run
-#     nix run .#update_stubs
+#     nix run .#refresh_stubs
 # (no need to restart the stack). An uncommitted edit takes effect immediately;
 # commit + open a PR when you want the change to stick for everyone.
+#
+# On the labserver you don't even need to do that: the `watch_master` job in the
+# running stack polls origin/master and, whenever it advances, pulls the change,
+# rebuilds this catalog and rescans the master automatically. So the usual flow
+# is just: edit this list, commit, and push to master.
 #
 # Notes:
 #   * Entries must be git refs that resolve on this machine. Use `master` for a
