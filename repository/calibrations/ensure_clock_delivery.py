@@ -36,6 +36,8 @@ class EnsureClockDeliveryFrag(ExpFragment):
 
         result, data = self.ClockDeliveryAOMCalibration.check_state()
         logger.info("Clock delivery state: %s (data=%s)", result, data)
+        logger.info("Sleeping for %.0fs...", IDLE_SLEEP_S)
+
         if result != CalibrationResult.OK:
             raise RuntimeError(f"Clock delivery not OK after fix_state: {result}")
 
