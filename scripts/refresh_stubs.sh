@@ -63,17 +63,10 @@ fi
 find "$STUBS_WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 log "generating stubs from $CONFIG"
 # generate_stubs.py takes --branches (stdlib only); read the branch list out of
-# the YAML config here, where PyYAML is on the launcher's PATH.
-mapfile -t BRANCHES < <(python3 -c '
-import sys, yaml
-data = yaml.safe_load(open(sys.argv[1])) or {}
-branches = data.get("branches")
-if not isinstance(branches, list) or not branches or not all(
-    isinstance(b, str) for b in branches
-):
-    sys.exit(f"{sys.argv[1]}: expected a non-empty top-level branches: list")
-print("\n".join(branches))
-' "$CONFIG")
+# the YAML config via the shared helper (also used by watch_master.sh, so the
+# generator and the watcher always agree on the branch set). PyYAML is on the
+# launcher's PATH.
+mapfile -t BRANCHES < <(python3 scripts/stub_branches.py "$CONFIG")
 if [[ ${#BRANCHES[@]} -eq 0 ]]; then
     log "no branches parsed from $CONFIG"
     exit 1
