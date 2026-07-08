@@ -24,7 +24,7 @@ class VRS_Probe_Ramper(Fragment):
             "sweep_time",
             FloatParam,
             description="Probe sweep duration",
-            default=1e-3,
+            default=3e-3,
             min=1e-6,
             unit="ms",
         )
@@ -33,7 +33,7 @@ class VRS_Probe_Ramper(Fragment):
             "max_f",
             FloatParam,
             description="Final scan frequency",
-            default=50e6,
+            default=15e6,
             min=1,
             unit="MHz",
         )
@@ -42,7 +42,7 @@ class VRS_Probe_Ramper(Fragment):
             "min_f",
             FloatParam,
             description="Initial scan frequency",
-            default=0.0,
+            default=5.0,
             unit="MHz",
         )
 
