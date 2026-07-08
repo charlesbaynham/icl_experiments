@@ -379,21 +379,14 @@
             # real experiments are launched by submitting with a real repository
             # revision (a branch name), which resolves against the shared object DB.
             artiq_master = ''
-              set -e
-
-              echo Starting stubs update...
-              export STUBS_WT="$(${refresh_stubs_launcher}/bin/refresh_stubs)"
-
-              echo Stubs updated at: $STUBS_WT
-
               exec artiq_master \
-                --verbose \
-                --git \
-                --repository "$STUBS_WT" \
-                --experiment-subdir repository \
-                --log-file log/artiq.log \
-                $ARTIQ_COMMANDLINE_ADDITIONS \
-                --name 'AION ARTIQ'
+                  --verbose \
+                  --git \
+                  --repository "$(${refresh_stubs_launcher}/bin/refresh_stubs)" \
+                  --experiment-subdir repository \
+                  --log-file log/artiq.log \
+                  $ARTIQ_COMMANDLINE_ADDITIONS \
+                  --name 'AION ARTIQ'
             '';
           in
             overriddenOutputs.apps.full_stack.override (prev:
