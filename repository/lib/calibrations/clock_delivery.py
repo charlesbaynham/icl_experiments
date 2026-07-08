@@ -14,7 +14,7 @@ from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
 from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
-from repository.lib.calibrations.red_mot import RedMOTCalibration
+from repository.lib.calibrations.xodt_calibration import SingleXODTCalibration
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
 logger = logging.getLogger(__name__)
@@ -51,8 +51,8 @@ class ClockDeliveryAOMCalibration(InfluxRecalibrationLogMixin, Calibration):
         self.setattr_device("core")
         self.core: Core
 
-        self.add_dependency(RedMOTCalibration)
-        self.RedMOTCalibration: RedMOTCalibration
+        self.add_dependency(SingleXODTCalibration)
+        self.SingleXODTCalibration: SingleXODTCalibration
 
         self.setattr_fragment("meas", NarrowDownAfterSliceFrag)
         self.meas: NarrowDownAfterSliceFrag
