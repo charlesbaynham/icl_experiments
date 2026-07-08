@@ -130,6 +130,29 @@
         export PYTHONPATH=${self}:$PYTHONPATH
         exec ${overriddenOutputs.apps.dashboard.program} -s ${bind_settings.connection_ip}
       '';
+
+      # Rebuild the auto-generated stub catalog the master serves, and print the
+      # path of the resulting worktree (see scripts/refresh_stubs.sh). Operates
+      # on the current working directory's git repo, so run it from the repo root.
+      refresh_stubs_launcher = pkgs.writeShellScriptBin "refresh_stubs" ''
+        export PATH=${
+          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
+            ++ [pkgs.git])
+        }:$PATH
+        exec ./scripts/refresh_stubs.sh "$@"
+      '';
+
+      # Background watcher: keep the served stub catalog in sync with
+      # origin/master (see scripts/watch_master.sh). Same PATH as the
+      # refresh_stubs launcher so git, artiq_client and python3+PyYAML resolve
+      # for both the watcher and the refresh_stubs.sh it calls.
+      watch_master_launcher = pkgs.writeShellScriptBin "watch_master" ''
+        export PATH=${
+          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
+            ++ [pkgs.git])
+        }:$PATH
+        exec ./scripts/watch_master.sh "$@"
+      '';
     in {
       inherit (overriddenOutputs) formatter;
 
@@ -195,6 +218,16 @@
       apps =
         overriddenOutputs.apps
         // {
+          refresh_stubs = {
+            type = "app";
+            program = "${refresh_stubs_launcher}/bin/refresh_stubs";
+          };
+
+          watch_master = {
+            type = "app";
+            program = "${watch_master_launcher}/bin/watch_master";
+          };
+
           backup_datasets = let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${
@@ -349,10 +382,35 @@
             # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
             # since we must hard-code the IP of the labserver in the moninj proxy otherwise
             # dashboards don't know where to connect to it.
-            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
+            moninj_proxy_ctlmgr = "sleep 120 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
 
-            # Automatic startup of database monitors
-            monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+            # Automatic startup of database monitors. Pin -r master: the served
+            # repository is the stub catalog, so an unpinned -R submit would run
+            # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
+            monitor_launcher = "sleep 120 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R -r master --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+
+            # Auto-refresh the served stub catalog when origin/master advances.
+            # Delay the first cycle until the master is up (like monitor_launcher
+            # / ndscan_janitor); the launcher inherits ARTIQ_CONNECTION_IP from
+            # makeConcurrentlyApp. The script loops forever, so no sleep infinity.
+            watch_master = "sleep 120 && ${watch_master_launcher}/bin/watch_master";
+
+            # Serve the experiment catalog from the auto-generated stub worktree
+            # rather than the launch checkout, so the dashboard lists experiments
+            # from every branch in stubs_sources.yaml. device_db is untouched: the
+            # master still loads it from the launch cwd (no --device-db here), and
+            # real experiments are launched by submitting with a real repository
+            # revision (a branch name), which resolves against the shared object DB.
+            artiq_master = ''
+              exec artiq_master \
+                  --verbose \
+                  --git \
+                  --repository "$(${refresh_stubs_launcher}/bin/refresh_stubs)" \
+                  --experiment-subdir repository \
+                  --log-file log/artiq.log \
+                  $ARTIQ_COMMANDLINE_ADDITIONS \
+                  --name 'AION ARTIQ'
+            '';
           in
             overriddenOutputs.apps.full_stack.override (prev:
               {
@@ -360,13 +418,15 @@
                   prev.commands
                   // {
                     inherit
+                      artiq_master
                       backup_database
                       backup_datasets
                       backup_grafana
                       moninj_proxy_ctlmgr
                       monitor_launcher
+                      watch_master
                       ;
-                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
+                    ndscan_janitor = "sleep 120 && ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
                   };
               }
               // bind_settings);
