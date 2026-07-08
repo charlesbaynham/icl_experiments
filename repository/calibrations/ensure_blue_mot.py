@@ -1,6 +1,7 @@
 """Client for the blue-MOT calibration alone: check, and fix if required."""
 
 import logging
+import time
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -11,6 +12,10 @@ from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 
 logger = logging.getLogger(__name__)
+
+#: Idle wait per iteration so a "run forever" repeat throttles instead of
+#: hammering the calibration DAG back-to-back.
+IDLE_SLEEP_S = 30.0
 
 
 class EnsureBlueMOTFrag(ExpFragment):
@@ -33,6 +38,8 @@ class EnsureBlueMOTFrag(ExpFragment):
         logger.info("Blue MOT state: %s (data=%s)", result, data)
         if result != CalibrationResult.OK:
             raise RuntimeError(f"Blue MOT not OK after fix_state: {result}")
+
+        time.sleep(IDLE_SLEEP_S)
 
 
 EnsureBlueMOT = make_fragment_scan_exp(EnsureBlueMOTFrag)

@@ -13,6 +13,7 @@ directly, so a recalibration propagates.
 """
 
 import logging
+import time
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -21,6 +22,10 @@ from repository.lib import constants
 from repository.lib.lmt_sequence import Beam
 
 logger = logging.getLogger(__name__)
+
+#: Idle wait per iteration so a "run forever" repeat throttles instead of
+#: re-reading the datasets back-to-back.
+IDLE_SLEEP_S = 30.0
 
 _NOMINAL_PI_TIME = {
     Beam.UP: constants.CLOCK_PI_TIME,
@@ -35,9 +40,7 @@ _PI_DATASET = {
 def scaled_clock_slice_time(measured_pi_time, beam):
     """Slice time scaled from its nominal by the measured/nominal pi-time ratio."""
     return (
-        constants.CLOCK_SHELVING_PULSE_TIME
-        * measured_pi_time
-        / _NOMINAL_PI_TIME[beam]
+        constants.CLOCK_SHELVING_PULSE_TIME * measured_pi_time / _NOMINAL_PI_TIME[beam]
     )
 
 
@@ -66,6 +69,8 @@ class ClockSliceTimeConsumerFrag(ExpFragment):
                 1e6 * slice_time,
                 1e6 * constants.CLOCK_SHELVING_PULSE_TIME,
             )
+
+        time.sleep(IDLE_SLEEP_S)
 
 
 ClockSliceTimeConsumer = make_fragment_scan_exp(ClockSliceTimeConsumerFrag)
