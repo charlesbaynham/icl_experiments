@@ -206,14 +206,6 @@ def enumerate_experiments(branch: str, sources: dict[str, str]) -> list[Experime
 # --- output ---------------------------------------------------------------
 
 
-def output_path_for(source_path: str) -> str:
-    """Map a source file path to its stub path (drop the ``lib/`` segment)."""
-    prefix = "repository/lib/"
-    if source_path.startswith(prefix):
-        return "repository/" + source_path[len(prefix) :]
-    return source_path
-
-
 def _indent_docstring(doc: str) -> str:
     # ``doc`` is already dedented by ast.get_docstring(); re-indent to 4 spaces.
     lines = doc.strip("\n").splitlines()
@@ -267,7 +259,7 @@ def build_output(
     for branch in branches:
         sources = branch_python_files(branch)
         for exp in enumerate_experiments(branch, sources):
-            out_path = output_path_for(exp.source_path)
+            out_path = exp.source_path
             prior_src = out_to_src.setdefault(out_path, exp.source_path)
             if prior_src != exp.source_path:
                 warnings.append(
