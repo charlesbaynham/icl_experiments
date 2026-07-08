@@ -259,30 +259,6 @@
             program = "${script}/bin/run";
           };
 
-          # Regenerate the `stubs` branch from one or more source branches.
-          # Runs scripts/generate_stubs.py, which only needs Python's stdlib
-          # plus git to read the source branches. Invoke from a checkout of
-          # the stubs branch, e.g.
-          #   nix run .#generate_stubs -- --branches master
-          generate_stubs = let
-            script = pkgs.writeShellScriptBin "run" ''
-              export PATH=${
-                pkgs.lib.makeBinPath [
-                  pkgs.git
-                  pkgs.python3
-                ]
-              }:$PATH
-
-              # Run against the invoking working directory (a stubs-branch
-              # checkout) so git can read the source branches and the stubs
-              # are written in place.
-              exec python3 ${self}/scripts/generate_stubs.py "$@"
-            '';
-          in {
-            type = "app";
-            program = "${script}/bin/run";
-          };
-
           check_for_fixme = let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
