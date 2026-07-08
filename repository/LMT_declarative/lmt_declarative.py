@@ -51,6 +51,7 @@ LMT_INTERFEROMETER_TIME = 100e-6  # seconds
 N_LAUNCH = 8
 M_TOP = 1 + N_LAUNCH
 
+
 N_LMT = 2
 
 # Post-ladder drop time: at higher launch the cloud leaves the fixed

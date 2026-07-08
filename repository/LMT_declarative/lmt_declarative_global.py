@@ -18,10 +18,10 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
-    NormalisedFastKineticsLMTCorrectedMixin,
+    NormalisedFastKineticsLMTCorrectedClockMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
-    NormalisedFastKineticsLMTCorrectedClockMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
