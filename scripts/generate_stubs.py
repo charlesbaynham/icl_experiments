@@ -249,7 +249,11 @@ class _Stub(EnvExperiment):
         pass
 
     def run(self):
-        raise NotImplementedError("Stub")
+        raise NotImplementedError("""
+This is a stub experiment!
+
+To run this, you must provide a branch in the ref. If in doubt, use "master"
+        """.strip())
 '''
 
 
