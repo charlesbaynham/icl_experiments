@@ -141,17 +141,6 @@
         }:$PATH
         exec ./scripts/refresh_stubs.sh "$@"
       '';
-
-      # Refresh the stub catalog AND ask a running master to rescan, so a branch
-      # newly added to stubs_sources.yaml appears without restarting the stack.
-      update_stubs_launcher = pkgs.writeShellScriptBin "update_stubs" ''
-        export PATH=${
-          pkgs.lib.makeBinPath (overriddenOutputs.devShells.artiq.buildInputs
-            ++ [pkgs.git])
-        }:$PATH
-        ./scripts/refresh_stubs.sh >/dev/null
-        exec artiq_client -s ${bind_settings.connection_ip} scan-repository
-      '';
     in {
       inherit (overriddenOutputs) formatter;
 
@@ -220,11 +209,6 @@
           refresh_stubs = {
             type = "app";
             program = "${refresh_stubs_launcher}/bin/refresh_stubs";
-          };
-
-          update_stubs = {
-            type = "app";
-            program = "${update_stubs_launcher}/bin/update_stubs";
           };
 
           backup_datasets = let

@@ -16,8 +16,10 @@
 # .aion_artiq_root). Progress goes to stderr; the ONLY stdout line is the
 # worktree path, so callers can do:  WT="$(scripts/refresh_stubs.sh)"
 #
-# Used by: the full_stack launch wrapper (built the worktree before the master
-# starts) and `nix run .#update_stubs` (refresh a running master, then rescan).
+# Used by: the full_stack launch wrapper (builds the worktree before the master
+# starts) and `nix run .#refresh_stubs` (rebuild the catalog on demand). To make
+# a running master pick up the change, follow it with:
+#   artiq_client scan-repository
 set -euo pipefail
 
 log() { printf '  [refresh_stubs] %s\n' "$*" >&2; }
