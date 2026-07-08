@@ -24,7 +24,7 @@ PUSH_SETPOINT_DEFAULT = 0.8
 
 
 class BlueMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
-    """The blue MOT loads well; optimizes the push-beam SUServo setpoint.
+    """BlueMOTCalibration
 
     Metric: background-corrected vertical FLIR fluorescence after a normal
     MOT load. The acceptance threshold is
