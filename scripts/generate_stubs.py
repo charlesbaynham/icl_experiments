@@ -53,8 +53,6 @@ from dataclasses import field
 EXP_ROOTS = {
     "EnvExperiment",
     "Experiment",
-    "_Stub",
-    "Calibration",
     "FragmentScanExperiment",
 }
 # ...and these are the (disjoint) fragment roots: a class that reaches one
