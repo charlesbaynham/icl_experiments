@@ -62,7 +62,7 @@ class BlueMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
         )
         self.min_ok_fluorescence: FloatParamHandle
 
-        self.set_timeout(1800.0)
+        self.set_timeout(300.0)  # 300s for testing only
         self.set_optimization_type("max")
 
         self._fluorescence_sink = LastValueSink()

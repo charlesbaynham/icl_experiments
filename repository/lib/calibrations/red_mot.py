@@ -13,9 +13,9 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
-from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.lib.calibrations.blue_mot import PUSH_SETPOINT_DEFAULT
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageMixin,
 )
@@ -76,7 +76,7 @@ class RedMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
         )
         self.min_ok_atom_sum: FloatParamHandle
 
-        self.set_timeout(1800.0)
+        self.set_timeout(300.0)  # 300s for testing only
         self.set_optimization_type("max")
 
         self._atom_sum_sink = LastValueSink()

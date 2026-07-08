@@ -53,12 +53,6 @@ class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
         self.add_dependency(RedMOTCalibration)
         self.RedMOTCalibration: RedMOTCalibration
 
-        self.setattr_fragment("meas", _SimpleSingleXODTBGCorrectedFrag)
-        self.meas: _SimpleSingleXODTBGCorrectedFrag
-        # The optimizer re-measures many times inside one fix, so the measurement
-        # owns its own lifecycle and channels (see the MOT calibrations).
-        self.detach_fragment(self.meas)
-
         self.set_timeout(3600.0)
         self.set_optimization_type("max")
 
@@ -69,6 +63,12 @@ class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
             default=1e6,  # FIXME to constants
         )
         self.min_ok_fluorescence: FloatParamHandle
+
+        self.setattr_fragment("meas", _SimpleSingleXODTBGCorrectedFrag)
+        self.meas: _SimpleSingleXODTBGCorrectedFrag
+        # The optimizer re-measures many times inside one fix, so the measurement
+        # owns its own lifecycle and channels (see the MOT calibrations).
+        self.detach_fragment(self.meas)
 
         self._measurement_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._measurement_sink)
