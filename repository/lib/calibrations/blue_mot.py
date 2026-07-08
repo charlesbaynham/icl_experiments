@@ -4,7 +4,6 @@ from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
 from artiq.experiment import kernel
 from artiq.experiment import rpc
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import LastValueSink
@@ -127,6 +126,3 @@ class BlueMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
         if fluorescence >= self.min_ok_fluorescence.get():
             return CalibrationResult.OK, fluorescence
         return CalibrationResult.BAD_DATA, fluorescence
-
-
-BlueMOTCalibrationExp = make_fragment_scan_exp(BlueMOTCalibration)

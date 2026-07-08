@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
+BlueMOTCalibrationExp = make_fragment_scan_exp(BlueMOTCalibration)
+
+
 class EnsureBlueMOTFrag(CalibrationDAGAppletMixin):
     def build_fragment(self):
         super().build_fragment()
