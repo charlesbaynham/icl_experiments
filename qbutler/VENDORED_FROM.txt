@@ -1,4 +1,4 @@
-fb98f5c50c8296df15a2b47522c05b78d3a91c47
+937d6eeddbfbe6b978723c7b1c82c6b9bbbbb7a8
 github.com/charlesbaynham/qbutler branch kernel-rpc-optimizer (PR #19, stacked
 on kernel-optimizer-revival / PR #18) — vendored copy; upstream fixes go to
 that repo.
@@ -6,7 +6,9 @@ Includes the resident-kernel optimizer loop (_optimizer_kernel_loop): one
 kernel call per fix, the kernel pulling each next point from the host
 optimizer generator over sync RPC and applying it device-side, so ANY host
 strategy (grid, coordinate descent, Bayesian optimization) pays one
-compile+upload — no recompilation between points. Also the kernel-driven DAG
-fix: prepare_kernel_fix() + fix_state_kernel() fix an entire calibration
-dependency tree from within a single kernel (walk decisions host-side via
-RPC).
+compile+upload — no recompilation between points. The kernel-driven DAG fix
+(prepare_kernel_fix() + fix_state_kernel()) fixes an entire calibration
+dependency tree from within a single kernel. Also the live optimizer trace
+(calibrations.optimizer dataset): every optimizer point is broadcast as it is
+measured so an applet can watch the scan happen (see
+repository/lib/applets/qbutler_optimizer_applet.py).
