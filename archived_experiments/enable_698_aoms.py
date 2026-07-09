@@ -61,7 +61,7 @@ class TurnOn698Temporary(ExpFragment):
         self.setattr_fragment(
             "transmission_aom",
             LibSetSUServoStatic,
-            "suservo_aom_698_squeezing_cavity_transmission",
+            "suservo_aom_698_squeezing_cavity",
         )
         # self.input_aom: LibSetSUServoStatic
         self.transmission_aom: LibSetSUServoStatic
