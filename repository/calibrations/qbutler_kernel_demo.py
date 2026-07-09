@@ -19,10 +19,10 @@ from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
 
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
-from vendor.ndscan.ndscan.experiment.parameters import FloatParamHandle
 
 logger = logging.getLogger(__name__)
 
