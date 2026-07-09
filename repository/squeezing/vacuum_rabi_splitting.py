@@ -134,7 +134,7 @@ class SingleVRSSweepFrag(
         self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Set a long Long timeout for visa
-        self.rtb.visa_timeout = 50000
+        self.rtb.visa_timeout = 100000
         # Set the trigger to an external signal
         self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
         self.rtb.write_str("TRIG:A:SOUR EXT")
