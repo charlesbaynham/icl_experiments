@@ -5,7 +5,8 @@
   # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
   # Pinned to the make-event-spreading-optional base (e98dbf5) plus the head-hack
   # "WORKING" working-tree-rev commits, which sit directly on top of that base.
-  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=feature/working-tree-rev";
+  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=feature/global-revision-override";
+
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
