@@ -33,7 +33,7 @@
 # the loop and collapse the stack.
 set -uo pipefail
 
-INTERVAL="${WATCH_MASTER_INTERVAL:-60}"
+INTERVAL="${WATCH_MASTER_INTERVAL:-15}"
 CONNECTION_IP="${ARTIQ_CONNECTION_IP:-::1}"
 
 log() { printf '  [watch_master] %s\n' "$*" >&2; }

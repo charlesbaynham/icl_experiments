@@ -803,7 +803,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_1379_cavity_input",
         servo_enabled=True,
-        setpoint=5.5,
+        setpoint=6,
     ),
     SUServoedBeam(
         "down_813",
@@ -1067,6 +1067,7 @@ WAND_SETPOINTS_87 = {
     # "689_doubled1379": (_default_689, False),
     "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
+    "698": (_default_698, False),
 }
 
 TOPTICA_461_ANALOG_SCALE = (
@@ -1557,3 +1558,7 @@ DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
+
+# Squeezing / Vacuum Rabi splitting stuff
+# This is in a glitch free urukul, so need to restart the crate for it take effect!
+VRS_SWEEP_ATTENUATION = 1.0
