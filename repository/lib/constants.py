@@ -825,7 +825,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_1379_cavity_input",
         servo_enabled=True,
-        setpoint=5.5,
+        setpoint=6,
     ),
     SUServoedBeam(
         "down_813",
@@ -876,10 +876,10 @@ SUSERVOED_BEAMS = [
         setpoint=2.2,
     ),
     SUServoedBeam(
-        "squeezing_cavity_698_transmission",
+        "squeezing_cavity_698",
         frequency=80e6,
         attenuation=4.0,
-        suservo_device="suservo_aom_698_squeezing_cavity_transmission",
+        suservo_device="suservo_aom_698_squeezing_cavity",
         servo_enabled=True,
         initial_amplitude=0.5,
         setpoint=0.25,
@@ -1089,6 +1089,7 @@ WAND_SETPOINTS_87 = {
     # "689_doubled1379": (_default_689, False),
     "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
+    "698": (_default_698, False),
 }
 
 TOPTICA_461_ANALOG_SCALE = (
@@ -1593,3 +1594,7 @@ LMT_N_RECOILS_DEFAULT = 2
 # TODO: Merge with the (several) other ways of expressing this
 ATOM_POSITION_T0 = (180, 297)
 DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
+
+# Squeezing / Vacuum Rabi splitting stuff
+# This is in a glitch free urukul, so need to restart the crate for it take effect!
+VRS_SWEEP_ATTENUATION = 1.0

@@ -1,0 +1,29 @@
+# Which branches feed the ARTIQ master's stub catalog.
+#
+# The live master serves a *catalog* of experiments assembled from the branches
+# listed here: for each branch, every experiment the ARTIQ explorer would
+# discover is mirrored as a no-op "stub" so it shows up in the dashboard. This
+# does NOT run anything on its own -- to actually run an experiment you pick it
+# in the dashboard, set its repository revision to the branch you want, and
+# submit. That runs the real code from that branch.
+#
+# To change what appears in the catalog: edit this list, then run
+#     nix run .#refresh_stubs
+# (no need to restart the stack). An uncommitted edit takes effect immediately;
+# commit + open a PR when you want the change to stick for everyone.
+#
+# On the labserver you don't even need to do that: the `watch_master` job in the
+# running stack polls origin/master and, whenever it advances, pulls the change,
+# rebuilds this catalog and rescans the master automatically. So the usual flow
+# is just: edit this list, commit, and push to master.
+#
+# Notes:
+#   * Entries must be git refs that resolve on this machine. Use `master` for a
+#     local branch, or `origin/my-feature` for a branch that only exists on the
+#     remote (run `git fetch` first, which `refresh_stubs.sh` does for you).
+#   * Order matters only for docstring conflicts: earlier branches win.
+
+branches:
+    - master
+    - origin/declarative-lmt
+    - origin/feature/calibrations

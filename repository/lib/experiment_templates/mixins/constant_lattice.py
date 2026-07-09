@@ -16,7 +16,7 @@ class ConstantBeamsMixin(RedMOTWithExperimentBase):
     Leaves a list of SUServo beams on throughout the entire sequence.
 
     Current list:
-    * squeezing_cavity_698_transmission
+    * squeezing_cavity_698
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -41,7 +41,7 @@ class ConstantBeamsMixin(RedMOTWithExperimentBase):
                     # constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"],
                     # constants.SUSERVOED_BEAMS["clock_delivery"],
                     # constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
-                    constants.SUSERVOED_BEAMS["squeezing_cavity_698_transmission"],
+                    constants.SUSERVOED_BEAMS["squeezing_cavity_698"],
                 ],
                 urukul_beam_infos=[
                     # constants.URUKULED_BEAMS["clock_up"],

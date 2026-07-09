@@ -81,4 +81,5 @@ config = {
     "chamber_2_coil_mot": VoltageControlledCurrentSupply(
         "zotino_plant_room", 0, 50.0 / 1.086
     ),
+    "VRS_scope_address": "TCPIP::10.137.1.19::INSTR",
 }
