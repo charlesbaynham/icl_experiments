@@ -15,6 +15,7 @@ Three demos:
 
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
@@ -209,7 +210,7 @@ class QbutlerKernelDagFixDemoFrag(ExpFragment):
         super().host_setup()
         # Generate the kernel DAG-fix driver before run_once is compiled.
         self.KernelDagDemoTop.prepare_kernel_fix()
-        self.t_start = int(0)
+        self.t_start = np.int64(0)
 
     @kernel
     def run_once(self):
