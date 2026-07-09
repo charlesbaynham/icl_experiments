@@ -1,4 +1,4 @@
-937d6eeddbfbe6b978723c7b1c82c6b9bbbbb7a8
+b1b64455945b1c364ae500708b3af59443a8275d
 github.com/charlesbaynham/qbutler branch kernel-rpc-optimizer (PR #19, stacked
 on kernel-optimizer-revival / PR #18) — vendored copy; upstream fixes go to
 that repo.
