@@ -1,6 +1,12 @@
-2c5fe52ed4bc3a00c0a1580b621893beb80d945a
-github.com/charlesbaynham/qbutler branch kernel-optimizer-revival — vendored copy; upstream fixes go to that repo.
-Includes the kernel-mode optimizer (_run_optimizer_kernel / _kernel_sweep_all):
-a batchable optimizer's whole sweep runs in one kernel call (device-side param
-setting), so calibrations with an @kernel check_own_state pay one compile+upload
-per fix instead of recompiling per point.
+fb98f5c50c8296df15a2b47522c05b78d3a91c47
+github.com/charlesbaynham/qbutler branch kernel-rpc-optimizer (PR #19, stacked
+on kernel-optimizer-revival / PR #18) — vendored copy; upstream fixes go to
+that repo.
+Includes the resident-kernel optimizer loop (_optimizer_kernel_loop): one
+kernel call per fix, the kernel pulling each next point from the host
+optimizer generator over sync RPC and applying it device-side, so ANY host
+strategy (grid, coordinate descent, Bayesian optimization) pays one
+compile+upload — no recompilation between points. Also the kernel-driven DAG
+fix: prepare_kernel_fix() + fix_state_kernel() fix an entire calibration
+dependency tree from within a single kernel (walk decisions host-side via
+RPC).

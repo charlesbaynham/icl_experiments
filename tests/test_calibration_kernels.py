@@ -14,8 +14,11 @@ kernel embeds a reference to it, so a missing store fails to compile.
 import gc
 
 import pytest
-from qbutler import dag
 
+from qbutler import dag
+from repository.calibrations.qbutler_kernel_demo import KernelDagDemoBase
+from repository.calibrations.qbutler_kernel_demo import KernelDagDemoMid
+from repository.calibrations.qbutler_kernel_demo import KernelDagDemoTop
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 from repository.lib.calibrations.rabi_pi_time import RabiDownPiTimeCalibration
@@ -28,6 +31,9 @@ CALIBRATIONS = [
     ClockDeliveryAOMCalibration,
     RabiUpPiTimeCalibration,
     RabiDownPiTimeCalibration,
+    KernelDagDemoBase,
+    KernelDagDemoMid,
+    KernelDagDemoTop,
 ]
 
 
