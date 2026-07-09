@@ -67,9 +67,7 @@ class VRS_Probe_Ramper(Fragment):
         """
 
         self.probe_ramper.start_ramp(
-            self.df_dt,
-            self.min_f.get(),
-            self.max_f.get(),
+            self.df_dt, self.min_f.get(), self.max_f.get(), 2.0
         )
         # Wait until we do one pulse
         delay(self.sweep_time.get())
