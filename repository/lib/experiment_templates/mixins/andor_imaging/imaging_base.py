@@ -31,6 +31,7 @@ from repository.lib.experiment_templates.red_mot_experiment import (
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
+from repository.lib.result_channels import ArchiveOnlyOpaqueChannel
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +254,12 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         for i in range(self.andor_camera_config.num_andor_images):
             profile_x = self.setattr_result(f"andor_profile_x_{i}", OpaqueChannel)
             profile_y = self.setattr_result(f"andor_profile_y_{i}", OpaqueChannel)
-            image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
+            # Raw frames are archived to HDF5 but not broadcast: a full-frame
+            # image per scan point otherwise bloats the master's live dataset
+            # dict past sipyco's ~100 MB sync_struct limit and stalls the whole
+            # dataset stream. Live viewing uses the separate ANDOR_DETAILED
+            # monitor datasets, not this ndscan result channel.
+            image = self.setattr_result(f"andor_image_{i}", ArchiveOnlyOpaqueChannel)
 
             self.andor_profile_xs.append(profile_x)  # type: ignore
             self.andor_profile_ys.append(profile_y)  # type: ignore

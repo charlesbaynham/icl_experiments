@@ -357,6 +357,18 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.mock_device",
             "mockclass": "MockDevice",
         },
+        "vrs_scope": {
+            "type": "local",
+            "module": "repository.lib.devices.rohde_schwarz_devices",
+            "class": "RSDevice",
+            "arguments": {
+                "address": "TCPIP::10.137.1.19::INSTR",
+                "id_query": True,
+                "reset": True,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
