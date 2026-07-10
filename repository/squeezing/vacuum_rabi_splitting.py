@@ -191,7 +191,7 @@ class SingleVRSSweepFrag(
         self.host_functions_after_experiment_hook_default()
 
         # Save the data!
-        if self.save_trace is True:
+        if self.save_trace.get() is True:
             self.get_data_from_scope()
         else:
             pass
