@@ -12,6 +12,8 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from RsInstrument import RsInstrument
@@ -102,6 +104,14 @@ class SingleVRSSweepFrag(
         )
         self.acquisition_time: FloatParamHandle
 
+        self.setattr_param(
+            "save_trace",
+            BoolParam,
+            "Save the trace",
+            default=True,
+        )
+        self.save_trace: BoolParamHandle
+
         # Fragments
         self.setattr_fragment(
             "probe_ramper", VRS_Probe_Ramper, "urukul9910_squeezing_probe"
@@ -181,7 +191,10 @@ class SingleVRSSweepFrag(
         self.host_functions_after_experiment_hook_default()
 
         # Save the data!
-        self.get_data_from_scope()
+        if self.save_trace is True:
+            self.get_data_from_scope()
+        else:
+            pass
 
     @rpc
     def get_data_from_scope(self) -> None:
