@@ -1,1 +1,1 @@
-tmux new -d -s aion "cd /root/artiq_stuff/icl_experiments/; ./run_artiq.sh" \;
+tmux new -d -s aion "cd /root/icl_experiments/; ./run_artiq.sh" \;
