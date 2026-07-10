@@ -66,11 +66,7 @@ class VRS_Probe_Ramper(Fragment):
         Also advances the timeline by the given sweep time.
         """
 
-        self.probe_ramper.start_ramp(
-            self.df_dt,
-            self.min_f.get(),
-            self.max_f.get(),
-        )
+        self.probe_ramper.start_ramp(self.df_dt, self.min_f.get(), self.max_f.get(), 2)
         # Wait until we do one pulse
         delay(self.sweep_time.get())
         self.probe_ramper.stop_ramp()
