@@ -41,24 +41,40 @@ KEEP_WEEKS=3
 KEEP_MONTHS=12
 
 # Take a consistent, integrity-checked archive of the live Grafana state into
-# the local backup store. Safe to run while Grafana is serving: sqlite's online
-# .backup handles the WAL, and we open the DB read-only so we never touch the
-# live file.
+# the local backup store. Safe to run while Grafana is serving: we open the DB
+# read-only so we never touch the live file, and give SQLite a busy timeout so
+# the online .backup waits for Grafana's lock rather than failing instantly.
 backup_grafana() {
     local ts archive stage
     ts=$(date +"%Y%m%d-%H%M%S")
     archive="$LOCAL_BACKUP_DIR/grafana-$ts.tar.gz"
     stage=$(mktemp -d -t grafana_backup_XXXXXX)
 
-    sqlite3 "file:$GRAFANA_DATA_DIR/grafana.db?mode=ro" ".backup '$stage/grafana.db'"
-
-    local check
-    check=$(sqlite3 "$stage/grafana.db" "PRAGMA integrity_check;")
-    if [ "$check" != "ok" ]; then
-        echo "Grafana backup ABORTED: snapshot failed integrity_check: $check"
+    # Grafana holds a write lock on grafana.db while it commits. Without a busy
+    # timeout the online .backup fails immediately with "database is locked" and
+    # leaves a 0-byte file (which PRAGMA integrity_check then happily passes as
+    # an "empty" db) - this silently broke the backups. Wait for the lock, and
+    # abort loudly if the snapshot command itself fails.
+    if ! sqlite3 "file:$GRAFANA_DATA_DIR/grafana.db?mode=ro" \
+            ".timeout 60000" ".backup '$stage/grafana.db'"; then
+        echo "Grafana backup ABORTED: sqlite .backup failed (database locked?)"
         rm -rf "$stage"
         return 1
     fi
+
+    # Validate the snapshot. integrity_check alone is not enough: an empty db
+    # passes it, so also confirm the schema restored by querying a core table.
+    # An empty result means the query errored (no such table) => broken backup;
+    # a real-but-empty instance would return a count like "0" and pass.
+    local check ndash
+    check=$(sqlite3 "$stage/grafana.db" "PRAGMA integrity_check;" 2>/dev/null)
+    ndash=$(sqlite3 "$stage/grafana.db" "SELECT count(*) FROM dashboard;" 2>/dev/null)
+    if [ "$check" != "ok" ] || [ -z "$ndash" ]; then
+        echo "Grafana backup ABORTED: snapshot failed validation (integrity='$check' dashboards='$ndash')"
+        rm -rf "$stage"
+        return 1
+    fi
+    echo "Grafana snapshot OK: integrity=$check dashboards=$ndash"
 
     # Small extra state. csv/png are render scratch dirs - include if present.
     cp -a "$GRAFANA_DATA_DIR/alerting" "$stage/alerting" 2>/dev/null || true
@@ -138,18 +154,31 @@ sync_to_rds() {
             "${SSH_USER}@${SSH_RDS_HOST}:${RDS_BACKUP_PATH}/"
 }
 
+# One full backup cycle: snapshot -> prune local store -> mirror to RDS.
+run_cycle() {
+    if backup_grafana; then
+        prune_grafana
+        if sync_to_rds; then
+            echo "Grafana backup mirrored to RDS at $(date +"%Y%m%d-%H%M%S")"
+        else
+            echo "Grafana backup saved locally but RDS sync failed at $(date +"%Y%m%d-%H%M%S")"
+        fi
+    fi
+}
+
+# Run a single cycle and exit when invoked with --once (or BACKUP_ONCE=1). Used
+# for manual runs and testing; the default is the nightly monitor loop below.
+if [ "${1:-}" = "--once" ] || [ "${BACKUP_ONCE:-}" = "1" ]; then
+    echo "Grafana backup: running a single cycle (--once)"
+    run_cycle
+    exit $?
+fi
+
 echo "Grafana backup monitor started - will backup at midnight nightly"
 
 while true; do {
    # Wait until midnight
    sleep $(( $(date -f - +%s- <<< "tomorrow 00:00"$'\nnow') 0 ))
 
-   if backup_grafana; then
-       prune_grafana
-       if sync_to_rds; then
-           echo "Grafana backup mirrored to RDS at $(date +"%Y%m%d-%H%M%S")"
-       else
-           echo "Grafana backup saved locally but RDS sync failed at $(date +"%Y%m%d-%H%M%S")"
-       fi
-   fi
+   run_cycle
 }; done
