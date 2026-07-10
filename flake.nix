@@ -297,6 +297,75 @@
             program = "${script}/bin/run";
           };
 
+          # Idempotently install a systemd unit that starts the ARTIQ tmux
+          # session on boot. The unit is a one-shot with RemainAfterExit so the
+          # session is launched once at boot but NOT relaunched if an operator
+          # manually exits it. Run as root on the VM: sudo nix run .#install_systemd
+          install_systemd = let
+            serviceName = "aion-artiq";
+            sessionName = "aion";
+            repoDir = "/root/artiq_stuff/icl_experiments";
+
+            unitFile = pkgs.writeText "${serviceName}.service" ''
+              [Unit]
+              Description=AION ARTIQ stack in a detached tmux session
+              After=network-online.target
+              Wants=network-online.target
+
+              [Service]
+              Type=oneshot
+              RemainAfterExit=yes
+              WorkingDirectory=${repoDir}
+              # Provide tmux and the Nix profile on PATH: systemd starts services
+              # with a minimal environment, so neither would be found otherwise.
+              Environment=PATH=${pkgs.tmux}/bin:/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin
+              ExecStart=${repoDir}/start_tmux_artiq_server.sh
+              ExecStop=${pkgs.tmux}/bin/tmux kill-session -t ${sessionName}
+              # Start once on boot. Do NOT restart if the operator manually exits
+              # the session - RemainAfterExit keeps the unit "active (exited)"
+              # without relaunching it.
+              Restart=no
+
+              [Install]
+              WantedBy=multi-user.target
+            '';
+
+            script = pkgs.writeShellScriptBin "install_systemd" ''
+              set -euo pipefail
+              export PATH=${
+                pkgs.lib.makeBinPath [pkgs.systemd pkgs.coreutils]
+              }:$PATH
+
+              UNIT_DST=/etc/systemd/system/${serviceName}.service
+
+              if [ "$(id -u)" -ne 0 ]; then
+                echo "This installer writes to /etc/systemd/system and must be run as root." >&2
+                echo "Re-run with: sudo nix run .#install_systemd" >&2
+                exit 1
+              fi
+
+              echo "Installing systemd unit -> $UNIT_DST"
+              install -Dm644 ${unitFile} "$UNIT_DST"
+
+              echo "Reloading systemd manager configuration"
+              systemctl daemon-reload
+
+              echo "Enabling ${serviceName}.service to start on boot"
+              systemctl enable ${serviceName}.service
+
+              echo
+              echo "Done. '${serviceName}.service' will start tmux session '${sessionName}' on boot."
+              echo "It will NOT be restarted if you manually exit the session."
+              echo
+              echo "Start it now (without rebooting): systemctl start ${serviceName}.service"
+              echo "Check status:                     systemctl status ${serviceName}.service"
+              echo "Attach to the session:            tmux attach -t ${sessionName}"
+            '';
+          in {
+            type = "app";
+            program = "${script}/bin/install_systemd";
+          };
+
           dedrifter = let
             script = pkgs.writeShellScriptBin "dedrifter" ''
               export PATH=${
