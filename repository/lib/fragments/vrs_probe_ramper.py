@@ -82,3 +82,5 @@ class VRS_Probe_Ramper(Fragment):
         # Wait until we do one pulse
         delay(self.sweep_time.get())
         self.probe_ramper.stop_ramp()
+
+        self.probe_ramper.dds.sw.off()
