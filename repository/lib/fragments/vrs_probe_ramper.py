@@ -75,7 +75,7 @@ class VRS_Probe_Ramper(Fragment):
         self.df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
 
         # Get the correct direction
-        direction: int = 1 if self.ramp_direction.get() else 2
+        direction = 1 if self.ramp_direction.get() else 2
         self.probe_ramper.start_ramp(
             self.df_dt, self.min_f.get(), self.max_f.get(), direction
         )
