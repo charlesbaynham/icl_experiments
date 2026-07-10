@@ -1,7 +1,7 @@
 {
     "servers": {
         "icl_aion": {
-            "host": "aion.lan",
+            "host": "10.137.1.252",
             "notify": 3277,
             "control": 3276
         }
