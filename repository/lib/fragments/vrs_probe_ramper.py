@@ -33,7 +33,7 @@ class VRS_Probe_Ramper(Fragment):
             "max_f",
             FloatParam,
             description="Final scan frequency",
-            default=15e6,
+            default=143e6,
             min=1,
             unit="MHz",
         )
@@ -42,7 +42,7 @@ class VRS_Probe_Ramper(Fragment):
             "min_f",
             FloatParam,
             description="Initial scan frequency",
-            default=5.0,
+            default=134e6,
             unit="MHz",
         )
 
