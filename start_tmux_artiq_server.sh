@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SESSION=aion
-REPO_DIR=/root/artiq_stuff/icl_experiments
+REPO_DIR=/root/icl_experiments
 
 # When launched from a minimal environment (e.g. systemd on boot) the Nix
 # profile is not sourced automatically, so `nix` would not be on PATH. Source
