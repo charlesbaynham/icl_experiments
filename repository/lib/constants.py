@@ -825,7 +825,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_1379_cavity_input",
         servo_enabled=True,
-        setpoint=6,
+        setpoint=7.0,
     ),
     SUServoedBeam(
         "down_813",
@@ -878,11 +878,11 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "squeezing_cavity_698",
         frequency=80e6,
-        attenuation=4.0,
+        attenuation=5.0,
         suservo_device="suservo_aom_698_squeezing_cavity",
         servo_enabled=True,
         initial_amplitude=0.5,
-        setpoint=0.25,
+        setpoint=0.2,
     ),
     SUServoedBeam(
         "clock_up_small",
@@ -1089,7 +1089,7 @@ WAND_SETPOINTS_87 = {
     # "689_doubled1379": (_default_689, False),
     "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
-    "698": (_default_698, False),
+    # "698": (_default_698, False),
 }
 
 TOPTICA_461_ANALOG_SCALE = (

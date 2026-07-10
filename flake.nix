@@ -26,12 +26,14 @@
     git-hooks,
     ...
   }: let
-    # Configure ARTIQ services to bind to the labserver's AION IP address.
-    # This is so that the server can run other ARTIQ sessions bound to other
-    # IP addresses.
+    # Configure ARTIQ services to bind to the AION server's address. This is a
+    # DNS name (static lease) rather than a raw IP so that moving the stack to a
+    # different host only requires re-pointing the lease, not editing this repo.
+    # Binding to the name lets the server run other ARTIQ sessions bound to
+    # other addresses on the same host.
     bind_settings = {
-      bind_command = "--no-localhost-bind --bind 10.137.1.252";
-      connection_ip = "10.137.1.252";
+      bind_command = "--bind \\*";
+      connection_ip = "10.137.3.254";
     };
   in
     flake-utils.lib.eachSystem ["x86_64-linux"] (system: let
