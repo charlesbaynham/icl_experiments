@@ -2,6 +2,8 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
@@ -33,7 +35,7 @@ class VRS_Probe_Ramper(Fragment):
             "max_f",
             FloatParam,
             description="Final scan frequency",
-            default=15e6,
+            default=143e6,
             min=1,
             unit="MHz",
         )
@@ -42,8 +44,15 @@ class VRS_Probe_Ramper(Fragment):
             "min_f",
             FloatParam,
             description="Initial scan frequency",
-            default=5.0,
+            default=134e6,
             unit="MHz",
+        )
+
+        self.setattr_param(
+            "ramp_direction",
+            BoolParam,
+            description="Ramp direction, True = Up, False = Down",
+            default=True,
         )
 
         # set the maximum frequency, this needs to be larger than the VRS as we
@@ -52,11 +61,7 @@ class VRS_Probe_Ramper(Fragment):
         self.sweep_time: FloatParamHandle
         self.max_f: FloatParamHandle
         self.min_f: FloatParamHandle
-
-    def host_setup(self):
-        super().host_setup()
-
-        self.df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
+        self.ramp_direction: BoolParamHandle
 
     @kernel
     def trigger_single_sweep(self):
@@ -66,7 +71,16 @@ class VRS_Probe_Ramper(Fragment):
         Also advances the timeline by the given sweep time.
         """
 
-        self.probe_ramper.start_ramp(self.df_dt, self.min_f.get(), self.max_f.get(), 2)
+        # Calculates the sweep rate based on the parameters
+        df_dt = (self.max_f.get() - self.min_f.get()) / self.sweep_time.get()
+
+        # Get the correct direction
+        direction = 1 if self.ramp_direction.get() else 2
+        self.probe_ramper.start_ramp(
+            df_dt, self.min_f.get(), self.max_f.get(), direction
+        )
         # Wait until we do one pulse
         delay(self.sweep_time.get())
         self.probe_ramper.stop_ramp()
+
+        self.probe_ramper.dds.sw.off()
