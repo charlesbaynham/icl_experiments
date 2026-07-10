@@ -968,7 +968,6 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_679": "679",
     "toptica_707": "707",
     "toptica_689": "689",
-    "toptica_698": "698",
     "toptica_641": "641",
     "toptica_487": "487",
 }
@@ -1022,9 +1021,11 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
     target_position=0.66,
     max_restore_jump_size=+2e-3,
 )
-DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
-    mode_check_tolerance=1.5e9,
-)
+# 698 is no longer connected to WAND so it is not centred via this mapping.
+# Keeping the hard-won settings here commented out in case it is reconnected.
+# DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
+#     mode_check_tolerance=1.5e9,
+# )
 
 
 WAND_SHUTTERS_DELAY = 50e-3
