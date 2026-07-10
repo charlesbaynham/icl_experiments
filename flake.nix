@@ -32,7 +32,7 @@
     # Binding to the name lets the server run other ARTIQ sessions bound to
     # other addresses on the same host.
     bind_settings = {
-      bind_command = "--no-localhost-bind --bind aion.lan";
+      bind_command = "--bind \\*";
       connection_ip = "aion.lan";
     };
   in
