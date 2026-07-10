@@ -33,7 +33,7 @@
     # other addresses on the same host.
     bind_settings = {
       bind_command = "--bind \\*";
-      connection_ip = "aion.lan";
+      connection_ip = "10.137.3.254";
     };
   in
     flake-utils.lib.eachSystem ["x86_64-linux"] (system: let
