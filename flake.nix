@@ -304,7 +304,7 @@
           install_systemd = let
             serviceName = "aion-artiq";
             sessionName = "aion";
-            repoDir = "/root/artiq_stuff/icl_experiments";
+            repoDir = "/root/icl_experiments";
 
             unitFile = pkgs.writeText "${serviceName}.service" ''
               [Unit]
