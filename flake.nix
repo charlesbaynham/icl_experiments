@@ -319,6 +319,12 @@
               # Provide tmux and the Nix profile on PATH: systemd starts services
               # with a minimal environment, so neither would be found otherwise.
               Environment=PATH=${pkgs.tmux}/bin:/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin
+              # HOME/USER are also stripped from the minimal env. nix-daemon.sh
+              # dereferences $HOME under the launch script's `set -u` (fatal if
+              # unset), and downstream the stack resolves ~/.nix-profile,
+              # ~/.influxdb and ~/.grafana - so pin them to root's.
+              Environment=HOME=/root
+              Environment=USER=root
               ExecStart=${repoDir}/start_tmux_artiq_server.sh
               ExecStop=${pkgs.tmux}/bin/tmux kill-session -t ${sessionName}
               # Start once on boot. Do NOT restart if the operator manually exits
