@@ -1,8 +1,9 @@
 """Client for the blue-MOT calibration alone: check, and fix if required."""
 
 import logging
-import time
 
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -26,6 +27,8 @@ BlueMOTCalibrationExp = make_fragment_scan_exp(BlueMOTCalibration)
 class EnsureBlueMOTFrag(CalibrationDAGAppletMixin):
     def build_fragment(self):
         super().build_fragment()
+        self.setattr_device("core")
+        self.core: Core
 
         self.setattr_calibration(BlueMOTCalibration)
         self.BlueMOTCalibration: BlueMOTCalibration
@@ -38,15 +41,23 @@ class EnsureBlueMOTFrag(CalibrationDAGAppletMixin):
         )
         self.force_recalibrate: BoolParamHandle
 
+    def host_setup(self):
+        super().host_setup()
+        # Build the kernel check/fix drivers before run_once is compiled.
+        self.BlueMOTCalibration.prepare_kernel_fix()
+
+    @kernel
     def run_once(self):
         self.BlueMOTCalibration.fix_state(force=self.force_recalibrate.get())
 
         result, data = self.BlueMOTCalibration.check_state()
         logger.info("Blue MOT state: %s (data=%s)", result, data)
         if result != CalibrationResult.OK:
-            raise RuntimeError(f"Blue MOT not OK after fix_state: {result}")
+            raise RuntimeError("Blue MOT not OK after fix_state")
 
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
 EnsureBlueMOT = make_fragment_scan_exp(EnsureBlueMOTFrag)

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from ndscan.experiment import ExpFragment
+
 from qbutler.calibration import Calibration
 
 path_to_repo = Path(__file__, "../../repository").resolve()
@@ -66,13 +67,6 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 # Add xfailing modules. Each entry is (name_substring, reason, strict); strict
 # defaults to the project-wide xfail_strict=true, but flaky failures must use
 # strict=False so that an unexpected pass (XPASS) does not fail the run.
-URUKUL_INIT_REASON = (
-    "urukul_init attribute type conflict when device_setup/run_once/"
-    "device_cleanup share one kernel (as production's _FragmentRunner does). "
-    "The failure is non-deterministic - the UrukulInitInstance.N nominal types "
-    "depend on build/hash ordering across the shard - so this is marked "
-    "non-strict to tolerate both XFAIL and XPASS until the root cause is fixed."
-)
 xfails = [
     # ("ScanTopticaMOTFrag", "Toptica host setup is not mocked")
     # ("ScanKoheronMeasureScopeFrag", "pipeline can't talk to scope")
@@ -86,17 +80,9 @@ xfails = [
         "host object does not have an attribute 'dds'",
         True,
     ),
-    # These fragments only fail to compile once the lifecycle methods are
-    # combined into a single kernel (see URUKUL_INIT_REASON). The failure is
-    # flaky, so they are non-strict.
-    ("ClockSpecDownFromSingleXODTEvaporatedShelvingFrag", URUKUL_INIT_REASON, False),
-    (
-        "ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag",
-        URUKUL_INIT_REASON,
-        False,
-    ),
-    ("ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag", URUKUL_INIT_REASON, False),
-    ("ShapedClockSpecWithSlicingFrag", URUKUL_INIT_REASON, False),
+    # The urukul_init attribute-type conflict (ClockSpec* fragments, when the
+    # lifecycle methods share one kernel) is fixed by keying make_urukul_init on
+    # the channel set in pyaion, so those xfails are removed.
 ]
 
 xfail_names = [x[0] for x in xfails]

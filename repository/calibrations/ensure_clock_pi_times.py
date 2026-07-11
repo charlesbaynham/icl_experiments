@@ -6,8 +6,9 @@ applet).
 """
 
 import logging
-import time
 
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -29,6 +30,9 @@ IDLE_SLEEP_S = 30.0
 class EnsureClockPiTimesFrag(CalibrationDAGAppletMixin):
     def build_fragment(self):
         super().build_fragment()
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(RabiUpPiTimeCalibration)
         self.RabiUpPiTimeCalibration: RabiUpPiTimeCalibration
         # Dedups the shared ClockDeliveryAOMCalibration dependency
@@ -43,19 +47,32 @@ class EnsureClockPiTimesFrag(CalibrationDAGAppletMixin):
         )
         self.force_recalibrate: BoolParamHandle
 
+    def host_setup(self):
+        super().host_setup()
+        # Build the kernel check/fix drivers before run_once is compiled.
+        self.RabiUpPiTimeCalibration.prepare_kernel_fix()
+        self.RabiDownPiTimeCalibration.prepare_kernel_fix()
+
+    @kernel
     def run_once(self):
         force = self.force_recalibrate.get()
         # Up first fixes the shared delivery node; down then reuses it.
         self.RabiUpPiTimeCalibration.fix_state(force=force)
         self.RabiDownPiTimeCalibration.fix_state(force=force)
 
-        for cal in (self.RabiUpPiTimeCalibration, self.RabiDownPiTimeCalibration):
-            result, data = cal.check_state()
-            logger.info("%s state: %s (data=%s)", cal, result, data)
-            if result != CalibrationResult.OK:
-                raise RuntimeError(f"{cal} not OK after fix_state: {result}")
+        result, data = self.RabiUpPiTimeCalibration.check_state()
+        logger.info("Rabi up-pi state: %s (data=%s)", result, data)
+        if result != CalibrationResult.OK:
+            raise RuntimeError("Rabi up-pi not OK after fix_state")
 
-        time.sleep(IDLE_SLEEP_S)
+        result, data = self.RabiDownPiTimeCalibration.check_state()
+        logger.info("Rabi down-pi state: %s (data=%s)", result, data)
+        if result != CalibrationResult.OK:
+            raise RuntimeError("Rabi down-pi not OK after fix_state")
+
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
 EnsureClockPiTimes = make_fragment_scan_exp(EnsureClockPiTimesFrag)

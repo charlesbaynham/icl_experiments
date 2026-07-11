@@ -1,8 +1,9 @@
 """Client for the clock delivery-AOM centring calibration alone: check, fix."""
 
 import logging
-import time
 
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -23,6 +24,9 @@ IDLE_SLEEP_S = 30.0
 class EnsureClockDeliveryFrag(CalibrationDAGAppletMixin):
     def build_fragment(self):
         super().build_fragment()
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(ClockDeliveryAOMCalibration)
         self.ClockDeliveryAOMCalibration: ClockDeliveryAOMCalibration
 
@@ -34,17 +38,23 @@ class EnsureClockDeliveryFrag(CalibrationDAGAppletMixin):
         )
         self.force_recalibrate: BoolParamHandle
 
+    def host_setup(self):
+        super().host_setup()
+        # Build the kernel check/fix drivers before run_once is compiled.
+        self.ClockDeliveryAOMCalibration.prepare_kernel_fix()
+
+    @kernel
     def run_once(self):
         self.ClockDeliveryAOMCalibration.fix_state(force=self.force_recalibrate.get())
 
         result, data = self.ClockDeliveryAOMCalibration.check_state()
         logger.info("Clock delivery state: %s (data=%s)", result, data)
-        logger.info("Sleeping for %.0fs...", IDLE_SLEEP_S)
-
         if result != CalibrationResult.OK:
-            raise RuntimeError(f"Clock delivery not OK after fix_state: {result}")
+            raise RuntimeError("Clock delivery not OK after fix_state")
 
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
 EnsureClockDelivery = make_fragment_scan_exp(EnsureClockDeliveryFrag)
