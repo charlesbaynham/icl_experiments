@@ -80,9 +80,6 @@ xfails = [
         "host object does not have an attribute 'dds'",
         True,
     ),
-    # The urukul_init attribute-type conflict (ClockSpec* fragments, when the
-    # lifecycle methods share one kernel) is fixed by keying make_urukul_init on
-    # the channel set in pyaion, so those xfails are removed.
 ]
 
 xfail_names = [x[0] for x in xfails]

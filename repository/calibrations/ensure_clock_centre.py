@@ -10,6 +10,8 @@ calibrations.status dataset).
 
 import logging
 
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -29,6 +31,9 @@ DAG_APPLET_CMD = (
 
 class EnsureClockCentreFrag(ExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(ClockDeliveryAOMCalibration)
         self.ClockDeliveryAOMCalibration: ClockDeliveryAOMCalibration
 
@@ -47,13 +52,14 @@ class EnsureClockCentreFrag(ExpFragment):
         super().host_setup()
         self.ccb.issue("create_applet", "Calibration DAG", DAG_APPLET_CMD)
 
+    @kernel
     def run_once(self):
         self.ClockDeliveryAOMCalibration.fix_state(force=self.force_recalibrate.get())
 
         result, data = self.ClockDeliveryAOMCalibration.check_state()
         logger.info("Clock centre chain state: %s (data=%s)", result, data)
         if result != CalibrationResult.OK:
-            raise RuntimeError(f"Clock centre chain not OK after fix_state: {result}")
+            raise RuntimeError("Clock centre chain not OK after fix_state")
 
 
 EnsureClockCentre = make_fragment_scan_exp(EnsureClockCentreFrag)

@@ -44,11 +44,6 @@ class EnsureRedMOTFrag(CalibrationDAGAppletMixin):
         )
         self.force_recalibrate: BoolParamHandle
 
-    def host_setup(self):
-        super().host_setup()
-        # Build the kernel check/fix drivers before run_once is compiled.
-        self.RedMOTCalibration.prepare_kernel_fix()
-
     @kernel
     def run_once(self):
         self.RedMOTCalibration.fix_state(force=self.force_recalibrate.get())
