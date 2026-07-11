@@ -29,10 +29,6 @@ class BlueMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
     MOT load. The acceptance threshold is
     ``constants.BLUE_MOT_MIN_OK_FLUORESCENCE``, so the node drives to green
     from constants alone.
-
-    ``check_own_state`` is a kernel. The default (grid-search) optimizer is
-    batchable, so a whole fix sweep runs in a single kernel call -- one compile
-    and one upload -- instead of recompiling a measurement kernel per point.
     """
 
     def build_calibration(self):
