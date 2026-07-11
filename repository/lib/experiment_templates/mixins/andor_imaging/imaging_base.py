@@ -30,6 +30,7 @@ from repository.lib.experiment_templates.red_mot_experiment import (
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 from repository.lib.result_channels import ArchiveOnlyOpaqueChannel
 
@@ -176,7 +177,7 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         """
         self.setattr_fragment(
             "andor_camera_control",
-            AndorCameraControl,
+            specialise_per_enclosing_type(AndorCameraControl, type(self)),
             camera_config=self.andor_camera_config,
         )
         self.andor_camera_control: AndorCameraControl

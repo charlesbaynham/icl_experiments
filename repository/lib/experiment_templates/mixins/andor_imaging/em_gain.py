@@ -14,10 +14,28 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 
 logger = logging.getLogger(__name__)
 
 EM_GAIN_DISABLE_DATASET = "DISABLE_EM_GAIN"
+
+
+class _CallFuncOnDeviceSetup(Fragment):
+    """Call ``func_to_call`` once every device_setup.
+
+    ``func_to_call`` is a bound method of the enclosing fragment, so this must be
+    specialised per enclosing type (see :func:`specialise_per_enclosing_type`) -
+    a single shared class would clash when a fused kernel touches two different
+    enclosers.
+    """
+
+    def build_fragment(self, func_to_call):
+        self.func_to_call = func_to_call
+
+    @kernel
+    def device_setup(self):
+        self.func_to_call()
 
 
 class EMGainMixin(AndorImagingBase):
@@ -57,17 +75,13 @@ class EMGainMixin(AndorImagingBase):
         )
         self.em_gain: FloatParamHandle
 
-        # Define a "Setter" fragment which just calls "_set_camera_em_gain" every device_setup
-        class Setter(Fragment):
-            def build_fragment(self, func_to_call):
-                self.func_to_call = func_to_call
-
-            @kernel
-            def device_setup(self):
-                self.func_to_call()
-
-        self.setattr_fragment("setter", Setter, func_to_call=self._set_gain_if_changed)
-        self.setter: Setter
+        # A fragment that calls _set_gain_if_changed every device_setup.
+        self.setattr_fragment(
+            "setter",
+            specialise_per_enclosing_type(_CallFuncOnDeviceSetup, type(self)),
+            func_to_call=self._set_gain_if_changed,
+        )
+        self.setter: _CallFuncOnDeviceSetup
 
     def host_setup(self):
         super().host_setup()

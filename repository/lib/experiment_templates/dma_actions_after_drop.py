@@ -61,35 +61,10 @@ from numpy import int64
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 from repository.lib.fragments.pulse_recorder_and_tracker import PulseDMARecording
 
 logger = logging.getLogger(__name__)
-
-
-#: One PulseDMARecording subclass per enclosing experiment type.
-_recording_subclasses = {}
-
-
-def _pulse_dma_recording_for(outer_self_type):
-    """A PulseDMARecording subclass unique to ``outer_self_type``.
-
-    PulseDMARecording stores a back-reference to its enclosing experiment
-    (``outer_self``). A qbutler DAG-fix fuses several calibrations' measurements
-    into one kernel, and ARTIQ infers one type per class attribute across that
-    kernel - so a single shared PulseDMARecording class cannot hold ``outer_self``
-    values of several different enclosing types at once. Giving each enclosing
-    type its own subclass keeps ``outer_self`` consistent within one class (so its
-    instances unify) while different enclosing classes get distinct recorder
-    types ARTIQ never tries to unify. Cached on the enclosing type.
-    """
-    cls = _recording_subclasses.get(outer_self_type)
-    if cls is None:
-
-        class _PulseDMARecording(PulseDMARecording):
-            pass
-
-        _recording_subclasses[outer_self_type] = cls = _PulseDMARecording
-    return cls
 
 
 class DMAActionsAfterDropMixin(RedMOTWithExperimentBase):
@@ -106,7 +81,7 @@ class DMAActionsAfterDropMixin(RedMOTWithExperimentBase):
 
         self.setattr_fragment(
             "dma_recording_fragment",
-            _pulse_dma_recording_for(type(self)),
+            specialise_per_enclosing_type(PulseDMARecording, type(self)),
             outer_self=self,
         )
         self.dma_recording_fragment: PulseDMARecording
