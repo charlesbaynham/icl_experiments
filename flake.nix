@@ -1,5 +1,6 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  # TODO: revert to master once feature/cache-set-beams-to-default is merged.
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=feature/cache-set-beams-to-default";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR

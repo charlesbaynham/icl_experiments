@@ -40,6 +40,14 @@ RED_SUSERVO_INFOS = [
     ]
 ]
 
+# Module-level so every RedBeamController instance shares one class; a single
+# kernel touching two of them (e.g. a qbutler DAG fix) can then unify the
+# all_beam_default_setter attribute.
+RedBeamSettings = make_set_beams_to_default(
+    suservo_beam_infos=RED_SUSERVO_INFOS,
+    name="RedBeamSettings",
+)
+
 
 class RedBeamController(Fragment):
     """
@@ -54,13 +62,7 @@ class RedBeamController(Fragment):
         # %% FRAGMENTS
 
         # Setup of defaults for all beams
-        self.setattr_fragment(
-            "all_beam_default_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=RED_SUSERVO_INFOS,
-                name="RedBeamSettings",
-            ),
-        )
+        self.setattr_fragment("all_beam_default_setter", RedBeamSettings)
         self.all_beam_default_setter: SetBeamsToDefaults
 
         # Interface for AOM + shutter toggling of mot beams

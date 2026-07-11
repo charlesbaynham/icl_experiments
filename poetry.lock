@@ -3271,8 +3271,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "HEAD"
-resolved_reference = "51b50175e0fa29c7c1497e531e4c4adc55a5c46b"
+reference = "feature/cache-set-beams-to-default"
+resolved_reference = "4a5655d5b2915123b03af1835bda4db592de4b62"
 
 [[package]]
 name = "pycairo"
@@ -5205,4 +5205,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "78536cde74df3f77e012cce477d2ffd25f0cf30d1f2850439a1f910cdb29bea1"
+content-hash = "306b1635a7468e0035a646f2913d9c8de76c8fadbd04be13b9416e8b0abe16b7"

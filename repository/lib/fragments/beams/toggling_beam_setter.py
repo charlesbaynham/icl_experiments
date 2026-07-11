@@ -25,6 +25,9 @@ from repository.lib.dummy_devices import DummyTTL
 logger = logging.getLogger(__name__)
 
 
+_toggle_list_subclasses = {}
+
+
 def make_toggle_list_of_beams(
     suservo_beam_infos: List[SUServoedBeam] = [],
     urukul_beam_infos: List[UrukuledBeam] = [],
@@ -32,12 +35,25 @@ def make_toggle_list_of_beams(
     """
     Factory function for :class:`~ToggleListOfBeams`. See documentation for
     :meth:`~make_set_beams_to_default` for reasoning.
+
+    Calls with the same beams return the *same* class, so two instances built
+    from identical beams share one type and a single kernel touching both can
+    unify their attributes.
     """
+
+    key = (
+        tuple(b.name for b in suservo_beam_infos),
+        tuple(b.name for b in urukul_beam_infos),
+    )
+    cached = _toggle_list_subclasses.get(key)
+    if cached is not None:
+        return cached
 
     class ToggleListOfBeamsCustomised(ToggleListOfBeams):
         default_suservo_beam_infos = suservo_beam_infos
         default_urukul_beam_infos = urukul_beam_infos
 
+    _toggle_list_subclasses[key] = ToggleListOfBeamsCustomised
     return ToggleListOfBeamsCustomised
 
 

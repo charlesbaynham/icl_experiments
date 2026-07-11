@@ -8,7 +8,7 @@ readme = "readme.rst"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 
-pyaion = { git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git" }
+pyaion = { git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git", branch = "feature/cache-set-beams-to-default" }
 
 # Specify sipyco even though it's already in pyaion, since we want a specific
 # version here. It would be nice if we could specify versions and get it from

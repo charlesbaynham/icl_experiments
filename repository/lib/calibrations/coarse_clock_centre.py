@@ -2,7 +2,9 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -10,16 +12,17 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import LastValueSink
 
+from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
 from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib.calibrations.red_mot import RedMOTCalibration
-from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
+from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag
 
 logger = logging.getLogger(__name__)
 
@@ -146,48 +149,65 @@ class CoarseClockCentreCalibration(Calibration):
 
         self._excitation_sink = LastValueSink()
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
-        self._delivery_store = None
+
+        # Bind the swept delivery frequency to a store at build time so the
+        # kernel can set it on-core (params aren't readable via .get() until
+        # after build); check_own_state overwrites the value on-core.
+        _, self._delivery_store = self.meas.clock_default_setter.override_param(
+            "frequency_clock_delivery", _NOMINAL_DELIVERY_FREQUENCY
+        )
         self._armed = False
 
-    @kernel
-    def _measure(self):
-        self.core.break_realtime()
-        self.meas.device_setup()
-        self.meas.run_once()
-        self.meas.device_cleanup()
+    def host_setup(self):
+        super().host_setup()
+        # Arm the detached measurements on the host: their kernels read
+        # attributes set in host_setup, which must exist before check_own_state
+        # compiles (see the MOT / refined-clock calibrations).
+        for cal in dag.get_dependencies(self):
+            cal._ensure_armed()
 
-    def check_own_state(self):
-        if self._delivery_store is None:
-            _, self._delivery_store = self.meas.clock_default_setter.override_param(
-                "frequency_clock_delivery", self.delivery_frequency.get()
-            )
-        self._delivery_store.set_value(self.delivery_frequency.get())
-
-        # Arm the (detached) measurement lazily, ONCE per process (the imaging
-        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle;
-        # see the MOT calibrations).
+    def _ensure_armed(self):
+        # Arm the (detached) measurement once per process (the imaging wrapper
+        # does not survive a host_setup/host_cleanup/host_setup cycle).
         if not self._armed:
             self.meas.host_setup()
             self._armed = True
 
-        samples = []
-        for _ in range(int(self.num_averages.get())):
-            self._measure()
-            value = self._excitation_sink.get_last()
-            if value is not None:
-                samples.append(value)
-        if not samples:
-            return CalibrationResult.INVALID_DATA, 0.0
-        excitation = float(np.mean(samples))
-
+    @rpc
+    def _read_excitation(self, delivery_frequency: TFloat) -> TFloat:
+        e = self._excitation_sink.get_last()
+        if e is None:
+            return float("nan")
         logger.info(
             "Coarse clock centre check: %.6f MHz -> excitation %.3f",
-            1e-6 * self.delivery_frequency.get(),
-            excitation,
+            1e-6 * delivery_frequency,
+            e,
         )
-        if excitation >= self.min_ok_excitation.get():
-            return CalibrationResult.OK, float(excitation)
-        return CalibrationResult.BAD_DATA, float(excitation)
+        return float(e)
+
+    @kernel
+    def check_own_state(self):
+        delivery_frequency = self.delivery_frequency.get()
+        self._delivery_store.set_value(delivery_frequency)
+
+        total = 0.0
+        count = 0
+        for _ in range(self.num_averages.get()):
+            self.core.break_realtime()
+            self.meas.device_setup()
+            self.meas.run_once()
+            self.meas.device_cleanup()
+            excitation = self._read_excitation(delivery_frequency)
+            if excitation == excitation:  # not NaN
+                total += excitation
+                count += 1
+
+        if count == 0:
+            return CalibrationResult.INVALID_DATA, 0.0
+        mean_excitation = total / float(count)
+        if mean_excitation >= self.min_ok_excitation.get():
+            return CalibrationResult.OK, mean_excitation
+        return CalibrationResult.BAD_DATA, mean_excitation
 
 
 CoarseClockCentreCalibrationExp = make_fragment_scan_exp(CoarseClockCentreCalibration)

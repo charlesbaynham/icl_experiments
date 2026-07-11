@@ -53,6 +53,52 @@ ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET = "e_bg_corrected_roi_targets"
 ANDOR_MONITOR_SEPARATOR_WIDTH = 2
 
 
+class ImagingDeviceSetup(Fragment):
+    """
+    define a device_setup to clear out the grabber and empty the image store at the start of the shot
+    """
+
+    def build_fragment(self, num_grabber_rois):
+        self.setattr_device("grabber0")
+        self.grabber0: Grabber
+
+        self.setattr_param(
+            "set_topica_pre_delay",
+            FloatParam,
+            "Toptica setting pre-delay",
+            default=10e-3,
+            unit="ms",
+        )
+        self.set_topica_pre_delay: FloatParamHandle
+
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+        self.set_toptica_analog: SetTopticaAnalogFrag
+
+        self.num_grabber_rois = num_grabber_rois
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+        self.core.break_realtime()
+
+        grabber_clearout = [0] * self.num_grabber_rois
+
+        while True:
+            try:
+                self.grabber0.input_mu(
+                    grabber_clearout,
+                    timeout_mu=self.core.get_rtio_counter_mu()
+                    + self.core.ref_multiplier * 10,
+                )
+                logger.error("Found a leftover grabber image")
+                delay(1e-3)
+            except GrabberTimeoutException:
+                break
+
+
 class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     """
     Base class for imaging with the Andor camera
@@ -110,51 +156,6 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("do_gauss_fit")
-
-        class ImagingDeviceSetup(Fragment):
-            """
-            define a device_setup to clear out the grabber and empty the image store at the start of the shot
-            """
-
-            def build_fragment(self, num_grabber_rois):
-                self.setattr_device("grabber0")
-                self.grabber0: Grabber
-
-                self.setattr_param(
-                    "set_topica_pre_delay",
-                    FloatParam,
-                    "Toptica setting pre-delay",
-                    default=10e-3,
-                    unit="ms",
-                )
-                self.set_topica_pre_delay: FloatParamHandle
-
-                self.setattr_device("core")
-                self.core: Core
-
-                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-                self.set_toptica_analog: SetTopticaAnalogFrag
-
-                self.num_grabber_rois = num_grabber_rois
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-                self.core.break_realtime()
-
-                grabber_clearout = [0] * self.num_grabber_rois
-
-                while True:
-                    try:
-                        self.grabber0.input_mu(
-                            grabber_clearout,
-                            timeout_mu=self.core.get_rtio_counter_mu()
-                            + self.core.ref_multiplier * 10,
-                        )
-                        logger.error("Found a leftover grabber image")
-                        delay(1e-3)
-                    except GrabberTimeoutException:
-                        break
 
         self.setattr_fragment(
             "imagingsetup",
