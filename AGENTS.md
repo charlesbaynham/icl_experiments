@@ -240,7 +240,7 @@ Edit `flake.nix` to add system dependencies or override package builds.
 
 ### Network Configuration
 
-- Server binds to `aion.lan` (the AION server's DNS name via a static lease,
+- Server binds to `10.137.3.254` (the AION server's DNS name via a static lease,
   set in `flake.nix` `bind_settings`). Using the name rather than a raw IP means
   moving the stack to another host only requires re-pointing the lease.
 - This allows multiple ARTIQ sessions on different addresses on the same host
