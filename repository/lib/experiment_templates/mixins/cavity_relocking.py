@@ -14,6 +14,67 @@ from repository.lib.fragments.relock_689_and_698 import Relock698Frag
 logger = logging.getLogger(__name__)
 
 
+class MonitorLocksInDeviceSetup(Fragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+
+        self.setattr_fragment("relock_689_frag", Relock689Frag)
+        self.relock_689_frag: Relock689Frag
+
+        self.setattr_fragment("relock_698_frag", Relock698Frag)
+        self.relock_698_frag: Relock698Frag
+
+        self.setattr_param(
+            "relock_689_enabled",
+            BoolParam,
+            default=True,
+            description="Enable 689 ECDL automatic relocking",
+        )
+        self.relock_689_enabled: BoolParamHandle
+
+        self.setattr_param(
+            "relock_698_enabled",
+            BoolParam,
+            default=True,
+            description="Enable 698 ECDL automatic relocking",
+        )
+        self.relock_698_enabled: BoolParamHandle
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        needs_relock_689 = False
+        try:
+            needs_relock_689 = (
+                self.relock_689_enabled.get()
+                and not self.relock_689_frag.is_cavity_locked(accept_old=True)
+            )
+        except RuntimeError:
+            pass
+        if needs_relock_689:
+            logger.warning("689 cavity unlocked, attempting relock")
+            try:
+                self.relock_689_frag.relock()
+            except RuntimeError:
+                logger.error("Failed to relock 689 cavity")
+
+        needs_relock_698 = False
+        try:
+            needs_relock_698 = (
+                self.relock_698_enabled.get()
+                and not self.relock_698_frag.is_cavity_locked(accept_old=True)
+            )
+        except RuntimeError:
+            pass
+        if needs_relock_698:
+            logger.warning("698 cavity unlocked, attempting relock")
+            try:
+                self.relock_698_frag.relock()
+            except RuntimeError:
+                logger.error("Failed to relock 698 cavity")
+
+
 class MonitorAndRelock689and698Mixin(RedMOTWithExperimentBase):
     """
     Mixin to monitor the 689 and 698 cavity locks and relock them if required
@@ -25,66 +86,6 @@ class MonitorAndRelock689and698Mixin(RedMOTWithExperimentBase):
 
     def build_fragment(self):
         super().build_fragment()
-
-        class MonitorLocksInDeviceSetup(Fragment):
-            def build_fragment(self):
-                self.setattr_device("core")
-
-                self.setattr_fragment("relock_689_frag", Relock689Frag)
-                self.relock_689_frag: Relock689Frag
-
-                self.setattr_fragment("relock_698_frag", Relock698Frag)
-                self.relock_698_frag: Relock698Frag
-
-                self.setattr_param(
-                    "relock_689_enabled",
-                    BoolParam,
-                    default=True,
-                    description="Enable 689 ECDL automatic relocking",
-                )
-                self.relock_689_enabled: BoolParamHandle
-
-                self.setattr_param(
-                    "relock_698_enabled",
-                    BoolParam,
-                    default=True,
-                    description="Enable 698 ECDL automatic relocking",
-                )
-                self.relock_698_enabled: BoolParamHandle
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                needs_relock_689 = False
-                try:
-                    needs_relock_689 = (
-                        self.relock_689_enabled.get()
-                        and not self.relock_689_frag.is_cavity_locked(accept_old=True)
-                    )
-                except RuntimeError:
-                    pass
-                if needs_relock_689:
-                    logger.warning("689 cavity unlocked, attempting relock")
-                    try:
-                        self.relock_689_frag.relock()
-                    except RuntimeError:
-                        logger.error("Failed to relock 689 cavity")
-
-                needs_relock_698 = False
-                try:
-                    needs_relock_698 = (
-                        self.relock_698_enabled.get()
-                        and not self.relock_698_frag.is_cavity_locked(accept_old=True)
-                    )
-                except RuntimeError:
-                    pass
-                if needs_relock_698:
-                    logger.warning("698 cavity unlocked, attempting relock")
-                    try:
-                        self.relock_698_frag.relock()
-                    except RuntimeError:
-                        logger.error("Failed to relock 698 cavity")
 
         self.setattr_fragment(
             "monitor_locks_in_device_setup", MonitorLocksInDeviceSetup

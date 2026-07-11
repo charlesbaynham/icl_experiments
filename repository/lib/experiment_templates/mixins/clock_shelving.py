@@ -27,6 +27,7 @@ from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -35,6 +36,18 @@ logger = logging.getLogger(__name__)
 CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
 CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+
+
+class _ResetSlicingTime(Fragment):
+    def build_fragment(self, ref_to_outer_self: "ClockShelvingAndClearoutBase"):
+        self.setattr_device("core")
+        self.core: Core
+        self.outer = ref_to_outer_self
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+        self.outer.t_velocity_slicing_pulse_centre_mu = int64(0)
 
 
 class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentBase):
@@ -140,18 +153,11 @@ class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentB
         self.t_dipole_beams_off = int64(0)
 
         # Ensure that the time of the slicing pulse is always reset
-        class _ResetSlicingTime(Fragment):
-            def build_fragment(self, ref_to_outer_self: "ClockShelvingAndClearoutBase"):
-                self.setattr_device("core")
-                self.core: Core
-                self.outer = ref_to_outer_self
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-                self.outer.t_velocity_slicing_pulse_centre_mu = int64(0)
-
-        self.setattr_fragment("reset_slicing_time", _ResetSlicingTime, self)
+        self.setattr_fragment(
+            "reset_slicing_time",
+            specialise_per_enclosing_type(_ResetSlicingTime, type(self)),
+            self,
+        )
 
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience

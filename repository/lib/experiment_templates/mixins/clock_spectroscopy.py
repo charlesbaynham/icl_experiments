@@ -29,6 +29,7 @@ from repository.lib.experiment_templates.red_mot_experiment import (
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -36,6 +37,20 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
 
 logger = logging.getLogger(__name__)
+
+
+class TurnOnClockDeliveryAOM(Fragment):
+    def build_fragment(self, parent_frag: "ClockSpectroscopyBase"):
+        self.parent = parent_frag
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        self.parent.core.break_realtime()
+        delay(self.parent.clock_delivery_preempt_time.get())
+
+        self.parent.prepare_clock_delivery_aom()
 
 
 class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
@@ -153,21 +168,10 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         # Turn the clock delivery AOM on at the start of each shot. This might
         # get overridden by e.g. slicing so we must do it again, but we want the
         # duty cycle to be 100% so the AOM settles
-        class TurnOnClockDeliveryAOM(Fragment):
-            def build_fragment(self, parent_frag: "ClockSpectroscopyBase"):
-                self.parent = parent_frag
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                self.parent.core.break_realtime()
-                delay(self.parent.clock_delivery_preempt_time.get())
-
-                self.parent.prepare_clock_delivery_aom()
-
         self.setattr_fragment(
-            "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
+            "turn_on_clock_delivery_aom",
+            specialise_per_enclosing_type(TurnOnClockDeliveryAOM, type(self)),
+            self,
         )
 
         self.setattr_fragment(

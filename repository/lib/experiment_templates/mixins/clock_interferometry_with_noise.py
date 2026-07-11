@@ -16,6 +16,83 @@ from repository.lib.utils import GaussianRandom
 logger = logging.getLogger(__name__)
 
 
+class GaussianNoisePhase(Fragment):
+    """
+    Using a random noise generator over the 0,1 interval, draw two
+    samples from two Gaussians with the given mean and variance
+
+    This is implemented as a Fragment so we can use device_setup (which
+    we can't do from a mixin).
+    """
+
+    def build_fragment(self):
+        self.setattr_param(
+            "random_seed",
+            IntParam,
+            description="Seed for pseudo-random number generator",
+            default=12345,
+        )
+        self.random_seed: IntParamHandle
+
+        self.setattr_param(
+            "phase_step_one_std",
+            FloatParam,
+            description="Std. dev. of phase step 1 in turns",
+            default=0.0,
+        )
+        self.phase_step_one_std: FloatParamHandle
+
+        self.setattr_param(
+            "phase_step_one_mean",
+            FloatParam,
+            description="Mean of phase step 1 in turns",
+            default=0.0,
+        )
+        self.phase_step_one_mean: FloatParamHandle
+
+        self.setattr_param(
+            "phase_step_two_std",
+            FloatParam,
+            description="Std. dev. of phase step 2 in turns",
+            default=0.0,
+        )
+        self.phase_step_two_std: FloatParamHandle
+
+        self.setattr_param(
+            "phase_step_two_mean",
+            FloatParam,
+            description="Mean of phase step 2 in turns",
+            default=0.0,
+        )
+        self.phase_step_two_mean: FloatParamHandle
+
+    def host_setup(self):
+        # Make a random noise generator
+        self.rng = GaussianRandom(self, seed=self.random_seed.get())
+
+        self.random_phase_one = 0.0
+        self.random_phase_two = 0.0
+
+        super().host_setup()
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        self.random_phase_one = (
+            self.phase_step_one_std.get() * self.rng.next()
+            + self.phase_step_one_mean.get()
+        )
+        self.random_phase_two = (
+            self.phase_step_two_std.get() * self.rng.next()
+            + self.phase_step_two_mean.get()
+        )
+
+    @kernel
+    def get_random_phases(self) -> tuple[float, float]:
+        return self.random_phase_one, self.random_phase_two
+
+
 class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
@@ -30,82 +107,6 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
 
     def build_fragment(self):
         super().build_fragment()
-
-        class GaussianNoisePhase(Fragment):
-            """
-            Using a random noise generator over the 0,1 interval, draw two
-            samples from two Gaussians with the given mean and variance
-
-            This is implemented as a Fragment so we can use device_setup (which
-            we can't do from a mixin).
-            """
-
-            def build_fragment(self):
-                self.setattr_param(
-                    "random_seed",
-                    IntParam,
-                    description="Seed for pseudo-random number generator",
-                    default=12345,
-                )
-                self.random_seed: IntParamHandle
-
-                self.setattr_param(
-                    "phase_step_one_std",
-                    FloatParam,
-                    description="Std. dev. of phase step 1 in turns",
-                    default=0.0,
-                )
-                self.phase_step_one_std: FloatParamHandle
-
-                self.setattr_param(
-                    "phase_step_one_mean",
-                    FloatParam,
-                    description="Mean of phase step 1 in turns",
-                    default=0.0,
-                )
-                self.phase_step_one_mean: FloatParamHandle
-
-                self.setattr_param(
-                    "phase_step_two_std",
-                    FloatParam,
-                    description="Std. dev. of phase step 2 in turns",
-                    default=0.0,
-                )
-                self.phase_step_two_std: FloatParamHandle
-
-                self.setattr_param(
-                    "phase_step_two_mean",
-                    FloatParam,
-                    description="Mean of phase step 2 in turns",
-                    default=0.0,
-                )
-                self.phase_step_two_mean: FloatParamHandle
-
-            def host_setup(self):
-                # Make a random noise generator
-                self.rng = GaussianRandom(self, seed=self.random_seed.get())
-
-                self.random_phase_one = 0.0
-                self.random_phase_two = 0.0
-
-                super().host_setup()
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                self.random_phase_one = (
-                    self.phase_step_one_std.get() * self.rng.next()
-                    + self.phase_step_one_mean.get()
-                )
-                self.random_phase_two = (
-                    self.phase_step_two_std.get() * self.rng.next()
-                    + self.phase_step_two_mean.get()
-                )
-
-            @kernel
-            def get_random_phases(self) -> tuple[float, float]:
-                return self.random_phase_one, self.random_phase_two
 
         self.setattr_fragment("phase_rng", GaussianNoisePhase)
         self.phase_rng: GaussianNoisePhase

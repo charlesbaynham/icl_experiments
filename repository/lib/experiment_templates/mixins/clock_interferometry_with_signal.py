@@ -15,11 +15,128 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.fragments.per_enclosing_type import specialise_per_enclosing_type
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
 
 logger = logging.getLogger(__name__)
 
 NAME_OF_DATASET_T0 = "dai_signal_t0"
+
+
+class SignalInjector(Fragment):
+
+    def build_fragment(self, parent_fragment: "StarkShifterWithSignalMixin"):
+        self.setattr_device("core")
+        self.core: Core
+
+        # Store a reference to the parent fragment
+        self.parent_fragment = parent_fragment
+
+        self.setattr_fragment(
+            "stark_shifter_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"].suservo_device,
+        )
+        self.stark_shifter_suservo: LibSetSUServoStatic
+
+        # Get a timestamper to convert ARTIQ timestamps to UTC
+        self.setattr_fragment(
+            "timestamper",
+            Timestamper,
+            automatic_timestamp=False,
+            record_timestamps=False,
+        )
+        self.timestamper: Timestamper
+
+        self.t0_mu = np.int64(0)
+        self.period_mu = np.int64(0)
+        self.this_stark_shifter_setpoint = 0.0
+
+        # Save a t0 timestamp from which the signals will be calculated.
+        # Default to retrieving this from a dataset which will be
+        # written by host_setup so that subsequent experiments are
+        # automatically continuous with this one
+        self.setattr_param(
+            "t0",
+            FloatParam,
+            "Reference time for signal injection, in UNIX timestamp",
+            default=f"dataset('{NAME_OF_DATASET_T0}', 0)",
+        )
+        self.t0: FloatParamHandle
+
+        # Save the calculated setpoint for debugging
+        self.setattr_result("stark_shifter_setpoint", FloatChannel, unit="V")
+        self.stark_shifter_setpoint: FloatChannel
+
+    def host_setup(self):
+        super().host_setup()
+
+        # If there was no dataset defining a starting time, choose now and make a dataset
+        if self.t0.get() == 0:
+            self.t0_val = time.time()
+        else:
+            self.t0_val = self.t0.get()
+
+        # Store the t0 chosen so that future datasets can retrieve it
+        self.set_dataset(
+            NAME_OF_DATASET_T0,
+            self.t0_val,
+            broadcast=True,
+            persist=True,
+            archive=True,
+        )
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        # ...on first run
+        if self.t0_mu == 0:
+            # self.t0_val is in UNIX time, whereas we must work in ARTIQ
+            # RTIO timestamps. Calculate this t0 in ARTIQ timestamp
+            t_crate_turned_on = self.timestamper.get_offset_from_utc()
+            self.t0_mu = self.core.seconds_to_mu(self.t0.get() - t_crate_turned_on)
+
+        # Calculate the period in machine units
+        self.period_mu = self.core.seconds_to_mu(
+            1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
+        )
+
+        # Every run, set the Stark shifter setpoint to the value
+        # relevant for the current time. We'll set it again closer to
+        # the probes, but we want to let the setpoint stabilise
+        self.core.break_realtime()
+        self.set_stark_shifter_setpoint()
+
+    @kernel
+    def set_stark_shifter_setpoint(self, t_pulse_mu=np.int64(0)):
+        """
+        Set the Stark shifter setpoint based on the value of
+        t_pulse, or now_mu() by default
+        """
+        amplitude = self.parent_fragment.stark_shifter_setpoint_amplitude.get()
+        frequency = self.parent_fragment.stark_shifter_setpoint_frequency.get()
+        mean = self.parent_fragment.stark_shifter_setpoint_mean.get()
+
+        if t_pulse_mu == 0:
+            t_pulse_mu = now_mu()
+
+        # Calculate t relative to the start of the current oscillation,
+        # in integer mathematics, to avoid floating point errors for
+        # long-running experiments
+        t_mu = (t_pulse_mu - self.t0_mu) % self.period_mu
+        t = self.core.mu_to_seconds(t_mu)
+
+        new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
+
+        # Save the setpoint for debugging
+        self.this_stark_shifter_setpoint = new_setpoint
+
+        self.stark_shifter_suservo.set_setpoint(new_setpoint)
+
+    @kernel
+    def save_to_ndscan(self):
+        self.stark_shifter_setpoint.push(self.this_stark_shifter_setpoint)
 
 
 class StarkShifterWithSignalMixin(ClockInterferometryBase):
@@ -40,126 +157,11 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
         # Do this before the super().build_fragment() call, so that this
         # fragment is executed first in the list of subfragments, allowing it to
         # pre-calculate values that the clock spectroscopy subfragment will use
-        class SignalInjector(Fragment):
-
-            def build_fragment(self, parent_fragment: "StarkShifterWithSignalMixin"):
-                self.setattr_device("core")
-                self.core: Core
-
-                # Store a reference to the parent fragment
-                self.parent_fragment = parent_fragment
-
-                self.setattr_fragment(
-                    "stark_shifter_suservo",
-                    LibSetSUServoStatic,
-                    constants.SUSERVOED_BEAMS[
-                        "stark_shifter_689_delivery"
-                    ].suservo_device,
-                )
-                self.stark_shifter_suservo: LibSetSUServoStatic
-
-                # Get a timestamper to convert ARTIQ timestamps to UTC
-                self.setattr_fragment(
-                    "timestamper",
-                    Timestamper,
-                    automatic_timestamp=False,
-                    record_timestamps=False,
-                )
-                self.timestamper: Timestamper
-
-                self.t0_mu = np.int64(0)
-                self.period_mu = np.int64(0)
-                self.this_stark_shifter_setpoint = 0.0
-
-                # Save a t0 timestamp from which the signals will be calculated.
-                # Default to retrieving this from a dataset which will be
-                # written by host_setup so that subsequent experiments are
-                # automatically continuous with this one
-                self.setattr_param(
-                    "t0",
-                    FloatParam,
-                    "Reference time for signal injection, in UNIX timestamp",
-                    default=f"dataset('{NAME_OF_DATASET_T0}', 0)",
-                )
-                self.t0: FloatParamHandle
-
-                # Save the calculated setpoint for debugging
-                self.setattr_result("stark_shifter_setpoint", FloatChannel, unit="V")
-                self.stark_shifter_setpoint: FloatChannel
-
-            def host_setup(self):
-                super().host_setup()
-
-                # If there was no dataset defining a starting time, choose now and make a dataset
-                if self.t0.get() == 0:
-                    self.t0_val = time.time()
-                else:
-                    self.t0_val = self.t0.get()
-
-                # Store the t0 chosen so that future datasets can retrieve it
-                self.set_dataset(
-                    NAME_OF_DATASET_T0,
-                    self.t0_val,
-                    broadcast=True,
-                    persist=True,
-                    archive=True,
-                )
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                # ...on first run
-                if self.t0_mu == 0:
-                    # self.t0_val is in UNIX time, whereas we must work in ARTIQ
-                    # RTIO timestamps. Calculate this t0 in ARTIQ timestamp
-                    t_crate_turned_on = self.timestamper.get_offset_from_utc()
-                    self.t0_mu = self.core.seconds_to_mu(
-                        self.t0.get() - t_crate_turned_on
-                    )
-
-                # Calculate the period in machine units
-                self.period_mu = self.core.seconds_to_mu(
-                    1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                )
-
-                # Every run, set the Stark shifter setpoint to the value
-                # relevant for the current time. We'll set it again closer to
-                # the probes, but we want to let the setpoint stabilise
-                self.core.break_realtime()
-                self.set_stark_shifter_setpoint()
-
-            @kernel
-            def set_stark_shifter_setpoint(self, t_pulse_mu=np.int64(0)):
-                """
-                Set the Stark shifter setpoint based on the value of
-                t_pulse, or now_mu() by default
-                """
-                amplitude = self.parent_fragment.stark_shifter_setpoint_amplitude.get()
-                frequency = self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                mean = self.parent_fragment.stark_shifter_setpoint_mean.get()
-
-                if t_pulse_mu == 0:
-                    t_pulse_mu = now_mu()
-
-                # Calculate t relative to the start of the current oscillation,
-                # in integer mathematics, to avoid floating point errors for
-                # long-running experiments
-                t_mu = (t_pulse_mu - self.t0_mu) % self.period_mu
-                t = self.core.mu_to_seconds(t_mu)
-
-                new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
-
-                # Save the setpoint for debugging
-                self.this_stark_shifter_setpoint = new_setpoint
-
-                self.stark_shifter_suservo.set_setpoint(new_setpoint)
-
-            @kernel
-            def save_to_ndscan(self):
-                self.stark_shifter_setpoint.push(self.this_stark_shifter_setpoint)
-
-        self.setattr_fragment("signal_injector", SignalInjector, self)
+        self.setattr_fragment(
+            "signal_injector",
+            specialise_per_enclosing_type(SignalInjector, type(self)),
+            self,
+        )
         self.signal_injector: SignalInjector
 
         super().build_fragment()
