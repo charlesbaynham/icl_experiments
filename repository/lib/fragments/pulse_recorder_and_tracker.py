@@ -81,6 +81,102 @@ BUFFER_DEPTH = 300
 # sensitivity, and the largest scaled field stays well inside int64.
 CHECKSUM_SCALE = 1_000_000_000
 
+# Flat-archive record-type markers. A per-shot record in ``*_flat`` is either a
+# length-1 sentinel (its single value is one of these first two) or a data
+# record. Data records come in two shapes: a *full* record (first value is a
+# non-negative ``num_pulses``, followed by every field row) and a *partial*
+# record (first value is PARTIAL_RECORD_SENTINEL) that stores only the field
+# rows that changed since the previous stored record, reusing the rest. See
+# ``_encode_records_flat`` for the exact layout.
+SAME_AS_LAST_RECORD_SENTINEL = -1.0
+DISABLED_RECORD_SENTINEL = -2.0
+PARTIAL_RECORD_SENTINEL = -3.0
+
+
+def _encode_records_flat(records, per_field=False, checksum_scale=CHECKSUM_SCALE):
+    """Encode a list of per-shot records into flat ``(data, offsets)`` lists.
+
+    ``records`` is the in-memory broadcast dataset: a list whose entries are
+    either a length-1 whole-record sentinel (``[[-1.0]]`` "same as last",
+    ``[[-2.0]]`` "storage disabled") or a full record of ``n_rows`` rows, each
+    ``num_entries`` values long.
+
+    The returned ``data`` is the concatenation of one flat slice per record and
+    ``offsets`` gives each slice's start index. Each slice is one of:
+
+    * ``[value]`` (length 1) - a whole-record sentinel, passed through verbatim.
+    * ``[num_entries, row_0.., row_1.., ...]`` (length ``1 + n_rows*num_entries``)
+      - a *full* record: ``num_entries`` followed by every row in order.
+    * ``[PARTIAL_RECORD_SENTINEL, num_entries, n_rows, flag_0, .., flag_{n_rows-1},
+      <changed rows..>]`` - a *partial* record emitted only when ``per_field`` is
+      set and some (but not all) rows are unchanged from the previous stored
+      record. ``flag_k`` is ``1.0`` if row ``k`` is present (changed) or ``0.0``
+      if it should be reused from the previous record; the present rows follow in
+      order. This is what makes a phase scan cheap: only the phase row is stored
+      each shot, the other fields collapse to a zero flag.
+
+    Fields are compared for equality after the same integer scaling the per-shot
+    dedup checksum uses (``int(x*checksum_scale)``), so "unchanged" here means
+    exactly what "unchanged" means to the kernel-side checksum.
+
+    ``per_field=False`` reproduces the original full-record-or-sentinel encoding
+    byte-for-byte (used for the intent record, which is not per-field deduped).
+    """
+
+    def scaled(row):
+        return [int(x * checksum_scale) for x in row]
+
+    data = []
+    offsets = []
+    prev_rows = None  # last stored data record, as a list of float rows
+
+    for record in records:
+        offsets.append(len(data))
+
+        # Whole-record length-1 sentinel (same-as-last / disabled): pass through.
+        if len(record) == 1 and len(record[0]) == 1:
+            data.append(float(record[0][0]))
+            continue
+
+        rows = [[float(x) for x in row] for row in record]
+        n_rows = len(rows)
+        num_entries = len(rows[0])
+
+        if (
+            per_field
+            and prev_rows is not None
+            and len(prev_rows) == n_rows
+            and len(prev_rows[0]) == num_entries
+        ):
+            changed = [scaled(rows[k]) != scaled(prev_rows[k]) for k in range(n_rows)]
+            n_changed = sum(changed)
+            if n_changed == 0:
+                # Nothing changed after all: fall back to the cheap whole-record
+                # sentinel (the kernel checksum can disagree with per-row scaling
+                # at the margins, so guard rather than store an all-zero-flag
+                # partial that decodes identically but costs more).
+                data.append(SAME_AS_LAST_RECORD_SENTINEL)
+                prev_rows = rows
+                continue
+            if n_changed < n_rows:
+                data.append(PARTIAL_RECORD_SENTINEL)
+                data.append(float(num_entries))
+                data.append(float(n_rows))
+                data.extend(1.0 if changed[k] else 0.0 for k in range(n_rows))
+                for k in range(n_rows):
+                    if changed[k]:
+                        data.extend(rows[k])
+                prev_rows = rows
+                continue
+
+        # Full record.
+        data.append(float(num_entries))
+        for row in rows:
+            data.extend(row)
+        prev_rows = rows
+
+    return data, offsets
+
 
 class PulseDMARecording(Fragment):
     dma_name = "actions_after_drop"
@@ -555,12 +651,17 @@ class PulseDMARecording(Fragment):
         - ``pulse_record_offsets``: starting index in ``pulse_record_flat`` for each
           record, allowing the original records to be reconstructed.
 
-        Each record is encoded as a flat 1D array:
+        Each record is encoded as a flat 1D array (see ``_encode_records_flat``):
 
         - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
-        - Regular record (8 rows of ``num_pulses`` values each):
+        - Full record (8 rows of ``num_pulses`` values each):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …, phase_0, …]``
           (length ``1 + 8 * num_pulses``)
+        - Partial record (``per_field`` dedup): only the field rows that changed
+          since the last stored record are kept, the rest reused. Layout:
+          ``[PARTIAL_RECORD_SENTINEL, num_pulses, n_rows, flag_0, …, flag_{n_rows-1},
+          <changed rows…>]``. A phase-only scan therefore stores just the phase
+          row each shot instead of the whole eight-row record.
 
         All values are stored as float64 in physical units: start times
         (release-relative, as in the broadcast dataset) and durations in s,
@@ -568,7 +669,7 @@ class PulseDMARecording(Fragment):
         direction and num_pulses fields are integer-valued but stored as float64
         too.
         """
-        self._archive_flat_encoded("pulse_record", "pulse_record")
+        self._archive_flat_encoded("pulse_record", "pulse_record", per_field=True)
 
     def _archive_encoded_intent_records(self):
         """Archive the intent stream with the same flat encoding as the facts.
@@ -580,26 +681,14 @@ class PulseDMARecording(Fragment):
         """
         self._archive_flat_encoded("pulse_intent_record", "pulse_intent_record")
 
-    def _archive_flat_encoded(self, source_dataset: str, dest_prefix: str):
+    def _archive_flat_encoded(
+        self, source_dataset: str, dest_prefix: str, per_field: bool = False
+    ):
         records = self.get_dataset(source_dataset, archive=False)
         if not records:
             return
 
-        flat_data = []
-        offsets = []
-        current_offset = 0
-
-        for record in records:
-            offsets.append(current_offset)
-            if len(record) == 1 and len(record[0]) == 1:
-                flat_data.append(float(record[0][0]))
-                current_offset += 1
-            else:
-                num_entries = len(record[0])
-                flat_data.append(float(num_entries))
-                for row in record:
-                    flat_data.extend(float(x) for x in row)
-                current_offset += 1 + len(record) * num_entries
+        flat_data, offsets = _encode_records_flat(records, per_field=per_field)
 
         self.set_dataset(
             f"{dest_prefix}_flat",
