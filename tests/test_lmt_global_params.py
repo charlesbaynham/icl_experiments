@@ -14,8 +14,11 @@ from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import Pulse
+from repository.lib.lmt_sequence import SequenceError
+from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
@@ -318,6 +321,23 @@ def test_compiled_pulse_carries_area():
     )
     areas = sorted({e.area for e in compiled.events if e.kind == EVENT_PULSE})
     assert areas == [0.5, 1.0]
+
+
+def test_unexpected_area_pulse_raises_loudly():
+    """A full-intensity pulse whose area is neither pi nor pi/2 has no duration
+    handle and must raise rather than silently fall through to the pi handle -
+    the fall-through that fired the beam splitters as full pi pulses."""
+    hooks = _hooks()
+    sequence = [
+        SetPoint(setpoint=0.012, rabi_up=1e3, label="slice"),  # index 0 (slice)
+        SetPoint(setpoint=2.6, rabi_up=9e3, label="full"),  # index 1 (full)
+        Pulse(area=0.75, beam=Beam.UP, m=0),  # governed by the full SetPoint
+    ]
+    compiled = compile_sequence(sequence, initial_population={(GROUND, 0)})
+    odd_pulse = compiled.events[2]
+    assert not hooks._is_slice_pulse(odd_pulse)
+    with pytest.raises(SequenceError):
+        hooks.lmt_global_duration_attr(odd_pulse)
 
 
 def test_global_phase_attr_defaults_to_none():

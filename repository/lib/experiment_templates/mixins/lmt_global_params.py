@@ -39,6 +39,7 @@ from repository.lib.experiment_templates.mixins.declarative_lmt import (
 )
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
+from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
 from repository.lib.physics.lmt_resonance import GROUND
 
@@ -271,6 +272,10 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
     def _is_pi2_pulse(event) -> bool:
         return math.isclose(event.area, 0.5)
 
+    @staticmethod
+    def _is_pi_pulse(event) -> bool:
+        return math.isclose(event.area, 1.0)
+
     def lmt_global_offset_attr(self, event) -> "str | None":
         if event.kind != EVENT_PULSE:
             return None
@@ -283,13 +288,23 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
             return None
         if self._is_slice_pulse(event):
             return "lmt_slice_duration"
+        # Bind by area explicitly, and refuse anything we do not recognise rather
+        # than falling through to the pi handle: a silent pi/2 -> pi fall-through
+        # is exactly what fired the beam splitters as full pi pulses.
         if self._is_pi2_pulse(event):
             return (
                 "lmt_up_pi2_duration"
                 if event.beam_sign > 0
                 else "lmt_down_pi2_duration"
             )
-        return "lmt_up_duration" if event.beam_sign > 0 else "lmt_down_duration"
+        if self._is_pi_pulse(event):
+            return "lmt_up_duration" if event.beam_sign > 0 else "lmt_down_duration"
+        raise SequenceError(
+            f"Event {event.index}: global-parameter mode has no duration handle "
+            f"for a full-intensity pulse of area {event.area:g} pi. Only pi and "
+            "pi/2 pulses are supported; add a dedicated handle for this area or "
+            "run the sequence in per-pulse mode."
+        )
 
     def lmt_global_setpoint_attr(self, event) -> "str | None":
         if event.kind != EVENT_SETPOINT:
