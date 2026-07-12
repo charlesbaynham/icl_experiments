@@ -300,15 +300,16 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1773994185,
-        "narHash": "sha256-P7lpcjbBOyx0u/+YD+vZJrWKjiUkcnpRNzwR2gE+xr0=",
-        "ref": "refs/heads/master",
-        "rev": "b58cd3dd63e1f0c8bfc8b91670ee645bd5ce739b",
-        "revCount": 206,
+        "lastModified": 1783848033,
+        "narHash": "sha256-NDIgbfo8Ew/ddNLogK0eeGXjlK6eSsBzKuknx1yQj/8=",
+        "ref": "feature/andor-camera-fragment",
+        "rev": "fda9eb11bbe5cf4b84bf9e90f1bb68c81ef69487",
+        "revCount": 209,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
       "original": {
+        "ref": "feature/andor-camera-fragment",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       }
