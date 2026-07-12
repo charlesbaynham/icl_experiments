@@ -620,6 +620,12 @@ class CompiledEvent:
     contributes N pulse-like columns to the on-disk record.
     ``declared_duration_s`` is the :class:`Callback`'s nominal duration (0.0
     for everything else).
+
+    ``area`` is a *pulse* event's declared area in units of pi (1.0 for a pi
+    pulse, 0.5 for a pi/2 pulse); it defaults to 1.0 for non-pulse events. It
+    lets global-parameter binding hooks distinguish beam splitters from full pi
+    pulses so a pi/2 is not bound to the pi duration handle (see
+    :meth:`~repository.lib.experiment_templates.mixins.lmt_global_params.LMTGlobalParamsSymmetricMachZehnderMixin.lmt_global_duration_attr`).
     """
 
     index: int
@@ -627,6 +633,7 @@ class CompiledEvent:
     beam_sign: int = 0
     m_term_hz: float = 0.0
     rabi_hz: float = 0.0
+    area: float = 1.0
     callback_id: int = -1
     governing_setpoint_index: int = -1
     offset_param: ParamSpec | None = None
@@ -988,6 +995,7 @@ def _compile_pulse(
         beam_sign=s,
         m_term_hz=m_term,
         rabi_hz=rabi_frequency,
+        area=event.area,
         governing_setpoint_index=setpoint_index,
         # Intent: a pi pulse swaps the addressed pair's populations; any
         # other area populates both sides. delta_m is the beam sign (recoils
