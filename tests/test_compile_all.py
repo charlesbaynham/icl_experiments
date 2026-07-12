@@ -127,3 +127,30 @@ for module, exp in all_exp_fragments:
 )
 def test_build_all_fragments(module, exp, fragment_precompiler):
     fragment_precompiler(exp)
+
+
+# The auto-collector above skips names starting with "_", so the calibration
+# measurement fragments a Calibration drives via setattr_fragment are never
+# compiled publicly. Compile them explicitly: the coarse clock-line pulse and the
+# XODT background-corrected imaging shot are the kernels the coarse/XODT
+# calibrations precompile through the pool.
+from repository.lib.calibrations.coarse_clock_centre import (  # noqa: E402
+    _CoarseClockLineFrag,
+)
+from repository.lib.calibrations.xodt_calibration import (  # noqa: E402
+    _SimpleSingleXODTBGCorrectedFrag,
+)
+
+_UNDERSCORE_MEASUREMENT_FRAGS = [
+    _CoarseClockLineFrag,
+    _SimpleSingleXODTBGCorrectedFrag,
+]
+
+
+@pytest.mark.parametrize(
+    "frag",
+    _UNDERSCORE_MEASUREMENT_FRAGS,
+    ids=[f.__name__ for f in _UNDERSCORE_MEASUREMENT_FRAGS],
+)
+def test_underscore_measurement_frags_compile(frag, fragment_precompiler):
+    fragment_precompiler(frag)
