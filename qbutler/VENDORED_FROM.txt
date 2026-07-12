@@ -1,4 +1,4 @@
-963fc4f4154101dc902344c5fdb15f5f1040b997
+7426f8f
 github.com/charlesbaynham/qbutler branch feature/precompiled-host-dag (stacked
 on kernel-rpc-optimizer / PR #19) — vendored copy; upstream fixes go to that
 repo, never edit this copy as the source of truth.
