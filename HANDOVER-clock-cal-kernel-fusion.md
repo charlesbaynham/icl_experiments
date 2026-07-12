@@ -1,3 +1,12 @@
+> **[RETIRED 2026-07-12]** This branch and approach are **superseded**. The fused-kernel
+> heterogeneity wall (§7) was dissolved architecturally: qbutler now runs the calibration
+> DAG on the host with per-submission background-precompiled per-node kernels and a
+> `CalibrationEscape` re-entry protocol (rig-validated RIDs 77433-77461; all six Ensure*
+> cals compile in CI including the three clock cals). See branch
+> `feature/precompiled-cal-kernels` + `plans/2026-07-11-precompiled-cal-kernels-plan.md`
+> (agent_workspace) + icl PR #84. This document is kept as the record of why fusion
+> cannot work (§5-§7 remain the best explanation of the ARTIQ unification mechanics).
+
 # Handover: kernel-driven clock calibrations & the fused-kernel heterogeneity wall
 
 **Branch:** `test/ensure-kernel-run-once-compile-coverage` (icl_experiments), based on
