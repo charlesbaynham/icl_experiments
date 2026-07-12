@@ -3394,8 +3394,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "feature/andor-camera-fragment"
-resolved_reference = "fda9eb11bbe5cf4b84bf9e90f1bb68c81ef69487"
+reference = "HEAD"
+resolved_reference = "6db3eff552f4eb95433f047d3f2558079cfef3fe"
 
 [[package]]
 name = "pycairo"
@@ -5475,4 +5475,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "47ab81083234acb5917eddc693b0f7c5640ee1916eb16204ee5d2bd37f7bce27"
+content-hash = "78536cde74df3f77e012cce477d2ffd25f0cf30d1f2850439a1f910cdb29bea1"
