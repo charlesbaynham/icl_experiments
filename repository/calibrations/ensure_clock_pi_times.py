@@ -1,18 +1,24 @@
-"""Client for the full clock-calibration DAG: XODT -> Cal1 (delivery) ->
-{Cal2 up-pi, Cal3 down-pi}. Pulling both Rabi calibrations dedups the shared
-ClockDeliveryAOMCalibration node, so one run walks the whole DAG and publishes
-all three nodes to calibrations.dag / calibrations.status (rendered by the DAG
-applet).
+"""Client for the clock Rabi pi-time DAG: XODT -> delivery -> {up-pi, down-pi}.
+
+Both Rabi calibrations are attached so the shared ClockDeliveryAOMCalibration
+node dedups and the applet renders the whole DAG; the escape target is the
+up-pi node, whose fix walks the entire shared chain (blue MOT -> ... ->
+delivery -> up-pi). A ``@kernel run_once`` calls ``recalibrate_if_needed()`` and
+escapes to the host when the chain has drifted.
+
+Note: the escape maintains the up-pi subtree; the down-pi *leaf* is not
+re-optimized by this client's escape (it shares every node up to delivery).
+Drive EnsureClockPiTimes for the up chain; the down-pi node is recalibrated by
+its own client / a scan of RabiDownPiTimeCalibration.
 """
 
 import logging
-import time
 
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.rabi_pi_time import RabiDownPiTimeCalibration
 from repository.lib.calibrations.rabi_pi_time import RabiUpPiTimeCalibration
 from repository.lib.experiment_templates.mixins.calibration_dag_applet_mixin import (
@@ -26,36 +32,28 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureClockPiTimesFrag(CalibrationDAGAppletMixin):
+class EnsureClockPiTimesFrag(CalibratedExpFragment, CalibrationDAGAppletMixin):
     def build_fragment(self):
-        super().build_fragment()
+        super().build_fragment()  # applet mixin: sets up ccb
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(RabiUpPiTimeCalibration)
         self.RabiUpPiTimeCalibration: RabiUpPiTimeCalibration
-        # Dedups the shared ClockDeliveryAOMCalibration dependency
+        # Dedups the shared ClockDeliveryAOMCalibration dependency and registers
+        # the down-pi node in the DAG the applet renders.
         self.setattr_calibration(RabiDownPiTimeCalibration)
         self.RabiDownPiTimeCalibration: RabiDownPiTimeCalibration
 
-        self.setattr_param(
-            "force_recalibrate",
-            BoolParam,
-            "Re-measure and re-optimize unconditionally",
-            default=False,
-        )
-        self.force_recalibrate: BoolParamHandle
+        # Two calibrations are attached, so name the DAG the escape maintains.
+        self.calibration_target = self.RabiUpPiTimeCalibration
 
+    @kernel
     def run_once(self):
-        force = self.force_recalibrate.get()
-        # Up first fixes the shared delivery node; down then reuses it.
-        self.RabiUpPiTimeCalibration.fix_state(force=force)
-        self.RabiDownPiTimeCalibration.fix_state(force=force)
-
-        for cal in (self.RabiUpPiTimeCalibration, self.RabiDownPiTimeCalibration):
-            result, data = cal.check_state()
-            logger.info("%s state: %s (data=%s)", cal, result, data)
-            if result != CalibrationResult.OK:
-                raise RuntimeError(f"{cal} not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.recalibrate_if_needed()
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureClockPiTimes = make_fragment_scan_exp(EnsureClockPiTimesFrag)
+EnsureClockPiTimes = make_calibrated_experiment(EnsureClockPiTimesFrag)

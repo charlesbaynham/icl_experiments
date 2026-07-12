@@ -2,7 +2,9 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -148,31 +150,64 @@ class CoarseClockCentreCalibration(Calibration):
         self.meas.excitation_fraction.set_sink(self._excitation_sink)
         self._delivery_store = None
         self._armed = False
+        self._precompile_measure_key = None
+
+    def host_setup(self):
+        super().host_setup()
+        # The precompiled _measure embeds this store and sets its value on-core
+        # (a host-side set would not reach a precompiled kernel), so it must
+        # exist before _measure compiles.
+        if self._delivery_store is None:
+            _, self._delivery_store = self.meas.clock_default_setter.override_param(
+                "frequency_clock_delivery", self.delivery_frequency.get()
+            )
+        self._ensure_armed()
+
+    def _ensure_armed(self):
+        # Arm the (detached) measurement once per process (the imaging wrapper
+        # does not survive a host_setup/host_cleanup/host_setup cycle; see the
+        # MOT calibrations).
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+
+    def _seed_own_precompile(self, pool) -> None:
+        # Host check driving a @kernel measurement: precompile _measure and
+        # route the host averaging loop through the pool.
+        super()._seed_own_precompile(pool)
+        self._precompile_measure_key = (self, "measure")
+        pool.seed(self._precompile_measure_key, self._measure)
+
+    def _run_measure(self) -> None:
+        pool = getattr(self, "_precompile_pool", None)
+        key = getattr(self, "_precompile_measure_key", None)
+        if pool is not None and key is not None:
+            pool.get(key)()
+        else:
+            self._measure()
+
+    @rpc
+    def _delivery_frequency_now(self) -> TFloat:  # type: ignore
+        return float(self.delivery_frequency.get())
 
     @kernel
     def _measure(self):
+        # Apply the swept delivery frequency on-core: the optimizer sets it on
+        # the host store, but a precompiled kernel holds compile-time values, so
+        # pull the current value over RPC and set the embedded store device-side
+        # (the same @portable set_value the resident optimizer loop uses).
+        self._delivery_store.set_value(self._delivery_frequency_now())
         self.core.break_realtime()
         self.meas.device_setup()
         self.meas.run_once()
         self.meas.device_cleanup()
 
     def check_own_state(self):
-        if self._delivery_store is None:
-            _, self._delivery_store = self.meas.clock_default_setter.override_param(
-                "frequency_clock_delivery", self.delivery_frequency.get()
-            )
-        self._delivery_store.set_value(self.delivery_frequency.get())
-
-        # Arm the (detached) measurement lazily, ONCE per process (the imaging
-        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle;
-        # see the MOT calibrations).
-        if not self._armed:
-            self.meas.host_setup()
-            self._armed = True
+        self._ensure_armed()
 
         samples = []
         for _ in range(int(self.num_averages.get())):
-            self._measure()
+            self._run_measure()
             value = self._excitation_sink.get_last()
             if value is not None:
                 samples.append(value)

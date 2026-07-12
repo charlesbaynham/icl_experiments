@@ -1,18 +1,19 @@
-"""Client for the full clock-calibration DAG: XODT -> Cal1 (delivery) ->
-{Cal2 up-pi, Cal3 down-pi}. Pulling both Rabi calibrations dedups the shared
-ClockDeliveryAOMCalibration node, so one run walks the whole DAG and publishes
-all three nodes to calibrations.dag / calibrations.status (rendered by the DAG
-applet).
+"""Client that keeps the XODT imaging check (and its MOT chain) healthy.
+
+SingleXODTCalibration is check-only: if the XODT itself reads BAD the escape
+walk cannot optimize it (no optimizable params) and surfaces the failure; the
+nodes it depends on (blue MOT -> red MOT) are fixed as usual. A ``@kernel
+run_once`` calls ``recalibrate_if_needed()`` and escapes to the host when the
+chain has drifted.
 """
 
 import logging
-import time
 
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.xodt_calibration import SingleXODTCalibration
 from repository.lib.experiment_templates.mixins.calibration_dag_applet_mixin import (
     CalibrationDAGAppletMixin,
@@ -25,33 +26,21 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureXODTFrag(CalibrationDAGAppletMixin):
+class EnsureXODTFrag(CalibratedExpFragment, CalibrationDAGAppletMixin):
     def build_fragment(self):
-        super().build_fragment()
+        super().build_fragment()  # applet mixin: sets up ccb
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(SingleXODTCalibration)
         self.SingleXODTCalibration: SingleXODTCalibration
 
-        self.setattr_param(
-            "force_recalibrate",
-            BoolParam,
-            "Re-measure and re-optimize unconditionally",
-            default=False,
-        )
-        self.force_recalibrate: BoolParamHandle
-
+    @kernel
     def run_once(self):
-        force = self.force_recalibrate.get()
-        # Up first fixes the shared delivery node; down then reuses it.
-        self.SingleXODTCalibration.fix_state(force=force)
-
-        result, data = self.SingleXODTCalibration.check_state()
-        logger.info("%s state: %s (data=%s)", self.SingleXODTCalibration, result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(
-                f"{self.SingleXODTCalibration} not OK after fix_state: {result}"
-            )
-
-        time.sleep(IDLE_SLEEP_S)
+        self.recalibrate_if_needed()
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureXODT = make_fragment_scan_exp(EnsureXODTFrag)
+EnsureXODT = make_calibrated_experiment(EnsureXODTFrag)

@@ -1,13 +1,18 @@
-"""Client for the blue-MOT calibration alone: check, and fix if required."""
+"""Client for the blue-MOT calibration: keep it healthy while the kernel runs.
+
+The working demo of the escape protocol: a ``@kernel run_once`` calls
+``recalibrate_if_needed()`` at a safe point; if the blue MOT (or anything it
+depends on) has drifted the kernel escapes to the host, which re-optimizes it
+through the precompiled per-node kernels and re-enters in ~0.24 s.
+"""
 
 import logging
-import time
 
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 from repository.lib.experiment_templates.mixins.calibration_dag_applet_mixin import (
     CalibrationDAGAppletMixin,
@@ -20,33 +25,21 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-BlueMOTCalibrationExp = make_fragment_scan_exp(BlueMOTCalibration)
-
-
-class EnsureBlueMOTFrag(CalibrationDAGAppletMixin):
+class EnsureBlueMOTFrag(CalibratedExpFragment, CalibrationDAGAppletMixin):
     def build_fragment(self):
-        super().build_fragment()
+        super().build_fragment()  # applet mixin: sets up ccb
+        self.setattr_device("core")
+        self.core: Core
 
         self.setattr_calibration(BlueMOTCalibration)
         self.BlueMOTCalibration: BlueMOTCalibration
 
-        self.setattr_param(
-            "force_recalibrate",
-            BoolParam,
-            "Re-measure and re-optimize unconditionally",
-            default=False,
-        )
-        self.force_recalibrate: BoolParamHandle
-
+    @kernel
     def run_once(self):
-        self.BlueMOTCalibration.fix_state(force=self.force_recalibrate.get())
-
-        result, data = self.BlueMOTCalibration.check_state()
-        logger.info("Blue MOT state: %s (data=%s)", result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(f"Blue MOT not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.recalibrate_if_needed()
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureBlueMOT = make_fragment_scan_exp(EnsureBlueMOTFrag)
+EnsureBlueMOT = make_calibrated_experiment(EnsureBlueMOTFrag)

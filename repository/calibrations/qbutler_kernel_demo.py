@@ -1,34 +1,34 @@
 """Demonstrate qbutler Calibrations running kernel functions on the real Kasli.
 
-Three demos:
-- ``KernelDemoCalibration``: ``@kernel check_own_state`` — compiles, owns the
-  timeline, returns ``(CalibrationResult, float)`` through the RPC boundary.
-- ``KernelFixDemoCalibration``: host check that fails until the ``@kernel``
-  ``fix_own_state`` has run (device-side repair demo).
-- ``QbutlerKernelDagFixDemo``: the headline — a ``@kernel run_once`` fixes a
-  3-deep calibration DAG (synthetic parabola "measurements", all levels
-  initially broken) from within a **single kernel**: one compile + one
-  upload for the whole fix, each optimizer walking on the host and streaming
-  points into the resident kernel over RPC. Watch the worker log for exactly
-  one compile bump and the ``QB_DAG_FIX`` result line.
+Two runnable demos, both driven through the precompiled-calibration client
+:class:`~qbutler.client.CalibratedExpFragment`:
+
+- ``QbutlerKernelDemo``: ``recalibrate_if_needed()`` on a trivially-healthy
+  ``@kernel check_own_state`` node — the happy path, so the kernel never escapes
+  and runs straight through.
+- ``QbutlerKernelDagFixDemo``: the headline — a ``@kernel run_once`` whose
+  ``recalibrate_if_needed()`` finds a 3-deep DAG (synthetic parabola
+  "measurements", every level broken at its default) drifted, escapes to the
+  host, which fixes every level through the precompiled per-node optimizer
+  kernels and re-enters in ~0.24 s. Watch the worker log for the escape line and
+  one compile bump per node.
 """
 
 import logging
 
-import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
 logger = logging.getLogger(__name__)
 
 #: Idle wait per iteration so a "run forever" repeat throttles instead of
-#: recompiling and re-running the kernel demos back-to-back.
+#: re-running the kernel demos back-to-back.
 IDLE_SLEEP_S = 10.0
 
 
@@ -50,66 +50,25 @@ class KernelDemoCalibration(Calibration):
         return CalibrationResult.OK, 0.0
 
 
-class KernelFixDemoCalibration(Calibration):
-    """Fails its host-side check until the kernel fix has run."""
+class QbutlerKernelDemoFrag(CalibratedExpFragment):
+    """Happy-path escape demo: the single node is always OK, so
+    ``recalibrate_if_needed()`` never raises and the kernel runs to completion."""
 
-    def build_calibration(self):
+    def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
-        self.set_timeout(300.0)
-        self._fixed = False
-
-    @kernel
-    def check_own_state(self):
-        if self._fixed:
-            return CalibrationResult.OK, 1.0
-        return CalibrationResult.BAD_DATA, 0.0
-
-    @kernel
-    def fix_own_state(self):
-        self.core.wait_until_mu(
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1e-3)
-        )
-        self._mark_fixed()
-
-    @kernel
-    def _mark_fixed(self):
-        self._fixed = True
-
-
-class QbutlerKernelDemoFrag(ExpFragment):
-    def build_fragment(self):
         self.setattr_calibration(KernelDemoCalibration)
         self.KernelDemoCalibration: KernelDemoCalibration
 
-        self.setattr_calibration(KernelFixDemoCalibration)
-        self.KernelFixDemoCalibration: KernelFixDemoCalibration
-
-        self.setattr_device("core")
-        self.core: Core
-
     @kernel
     def run_once(self):
-        result, data = self.KernelDemoCalibration.check_state(force=True)
-
-        logger.info("KernelDemoCalibration check: %s (data=%s)", result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError("Kernel check demo failed")
-
-        self.KernelFixDemoCalibration.fix_state(force=True)
-        result, data = self.KernelFixDemoCalibration.check_state()
-        logger.info(
-            "KernelFixDemoCalibration after kernel fix: %s (data=%s)", result, data
-        )
-        if result != CalibrationResult.OK:
-            raise RuntimeError("Kernel fix demo failed")
-
+        self.recalibrate_if_needed()
         self.core.wait_until_mu(
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
         )
 
 
-QbutlerKernelDemo = make_fragment_scan_exp(QbutlerKernelDemoFrag)
+QbutlerKernelDemo = make_calibrated_experiment(QbutlerKernelDemoFrag)
 
 
 class KernelDagDemoBase(Calibration):
@@ -197,44 +156,23 @@ class KernelDagDemoTop(Calibration):
             return CalibrationResult.BAD_DATA, data
 
 
-class QbutlerKernelDagFixDemoFrag(ExpFragment):
-    """Fix the whole 3-deep DAG from a @kernel run_once in one kernel call."""
+class QbutlerKernelDagFixDemoFrag(CalibratedExpFragment):
+    """Fix a whole 3-deep DAG via the escape protocol: the kernel escapes once,
+    the host walks blue-first fixing every node through pooled optimizer kernels,
+    then re-enters the (precompiled) kernel from the top."""
 
     def build_fragment(self):
-        self.setattr_calibration(KernelDagDemoTop)
-        self.KernelDagDemoTop: KernelDagDemoTop
         self.setattr_device("core")
         self.core: Core
-
-    def host_setup(self):
-        super().host_setup()
-        # Generate the kernel DAG-fix driver before run_once is compiled.
-        self.KernelDagDemoTop.prepare_kernel_fix()
-        self.t_start = np.int64(0)
+        self.setattr_calibration(KernelDagDemoTop)
+        self.KernelDagDemoTop: KernelDagDemoTop
 
     @kernel
     def run_once(self):
-        self.t_start = self.core.get_rtio_counter_mu()
-
-        ok = self.KernelDagDemoTop.fix_state_kernel(False)
-        self._report(ok)
-
-    @kernel
-    def _report(self, ok) -> None:
-        end_mu = self.core.get_rtio_counter_mu()
-        logger.warning(
-            "QB_DAG_FIX ok=%s dt=%.2fs (one kernel call for the whole 3-level fix)",
-            ok,
-            self.core.mu_to_seconds(end_mu - self.t_start),
+        self.recalibrate_if_needed()
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
         )
-        if not ok:
-            logger.error(
-                "Kernel DAG fix failed: %s",
-                self.KernelDagDemoTop._fsk_failure,
-            )
-
-        # Sleep
-        self.core.wait_until_mu(end_mu + self.core.seconds_to_mu(IDLE_SLEEP_S))
 
 
-QbutlerKernelDagFixDemo = make_fragment_scan_exp(QbutlerKernelDagFixDemoFrag)
+QbutlerKernelDagFixDemo = make_calibrated_experiment(QbutlerKernelDagFixDemoFrag)
