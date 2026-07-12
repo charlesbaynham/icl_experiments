@@ -270,6 +270,56 @@ def test_binding_hooks_map_slots_to_global_handles():
         assert hooks.lmt_global_duration_attr(inert) is None
 
 
+def test_beam_splitters_bind_to_pi2_duration_not_pi():
+    """bs1/bs2 (pi/2 events) must bind to the dedicated per-beam pi/2 duration
+    handle, not the shared pi duration handle - the bug that fired them as full
+    pi pulses in global mode."""
+    hooks = _hooks()
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    events = compiled.events
+
+    pi2_events = [e for e in events if e.kind == EVENT_PULSE and hooks._is_pi2_pulse(e)]
+    # A symmetric Mach-Zehnder has exactly two beam splitters, both down-beam.
+    assert len(pi2_events) == 2
+    for bs in pi2_events:
+        assert bs.beam_sign < 0
+        assert hooks.lmt_global_duration_attr(bs) == "lmt_down_pi2_duration"
+        assert hooks.lmt_global_duration_attr(bs) != "lmt_down_duration"
+        # The offset stays on the shared per-beam handle (resonance is unchanged).
+        assert hooks.lmt_global_offset_attr(bs) == "lmt_down_offset"
+
+
+def test_pi_pulses_still_bind_to_pi_duration():
+    """Full pi pulses (launch, mirror) keep the shared per-beam pi duration."""
+    hooks = _hooks()
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    full_pi = [
+        e
+        for e in compiled.events
+        if e.kind == EVENT_PULSE
+        and not hooks._is_slice_pulse(e)
+        and not hooks._is_pi2_pulse(e)
+    ]
+    assert full_pi  # launch + augmentation + mirror pulses
+    for e in full_pi:
+        expected = "lmt_up_duration" if e.beam_sign > 0 else "lmt_down_duration"
+        assert hooks.lmt_global_duration_attr(e) == expected
+
+
+def test_compiled_pulse_carries_area():
+    """The compiler records each pulse's declared area (the discriminator the
+    binding hook relies on)."""
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    areas = sorted({e.area for e in compiled.events if e.kind == EVENT_PULSE})
+    assert areas == [0.5, 1.0]
+
+
 def test_global_phase_attr_defaults_to_none():
     """The phase hook defaults to None (NOT raising like the other three), so
     existing global-mode sequences with no Phase events do not crash."""

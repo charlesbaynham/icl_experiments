@@ -24,6 +24,7 @@ See :mod:`repository.lib.lmt_sequence` for the generated interferometer shape
 """
 
 import logging
+import math
 
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -160,6 +161,33 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
         )
         self.lmt_slice_duration: FloatParamHandle
 
+        # Beam splitters (pi/2 events) get their own shared per-beam duration.
+        # A pi/2 fired at full intensity for half the pi time is only an ideal
+        # square-pulse approximation, so this is tunable independently of the pi
+        # duration rather than tied to it. Same intensity as the pi pulses (one
+        # shared set point), so the declared Rabi frequency is unchanged.
+        self.setattr_param(
+            "lmt_up_pi2_duration",
+            FloatParam,
+            "Duration shared by all full-intensity up-beam pi/2 pulses "
+            "(beam splitters)",
+            default=constants.CLOCK_PI_TIME / 2,
+            unit="us",
+            min=0.0,
+        )
+        self.lmt_up_pi2_duration: FloatParamHandle
+
+        self.setattr_param(
+            "lmt_down_pi2_duration",
+            FloatParam,
+            "Duration shared by all full-intensity down-beam pi/2 pulses "
+            "(beam splitters)",
+            default=constants.CLOCK_DOWN_PI_TIME / 2,
+            unit="us",
+            min=0.0,
+        )
+        self.lmt_down_pi2_duration: FloatParamHandle
+
         # Delivery-AOM set points (one device, so launch and interferometer
         # share a single full-intensity set point; the slice runs lower)
         self.setattr_param(
@@ -239,6 +267,10 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
     def _is_slice_pulse(event) -> bool:
         return event.governing_setpoint_index == _SLICE_SETPOINT_INDEX
 
+    @staticmethod
+    def _is_pi2_pulse(event) -> bool:
+        return math.isclose(event.area, 0.5)
+
     def lmt_global_offset_attr(self, event) -> "str | None":
         if event.kind != EVENT_PULSE:
             return None
@@ -251,6 +283,12 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
             return None
         if self._is_slice_pulse(event):
             return "lmt_slice_duration"
+        if self._is_pi2_pulse(event):
+            return (
+                "lmt_up_pi2_duration"
+                if event.beam_sign > 0
+                else "lmt_down_pi2_duration"
+            )
         return "lmt_up_duration" if event.beam_sign > 0 else "lmt_down_duration"
 
     def lmt_global_setpoint_attr(self, event) -> "str | None":
