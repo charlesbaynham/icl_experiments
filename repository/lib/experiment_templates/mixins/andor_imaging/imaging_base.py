@@ -20,6 +20,9 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.andor_camera import AndorCameraConfig
+from pyaion.fragments.andor_camera import AndorCameraControl
+from pyaion.models import AndorHardware
 from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
@@ -28,8 +31,6 @@ from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 from repository.lib.result_channels import ArchiveOnlyOpaqueChannel
 
@@ -164,10 +165,30 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
             "andor_camera_control",
             AndorCameraControl,
             camera_config=self.andor_camera_config,
+            hardware=self.get_andor_hardware(),
         )
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
+
+    def get_andor_hardware(self) -> AndorHardware:
+        """
+        Describe how the Andor camera is wired into this lab.
+
+        The device names and shutter timing live here (not in the pyaion
+        fragment) because they are facts about our setup. Override in a
+        subclass if a different camera/wiring is used. Camera-intrinsic facts
+        (sensor height, trigger-enable latency) keep the pyaion defaults.
+        """
+        return AndorHardware(
+            grabber_device="grabber0",
+            camera_device="andor_camera",
+            ttl_trigger_device="ttl_camera_trigger_andor",
+            ttl_shutter_device="ttl_shutter_andor",
+            shutter_open_time=constants.ANDOR_CAMERA_SHUTTER_OPEN_TIME,
+            sensor_height=constants.ANDOR_SENSOR_HEIGHT,
+            trigger_enable_time=constants.ANDOR_CAMERA_TRIGGER_ENABLE_TIME,
+        )
 
     def setup_gauss_fit_results(self):
         self.amps: List[FloatChannel] = []
