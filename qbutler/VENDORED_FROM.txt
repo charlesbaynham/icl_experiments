@@ -1,14 +1,25 @@
-a993a9ec6bbd69e06c36a3a1aeb54daf0e311c5f
-github.com/charlesbaynham/qbutler branch kernel-rpc-optimizer (PR #19, stacked
-on kernel-optimizer-revival / PR #18) — vendored copy; upstream fixes go to
-that repo.
-Includes the resident-kernel optimizer loop (_optimizer_kernel_loop): one
-kernel call per fix, the kernel pulling each next point from the host
-optimizer generator over sync RPC and applying it device-side, so ANY host
-strategy (grid, coordinate descent, Bayesian optimization) pays one
-compile+upload — no recompilation between points. The kernel-driven DAG fix
-(prepare_kernel_fix() + fix_state_kernel()) fixes an entire calibration
-dependency tree from within a single kernel. Also the live optimizer trace
-(calibrations.optimizer dataset): every optimizer point is broadcast as it is
-measured so an applet can watch the scan happen (see
-repository/lib/applets/qbutler_optimizer_applet.py).
+963fc4f4154101dc902344c5fdb15f5f1040b997
+github.com/charlesbaynham/qbutler branch feature/precompiled-host-dag (stacked
+on kernel-rpc-optimizer / PR #19) — vendored copy; upstream fixes go to that
+repo, never edit this copy as the source of truth.
+Precompiled per-node calibration architecture:
+- precompile.py: PrecompilePool — a background worker thread that precompiles
+  node-keyed kernel callables once (~16 s each) so the host walk and the
+  escape/re-enter loop deploy a ready artifact (~0.24 s) instead of recompiling
+  on every kernel touch. Thread-safe against a running kernel only for
+  subkernel-free kernels (CI guards this).
+- client.py: CalibratedExpFragment / make_calibrated_experiment /
+  run_calibrated / recalibrate_if_needed — the physicist-facing base class.
+  A @kernel run_once calls recalibrate_if_needed() at a scan-point boundary;
+  if a dependency drifted it raises CalibrationEscape, the host runs the DAG
+  fix walk (pooled kernels) and re-enters the precompiled main kernel from the
+  top (attribute_writeback=False, so first-run guards re-trigger — deliberate).
+- calibration.py: the fused DAG-kernel machinery (__init_subclass__ auto-swap,
+  prepare_kernel_ops, _fsk_*/_csk_* drivers, check_state_kernel/fix_state_kernel)
+  is REMOVED. The host check_state/fix_state walk drives per-node precompiled
+  kernels through seed_precompile_pool / _seed_own_precompile hooks. The
+  per-node resident optimizer loop (_optimizer_kernel_loop) is retained: one
+  kernel call per fix, host optimizer streaming points over RPC. CalibrationEscape
+  is defined here (module-level, so it crosses the kernel→host boundary by class
+  identity). The live optimizer trace (calibrations.optimizer dataset) is kept.
+</content>
