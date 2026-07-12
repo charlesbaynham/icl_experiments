@@ -11,6 +11,7 @@ from artiq_influx_generic import InfluxController
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.andor_camera import AndorCameraConfig
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
@@ -31,7 +32,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImageMixin,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
 logger = logging.getLogger(__name__)
 

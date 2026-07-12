@@ -6,9 +6,17 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.andor_camera import AndorCameraConfig
+from pyaion.fragments.andor_camera import AndorCameraControl
+from pyaion.models import AndorHardware
 
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+_ANDOR_HW = AndorHardware(
+    grabber_device="grabber0",
+    camera_device="andor_camera",
+    ttl_trigger_device="ttl_camera_trigger_andor",
+    ttl_shutter_device="ttl_shutter_andor",
+    shutter_open_time=130e-3,
+)
 
 
 class _DummySingleROIConfig(AndorCameraConfig):
@@ -38,6 +46,7 @@ class MultipleGrabs(ExpFragment):
             "andor_interface",
             AndorCameraControl,
             camera_config=self.andor_camera_config,
+            hardware=_ANDOR_HW,
         )
         self.andor_interface: AndorCameraControl
 
@@ -73,7 +82,6 @@ class MultipleGrabs(ExpFragment):
             sums,
             means,
             timeout_mu=now_mu() + self.core.seconds_to_mu(1.0),
-            num_rois=self.num_reads.get(),
         )
 
         print(sums)
