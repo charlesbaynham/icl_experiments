@@ -59,7 +59,7 @@ from repository.lib.experiment_templates.mixins.external_triggering import (
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
-from repository.lib.experiment_templates.mixins.constant_beams import (
+from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
 
