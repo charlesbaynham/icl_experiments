@@ -1058,12 +1058,13 @@ class NormalisedFastKineticsClockPulseMixin(
 
         # A truncated sequence can leave the delivery servo at whatever setpoint
         # its last executed event set (e.g. the low shelving setpoint after a
-        # slice-only truncation), so drive it to full power here. This makes the
-        # readout a full-power, fast (Fourier-broad) DOWN pi identical in speed
-        # to the launch/mirror pulses - the M-state-resolving selection pulse.
+        # slice-only truncation), so drive it to the readout setpoint here. The
+        # default hook returns full power for a fast (Fourier-broad) DOWN pi
+        # identical in speed to the launch/mirror pulses; a consumer wanting a
+        # longer, sharper readout overrides the hook to auto-scale the setpoint.
         self.set_clock_delivery_aom(
             freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
-            setpoint_v=CLOCK_DELIVERY_SETPOINT_V,
+            setpoint_v=self.readout_delivery_setpoint(),
         )
         delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
 
@@ -1082,8 +1083,16 @@ class NormalisedFastKineticsClockPulseMixin(
         delay(1e-6)
 
         self.clock_down_dds.sw.on()
-        delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
+        delay(self.readout_pulse_time())
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def readout_delivery_setpoint(self) -> float:
+        return CLOCK_DELIVERY_SETPOINT_V
+
+    @kernel
+    def readout_pulse_time(self) -> float:
+        return constants.DOWN_CLOCK_BEAM_PI_TIME
 
     @kernel
     def _set_readout_opll_for_fall(self):
