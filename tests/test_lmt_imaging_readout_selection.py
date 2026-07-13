@@ -67,10 +67,37 @@ def test_global_mz_clock_variant_is_clock():
     )
 
 
-def test_clock_first_pulse_drives_full_delivery_power():
+def test_clock_first_pulse_drives_full_delivery_power_by_default():
     import inspect
 
     src = inspect.getsource(NormalisedFastKineticsClockPulseMixin.do_first_pulse)
     assert "set_clock_delivery_aom" in src
-    assert "CLOCK_DELIVERY_SETPOINT_V" in src
-    assert "DOWN_CLOCK_BEAM_PI_TIME" in src
+    assert "readout_delivery_setpoint" in src
+    assert "readout_pulse_time" in src
+
+    setpoint_src = inspect.getsource(
+        NormalisedFastKineticsClockPulseMixin.readout_delivery_setpoint
+    )
+    duration_src = inspect.getsource(
+        NormalisedFastKineticsClockPulseMixin.readout_pulse_time
+    )
+    assert "CLOCK_DELIVERY_SETPOINT_V" in setpoint_src
+    assert "DOWN_CLOCK_BEAM_PI_TIME" in duration_src
+
+
+def test_clock_readout_aggregator_scales_setpoint_from_slice():
+    import inspect
+
+    from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (  # noqa: E501
+        NormalisedFastKineticsLMTCorrectedClockMixin,
+    )
+
+    setpoint_src = inspect.getsource(
+        NormalisedFastKineticsLMTCorrectedClockMixin.readout_delivery_setpoint
+    )
+    duration_src = inspect.getsource(
+        NormalisedFastKineticsLMTCorrectedClockMixin.readout_pulse_time
+    )
+    assert "lmt_slice_setpoint" in setpoint_src
+    assert "lmt_slice_duration" in setpoint_src
+    assert "readout_pulse_duration" in duration_src
