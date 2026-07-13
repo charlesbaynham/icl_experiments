@@ -1,15 +1,10 @@
 """Client for the clock Rabi pi-time DAG: XODT -> delivery -> {up-pi, down-pi}.
 
-Both Rabi calibrations are attached so the shared ClockDeliveryAOMCalibration
-node dedups and the applet renders the whole DAG; the escape target is the
-up-pi node, whose fix walks the entire shared chain (blue MOT -> ... ->
-delivery -> up-pi). A ``@kernel run_once`` calls ``recalibrate_if_needed()`` and
-escapes to the host when the chain has drifted.
-
-Note: the escape maintains the up-pi subtree; the down-pi *leaf* is not
-re-optimized by this client's escape (it shares every node up to delivery).
-Drive EnsureClockPiTimes for the up chain; the down-pi node is recalibrated by
-its own client / a scan of RabiDownPiTimeCalibration.
+Both Rabi calibrations are maintained as escape targets, so the escape walks the
+*union* of their DAGs: the shared chain (blue MOT -> ... -> delivery) is fixed
+once, then both the up-pi and down-pi leaves are optimized. A ``@kernel
+run_once`` calls ``recalibrate_if_needed()`` and escapes to the host when any
+node in either chain has drifted.
 """
 
 import logging
@@ -40,13 +35,15 @@ class EnsureClockPiTimesFrag(CalibratedExpFragment, CalibrationDAGAppletMixin):
 
         self.setattr_calibration(RabiUpPiTimeCalibration)
         self.RabiUpPiTimeCalibration: RabiUpPiTimeCalibration
-        # Dedups the shared ClockDeliveryAOMCalibration dependency and registers
-        # the down-pi node in the DAG the applet renders.
         self.setattr_calibration(RabiDownPiTimeCalibration)
         self.RabiDownPiTimeCalibration: RabiDownPiTimeCalibration
 
-        # Two calibrations are attached, so name the DAG the escape maintains.
-        self.calibration_target = self.RabiUpPiTimeCalibration
+        # Maintain both leaves: the escape walks the union of their DAGs, fixing
+        # the shared blue-MOT -> ... -> delivery chain once, then both pi times.
+        self.calibration_targets = [
+            self.RabiUpPiTimeCalibration,
+            self.RabiDownPiTimeCalibration,
+        ]
 
     @kernel
     def run_once(self):
