@@ -36,6 +36,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy.typing import NDArray
+from pyaion.fragments.andor_camera import FastKineticsCameraConfig
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
@@ -48,7 +49,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
-from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
 

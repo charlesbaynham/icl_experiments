@@ -13,6 +13,8 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.andor_camera import AndorCameraConfig
+from pyaion.fragments.andor_camera import FastKineticsCameraConfig
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -21,8 +23,6 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsClockPulseMixin,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
 from repository.lib.physics.ballistic import predict_positions_from_mu
