@@ -730,7 +730,37 @@ class NormalisedFastKineticsLMTCorrectedClockMixin(
     (M-)states, reading out atom number per state and momentum class. Repumped vs
     clock readout is a compile-time choice: name whichever aggregator you want in
     the experiment Frag's bases.
+
+    The readout pi duration is scannable via ``readout_pulse_duration``. Its
+    default matches the velocity-selective slice (long, low power → Fourier-narrow,
+    sharply momentum-selective); dial it shorter and the delivery setpoint follows
+    to hold a pi pulse, trading resolution for a broader read. The ``lmt_slice_*``
+    handles this reads exist because this aggregator's only consumer is the global
+    LMT clock-readout Frag, which mixes them in.
     """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "readout_pulse_duration",
+            FloatParam,
+            "Duration of the clock readout pi pulse (setpoint auto-scales to hold "
+            "a pi pulse, referenced to the slice)",
+            default=constants.CLOCK_SHELVING_PULSE_TIME,
+            unit="us",
+            min=0.0,
+        )
+        self.readout_pulse_duration: FloatParamHandle
+
+    @kernel
+    def readout_pulse_time(self) -> float:
+        return self.readout_pulse_duration.get()
+
+    @kernel
+    def readout_delivery_setpoint(self) -> float:
+        ratio = self.lmt_slice_duration.get() / self.readout_pulse_duration.get()
+        return self.lmt_slice_setpoint.get() * ratio * ratio
 
     @kernel
     def prepare_readout_opll_hook(self):
