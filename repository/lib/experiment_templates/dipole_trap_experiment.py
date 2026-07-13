@@ -59,13 +59,16 @@ from repository.lib.experiment_templates.mixins.external_triggering import (
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
+from repository.lib.experiment_templates.mixins.constant_beams import (
+    ConstantBeamsMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
 
-class DipoleTrapWithExperimentBase(External50HzTriggerMixin, DMAActionsAfterDropMixin):
+class DipoleTrapWithExperimentBase(ConstantBeamsMixin,External50HzTriggerMixin, DMAActionsAfterDropMixin):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then
