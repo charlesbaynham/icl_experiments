@@ -143,7 +143,44 @@ def _scan(
     return fragment, axis_sink.get_all(), result_sink.get_all()
 
 
+class _PlainScanFrag(ExpFragment):
+    """A vanilla scannable fragment with NO calibration hook (`_recalibrate`
+    absent). Proves the global ScanRunner.run patch is inert for every ordinary
+    ndscan scan: the escape branch is never taken and the loop is ndscan's."""
+
+    def build_fragment(self):
+        self.setattr_param("x", FloatParam, description="scan axis", default=0.0)
+        self.x: FloatParamHandle
+        self.setattr_result("y", FloatChannel)
+        self.y: FloatChannel
+
+    def run_once(self):
+        self.y.push(self.x.get())
+
+
 VALUES = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+
+
+def test_non_calibrated_scan_unaffected_by_patch(
+    fragment_factory, device_mgr, dataset_mgr, argument_mgr
+):
+    # No _recalibrate on the fragment -> the patched loop is byte-for-byte
+    # ndscan's, so an ordinary scan runs to completion with every point once.
+    fragment = fragment_factory(_PlainScanFrag)
+    assert not hasattr(fragment, "_recalibrate")
+
+    param, store = fragment.override_param("x")
+    axis = ScanAxis(param.describe(), "", store)
+    spec = ScanSpec([axis], [ListGenerator(list(VALUES), False)], ScanOptions(seed=0))
+    result_sink = ArraySink()
+    fragment.y.set_sink(result_sink)
+    axis_sink = ArraySink()
+
+    runner = _build_runner(device_mgr, dataset_mgr, argument_mgr)
+    runner.run(fragment, spec, [axis_sink])
+
+    assert axis_sink.get_all() == VALUES
+    assert result_sink.get_all() == VALUES
 
 
 def test_no_escape_all_points_once(
