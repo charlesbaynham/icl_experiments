@@ -2,4 +2,4 @@
 @REM You must have manually set up a python environment and have kept it up to date
 
 
-.venv\Scripts\python -m artiq.frontend.artiq_dashboard -p ndscan.dashboard_plugin -s aion.lan
+.venv\Scripts\python -m artiq.frontend.artiq_dashboard -p ndscan.dashboard_plugin -s 10.137.3.254
