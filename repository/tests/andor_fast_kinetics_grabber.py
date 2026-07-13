@@ -9,11 +9,19 @@ from artiq.language import kernel
 from artiq.language import portable
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
-
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from pyaion.fragments.andor_camera import AndorCameraConfig
+from pyaion.fragments.andor_camera import AndorCameraControl
+from pyaion.models import AndorHardware
 
 logger = logging.getLogger(__name__)
+
+_ANDOR_HW = AndorHardware(
+    grabber_device="grabber0",
+    camera_device="andor_camera",
+    ttl_trigger_device="ttl_camera_trigger_andor",
+    ttl_shutter_device="ttl_shutter_andor",
+    shutter_open_time=130e-3,
+)
 
 
 class TestFastKineticsGrabber(ExpFragment):
@@ -68,6 +76,7 @@ class TestFastKineticsGrabber(ExpFragment):
             "andor_camera_control",
             AndorCameraControl,
             camera_config=self.andor_camera_config,
+            hardware=_ANDOR_HW,
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl

@@ -27,6 +27,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
+from pyaion.fragments.andor_camera import AndorCameraConfig
+from pyaion.fragments.andor_camera import FastKineticsCameraConfig
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -47,8 +49,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 from repository.lib.physics import lmt_resonance
 from repository.lib.physics import trajectory
 from repository.lib.physics.ballistic import BallisticConfig
