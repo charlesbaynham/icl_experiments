@@ -6,8 +6,8 @@
             "channel": 4,
             "display_colour": "blue",
             "exposure": [
-                30,
-                1
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -30,8 +30,8 @@
             "channel": 1,
             "display_colour": "blue",
             "exposure": [
-                20,
-                10
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -54,8 +54,8 @@
             "channel": 5,
             "display_colour": "blue",
             "exposure": [
-                20,
-                20
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -78,8 +78,8 @@
             "channel": 6,
             "display_colour": "blue",
             "exposure": [
-                20,
-                20
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -103,8 +103,8 @@
             "channel": 2,
             "display_colour": "blue",
             "exposure": [
-                5,
-                5
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -132,8 +132,8 @@
             "channel": 3,
             "display_colour": "blue",
             "exposure": [
-                70,
-                70
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -157,8 +157,8 @@
             "channel": 7,
             "display_colour": "white",
             "exposure": [
-                20,
-                20
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -179,8 +179,8 @@
             "channel": 8,
             "display_colour": "blue",
             "exposure": [
-                10,
-                10
+                3,
+                3
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
