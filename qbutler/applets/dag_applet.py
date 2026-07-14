@@ -9,8 +9,10 @@ the per-calibration state in ``calibrations.status``:
 - red: last check returned a BAD flag
 - grey: no status recorded
 
-Invoke with:
-    ${python} -m repository.lib.applets.qbutler_dag_applet calibrations.dag calibrations.status
+qbutler launches this applet automatically the first time a calibration DAG is
+published (see :func:`qbutler.ccb.create_dag_applet`). To run it by hand:
+
+    ${python} -m qbutler.applets.dag_applet calibrations.dag calibrations.status
 """
 
 import time

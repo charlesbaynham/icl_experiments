@@ -10,7 +10,6 @@ calibrations.status dataset).
 
 import logging
 
-from artiq.master.worker_impl import CCB
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
@@ -20,11 +19,6 @@ from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 
 logger = logging.getLogger(__name__)
-
-DAG_APPLET_CMD = (
-    "${python} -m repository.lib.applets.qbutler_dag_applet "
-    "calibrations.dag calibrations.status"
-)
 
 
 class EnsureClockCentreFrag(ExpFragment):
@@ -39,13 +33,6 @@ class EnsureClockCentreFrag(ExpFragment):
             default=False,
         )
         self.force_recalibrate: BoolParamHandle
-
-        self.setattr_device("ccb")
-        self.ccb: CCB
-
-    def host_setup(self):
-        super().host_setup()
-        self.ccb.issue("create_applet", "Calibration DAG", DAG_APPLET_CMD)
 
     def run_once(self):
         self.ClockDeliveryAOMCalibration.fix_state(force=self.force_recalibrate.get())

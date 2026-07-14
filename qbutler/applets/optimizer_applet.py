@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Live view of a qbutler calibration optimizer as it walks.
+"""Live view of a single qbutler calibration's optimizer as it walks.
 
 Renders the per-point trace published to ``calibrations.optimizer`` (see
-``Calibration._publish_optimizer_point``): every point a calibration's
-optimizer measures is appended live, so you can watch the scan happen
-instead of only seeing the settled number.
+:meth:`qbutler.calibration.Calibration._publish_optimizer_point`): every point
+the calibration's optimizer measures is appended live, so you can watch the
+scan happen instead of only seeing the settled number.
 
-The calibration whose optimizer started most recently is shown (the one
-currently walking; during a DAG fix each node's trace is reset as its
-optimizer begins). Points are coloured by check result — green OK, red bad —
-and the most recent point is ringed. For a single swept parameter the x-axis
-is the parameter value; for multi-parameter sweeps it is the point index.
+Each applet is scoped to one calibration class via ``--calibration``: qbutler
+launches one of these per class as its optimizer first runs (see
+:func:`qbutler.ccb.create_optimizer_applet`), so a DAG fix shows a separate,
+independently-namespaced plot for every node it touches. Points are coloured by
+check result — green OK, red bad — and the most recent point is ringed. For a
+single swept parameter the x-axis is the parameter value; for multi-parameter
+sweeps it is the point index.
 
 Invoke with:
-    ${python} -m repository.lib.applets.qbutler_optimizer_applet calibrations.optimizer
+    ${python} -m qbutler.applets.optimizer_applet \\
+        --calibration MyCalibration calibrations.optimizer
 """
 
 import pyqtgraph as pg
@@ -23,19 +26,6 @@ from PyQt5.QtCore import QTimer
 OK_COLOUR = (60, 180, 75)
 BAD_COLOUR = (220, 50, 47)
 LATEST_RING = (255, 200, 0)
-
-
-def _active_trace(table):
-    """Pick the calibration whose optimizer started most recently and has at
-    least one point. Returns (class_name, entry) or (None, None)."""
-    best = None
-    for name, entry in table.items():
-        if not isinstance(entry, dict) or not entry.get("points"):
-            continue
-        started = entry.get("started", 0)
-        if best is None or started > best[1].get("started", 0):
-            best = (name, entry)
-    return best if best else (None, None)
 
 
 class QbutlerOptimizerWidget(pg.PlotWidget):
@@ -63,10 +53,11 @@ class QbutlerOptimizerWidget(pg.PlotWidget):
         if not isinstance(table, dict):
             return
 
-        name, entry = _active_trace(table)
+        name = self.args.calibration
+        entry = table.get(name)
         self.clear()
-        if entry is None:
-            self.setTitle(title or "no optimizer running")
+        if not isinstance(entry, dict) or not entry.get("points"):
+            self.setTitle(title or f"{name}: waiting for optimizer")
             return
 
         points = entry["points"]
@@ -108,6 +99,11 @@ class QbutlerOptimizerWidget(pg.PlotWidget):
 
 def main():
     applet = TitleApplet(QbutlerOptimizerWidget)
+    applet.argparser.add_argument(
+        "--calibration",
+        required=True,
+        help="Class name of the calibration whose optimizer trace to show",
+    )
     applet.add_dataset("trace", "calibrations.optimizer trace dataset")
     applet.run()
 

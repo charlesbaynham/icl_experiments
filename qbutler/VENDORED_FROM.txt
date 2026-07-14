@@ -1,14 +1,26 @@
-a993a9ec6bbd69e06c36a3a1aeb54daf0e311c5f
-github.com/charlesbaynham/qbutler branch kernel-rpc-optimizer (PR #19, stacked
-on kernel-optimizer-revival / PR #18) — vendored copy; upstream fixes go to
-that repo.
-Includes the resident-kernel optimizer loop (_optimizer_kernel_loop): one
-kernel call per fix, the kernel pulling each next point from the host
-optimizer generator over sync RPC and applying it device-side, so ANY host
-strategy (grid, coordinate descent, Bayesian optimization) pays one
-compile+upload — no recompilation between points. The kernel-driven DAG fix
-(prepare_kernel_fix() + fix_state_kernel()) fixes an entire calibration
-dependency tree from within a single kernel. Also the live optimizer trace
-(calibrations.optimizer dataset): every optimizer point is broadcast as it is
-measured so an applet can watch the scan happen (see
-repository/lib/applets/qbutler_optimizer_applet.py).
+b51f7c5b16c40d9c20ee1c3ab8bc5316a08cd0fa
+github.com/charlesbaynham/qbutler branch feature/applets (based on
+kernels-with-precompilation) — vendored copy; upstream fixes go to that repo.
+
+Base (kernels-with-precompilation) includes the resident-kernel optimizer loop
+(_optimizer_kernel_loop): one kernel call per fix, the kernel pulling each next
+point from the host optimizer generator over sync RPC and applying it
+device-side, so ANY host strategy (grid, coordinate descent, Bayesian
+optimization) pays one compile+upload — no recompilation between points. The
+kernel-driven DAG fix fixes an entire calibration dependency tree from within a
+single kernel, plus the precompiled-host-DAG client machinery (client.py,
+precompile.py, worker_ipc_lock.py).
+
+feature/applets adds self-visualising calibrations: qbutler auto-launches its
+own dashboard applets through the CCB (qbutler/ccb.py), so no client wiring is
+needed. publish_dag() creates a single "Calibration DAG" overview applet; each
+Calibration's optimizer creates a per-class "Optimizer: <Class>" trace applet as
+it starts, so every fix_state sweep is shown live in a plot namespaced to that
+class. The applets themselves now live in qbutler (qbutler/applets/dag_applet.py
+and qbutler/applets/optimizer_applet.py), replacing the copies previously kept
+in repository/lib/applets/.
+
+NOTE: to make the applets open as windows (not just appear in the Applets dock
+list), set the dashboard's CCB policy for the "Calibrations" group to
+"Create and enable/disable applets"; the default global policy is "Create
+applets", which creates them disabled.

@@ -8,15 +8,13 @@ applet).
 import logging
 import time
 
+from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
 from qbutler.calibration import CalibrationResult
 from repository.lib.calibrations.xodt_calibration import SingleXODTCalibration
-from repository.lib.experiment_templates.mixins.calibration_dag_applet_mixin import (
-    CalibrationDAGAppletMixin,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +23,8 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureXODTFrag(CalibrationDAGAppletMixin):
+class EnsureXODTFrag(ExpFragment):
     def build_fragment(self):
-        super().build_fragment()
         self.setattr_calibration(SingleXODTCalibration)
         self.SingleXODTCalibration: SingleXODTCalibration
 
