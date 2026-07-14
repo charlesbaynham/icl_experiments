@@ -18,6 +18,7 @@ is production code.
 """
 
 import gc
+from types import SimpleNamespace
 
 import pytest
 from ndscan.experiment import ExpFragment
@@ -31,9 +32,13 @@ from ndscan.experiment.scan_runner import KernelScanRunner
 from ndscan.experiment.scan_runner import ScanAxis
 from ndscan.experiment.scan_runner import ScanSpec
 
+from qbutler import CalibratedExpFragment
 from qbutler import dag
+from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationError
 from qbutler.calibration import CalibrationEscape
+from qbutler.calibration import CalibrationResult
+from qbutler.client import exclude_calibration_channels_from_scan
 
 
 @pytest.fixture(autouse=True)
@@ -280,3 +285,130 @@ def test_non_converging_calibration_raises_not_hangs(
             VALUES,
             max_recalibrations=3,
         )
+
+
+# --------------------------------------------------------------------------- #
+# Scan with a REAL attached Calibration node (live finding, RID 77567):
+# the node's status/data channels are pushed by the check/fix walk, not per
+# scan point, so if the scan sinks them the per-point ResultBatcher fails the
+# whole scan. The client must strip their sinks in the scanned path.
+# --------------------------------------------------------------------------- #
+
+
+class _ScanCal(Calibration):
+    """Host parabola check, optimum 2.0, broken at its default 5.0."""
+
+    def build_calibration(self):
+        self.set_timeout(300.0)
+        self.setattr_param_optimizable(
+            "cal_param", "Cal param", min=0.0, max=10.0, default=5.0
+        )
+        self.cal_param: FloatParamHandle
+
+    def check_own_state(self):
+        data = 10.0 - abs(self.cal_param.get() - 2.0)
+        result = CalibrationResult.OK if data > 9.5 else CalibrationResult.BAD_DATA
+        return result, data
+
+
+class _CalibratedScanFrag(CalibratedExpFragment):
+    """The scanned-demo shape: a calibrated fragment with a scan axis whose
+    run_once escapes while the DAG is drifted (host mirror of the @kernel
+    recalibrate_if_needed) and pushes one science result per point."""
+
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.setattr_param("x", FloatParam, description="scan axis", default=0.0)
+        self.x: FloatParamHandle
+        self.setattr_result("y", FloatChannel)
+        self.y: FloatChannel
+        self.setattr_calibration(_ScanCal)
+        self._ScanCal: _ScanCal
+
+    def run_once(self):
+        if self._needs_recalibration():
+            raise CalibrationEscape("a calibration dependency needs recalibrating")
+        self.y.push(self.x.get())
+
+
+def _sink_all_channels(fragment):
+    """Mirror TopLevelRunner.build: give every save-by-default channel in the
+    tree a sink, and return (tlr_stand_in, science_sink, cal_channels)."""
+    chan_dict = {}
+    fragment._collect_result_channels(chan_dict)
+    scan_result_sinks = {}
+    short_names = {}
+    science_sink = None
+    for path, channel in chan_dict.items():
+        if not channel.save_by_default:
+            continue
+        sink = ArraySink()
+        channel.set_sink(sink)
+        scan_result_sinks[channel] = sink
+        short_names[channel] = path.replace("/", "_")
+        if path.endswith("y"):
+            science_sink = sink
+    tlr = SimpleNamespace(
+        _scan_result_sinks=scan_result_sinks,
+        _short_child_channel_names=short_names,
+    )
+    return tlr, science_sink
+
+
+def _run_calibrated_scan(
+    fragment_factory, device_mgr, dataset_mgr, argument_mgr, apply_fix
+):
+    fragment = fragment_factory(_CalibratedScanFrag)
+    tlr, science_sink = _sink_all_channels(fragment)
+    if apply_fix:
+        exclude_calibration_channels_from_scan(fragment, tlr)
+
+    param, store = fragment.override_param("x")
+    axis = ScanAxis(param.describe(), "", store)
+    spec = ScanSpec([axis], [ListGenerator(list(VALUES), False)], ScanOptions(seed=0))
+    axis_sink = ArraySink()
+
+    runner = _build_runner(device_mgr, dataset_mgr, argument_mgr)
+    runner.run(fragment, spec, [axis_sink])
+    return fragment, tlr, axis_sink.get_all(), science_sink.get_all()
+
+
+def test_sinked_calibration_channels_fail_the_scan_rid77567(
+    fragment_factory, device_mgr, dataset_mgr, argument_mgr
+):
+    # Regression reproduction of the live failure: without the sink strip, the
+    # first completed point trips the ResultBatcher on the cal's status channel.
+    with pytest.raises(ValueError, match="status"):
+        _run_calibrated_scan(
+            fragment_factory, device_mgr, dataset_mgr, argument_mgr, apply_fix=False
+        )
+
+
+def test_calibrated_scan_with_escape_lands_all_points_once(
+    fragment_factory, device_mgr, dataset_mgr, argument_mgr
+):
+    # With calibration channels excluded, the demo shape works end-to-end: the
+    # drifted DAG escapes at point 0, the REAL inherited _recalibrate
+    # (fix_targets walk) fixes the node, and the scan resumes to completion.
+    fragment, tlr, axis, results = _run_calibrated_scan(
+        fragment_factory, device_mgr, dataset_mgr, argument_mgr, apply_fix=True
+    )
+    assert axis == VALUES
+    assert results == VALUES
+    assert fragment._ScanCal.cal_param.get() == pytest.approx(2.0), (
+        "the real fix walk ran and committed the optimum"
+    )
+    # The cal channels are fully out of the scan: unsinked and unadvertised.
+    for channel, name in list(tlr._short_child_channel_names.items()):
+        assert "_ScanCal" not in name
+    assert all(
+        channel.sink is None
+        for path, channel in _collect_all_channels(fragment).items()
+        if "_ScanCal" in path
+    )
+
+
+def _collect_all_channels(fragment):
+    chan_dict = {}
+    fragment._collect_result_channels(chan_dict)
+    return chan_dict

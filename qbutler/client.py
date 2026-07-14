@@ -245,6 +245,50 @@ class CalibratedExpFragment(ExpFragment):
         return False
 
 
+def _collect_calibration_channels(fragment) -> dict:
+    """Every result channel belonging to a :class:`~qbutler.calibration.Calibration`
+    node (or anything beneath one) in the attached fragment tree.
+
+    These are DAG bookkeeping — the ``status``/``data`` channels a check pushes,
+    and any channels of the node's internal measurement fragments. They are
+    pushed during a check/fix walk, NOT once per scan point, so they must not
+    take part in a scan: ndscan's ``ResultBatcher`` requires every sinked
+    channel to be pushed exactly once per point and fails the scan otherwise
+    (live finding, RID 77567). Calibration state still reaches applets/archives
+    via the broadcast ``calibrations.status`` dataset.
+    """
+    found = {}
+
+    def visit(frag):
+        if isinstance(frag, Calibration):
+            frag._collect_result_channels(found)
+            return
+        for sub in frag._subfragments:
+            if sub in frag._detached_subfragments:
+                continue
+            visit(sub)
+
+    visit(fragment)
+    return found
+
+
+def exclude_calibration_channels_from_scan(fragment, tlr) -> None:
+    """Strip the scan sinks ndscan gave to calibration-node channels.
+
+    Called in the scanned path after the ``TopLevelRunner`` assigned sinks
+    (its ``build``) and before it broadcasts the scan schema (its ``run``):
+    un-sinks the channels (both the ``ResultBatcher`` and ``push`` skip
+    sink-less channels) and drops them from the runner's result/name maps so
+    the schema does not advertise dataset series that never receive points.
+    """
+    for channel in _collect_calibration_channels(fragment).values():
+        if channel.sink is None:
+            continue
+        channel.set_sink(None)
+        tlr._scan_result_sinks.pop(channel, None)
+        tlr._short_child_channel_names.pop(channel, None)
+
+
 def _collect_float_stores(fragment) -> list:
     """Every FloatParamStore bound to a handle in the attached fragment tree.
 
@@ -389,6 +433,11 @@ def make_calibrated_experiment(
             super().prepare()
             fragment = self.fragment
             scanned = self.tlr.spec.axes and not self.tlr._is_time_series
+            if scanned:
+                # Calibration-node channels are pushed by the check/fix walk,
+                # not per scan point; sinked, they make the per-point
+                # ResultBatcher fail the scan (RID 77567).
+                exclude_calibration_channels_from_scan(fragment, self.tlr)
             if is_kernel(fragment.run_once) and not scanned:
                 # Seed the main kernel into the pool FIRST (node kernels are
                 # seeded later, at host_setup) so the background compile that
