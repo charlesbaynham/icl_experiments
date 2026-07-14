@@ -140,7 +140,7 @@ class _MonitorLabTemperatureBrainbox(Calibration):
 
 
 class MonitorTemperatureSidearmBrainbox(_MonitorLabTemperatureBrainbox):
-    monitor_ip = "brainbox-temperature-aion.lan"
+    monitor_ip = "brainbox-temperature-10.137.3.254"
     descriptions = {
         6: "above_chamber",
     }
