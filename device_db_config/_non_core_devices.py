@@ -220,7 +220,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-powersupply-1.lan",
+                "id": "tenma-powersupply-1.usl",
                 "port": 18200,
                 "simulation": simulation_mode,
             },
@@ -232,7 +232,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-aion-ch1-1.lan",
+                "id": "tenma-aion-ch1-1.usl",
                 "port": 18202,
                 "simulation": simulation_mode,
             },
@@ -244,7 +244,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-aion-ch1-2.lan",
+                "id": "tenma-aion-ch1-2.usl",
                 "port": 18203,
                 "simulation": simulation_mode,
             },
