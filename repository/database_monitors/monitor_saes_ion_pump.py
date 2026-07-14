@@ -106,10 +106,10 @@ class _MonitorSAESIonPumpBase(Calibration):
 
 
 class MonitorClockCh1IonPump(_MonitorSAESIonPumpBase):
-    ip = "clock-ionpump-ch1.lan"
+    ip = "clock-ionpump-ch1.usl"
     description = "clock_ch1"
 
 
 class MonitorClockCh2IonPump(_MonitorSAESIonPumpBase):
-    ip = "clock-ionpump-ch2.lan"
+    ip = "clock-ionpump-ch2.usl"
     description = "clock_ch2"

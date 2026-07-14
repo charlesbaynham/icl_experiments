@@ -304,7 +304,7 @@
           install_systemd = let
             serviceName = "aion-artiq";
             sessionName = "aion";
-            repoDir = "/root/artiq_stuff/icl_experiments";
+            repoDir = "/root/icl_experiments";
 
             unitFile = pkgs.writeText "${serviceName}.service" ''
               [Unit]
@@ -319,6 +319,12 @@
               # Provide tmux and the Nix profile on PATH: systemd starts services
               # with a minimal environment, so neither would be found otherwise.
               Environment=PATH=${pkgs.tmux}/bin:/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin
+              # HOME/USER are also stripped from the minimal env. nix-daemon.sh
+              # dereferences $HOME under the launch script's `set -u` (fatal if
+              # unset), and downstream the stack resolves ~/.nix-profile,
+              # ~/.influxdb and ~/.grafana - so pin them to root's.
+              Environment=HOME=/root
+              Environment=USER=root
               ExecStart=${repoDir}/start_tmux_artiq_server.sh
               ExecStop=${pkgs.tmux}/bin/tmux kill-session -t ${sessionName}
               # Start once on boot. Do NOT restart if the operator manually exits
@@ -450,12 +456,6 @@
             backup_datasets = "nix run .#backup_datasets";
             backup_grafana = "nix run .#backup_grafana";
 
-            # This is an extra instance of ctlmgr which searches for controllers assigned to
-            # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
-            # since we must hard-code the IP of the labserver in the moninj proxy otherwise
-            # dashboards don't know where to connect to it.
-            moninj_proxy_ctlmgr = "sleep 120 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
-
             # Automatic startup of database monitors. Pin -r master: the served
             # repository is the stub catalog, so an unpinned -R submit would run
             # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
@@ -494,7 +494,6 @@
                       backup_database
                       backup_datasets
                       backup_grafana
-                      moninj_proxy_ctlmgr
                       monitor_launcher
                       watch_master
                       ;

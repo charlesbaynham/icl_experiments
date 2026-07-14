@@ -99,6 +99,8 @@ class TreeIndex:
     )
     # (path, target var, fragment class name) for make_fragment_scan_exp calls
     scan_exps: list[tuple[str, str, str | None]] = field(default_factory=list)
+    # (path, target var) for monitor-controller factory assignments
+    monitor_exps: list[tuple[str, str]] = field(default_factory=list)
 
     def kind_of(self, name: str, _seen: set[str] | None = None) -> str:
         """Return 'exp', 'frag' or 'unknown' for a class name."""
@@ -164,14 +166,17 @@ def index_tree(sources: dict[str, str]) -> TreeIndex:
                 index.classes.setdefault(node.name, []).append((path, bases, doc))
             elif isinstance(node, ast.Assign):
                 value = node.value
-                if (
-                    isinstance(value, ast.Call)
-                    and _base_name(value.func) == "make_fragment_scan_exp"
-                ):
-                    frag = _base_name(value.args[0]) if value.args else None
-                    for target in node.targets:
-                        if isinstance(target, ast.Name):
-                            index.scan_exps.append((path, target.id, frag))
+                if isinstance(value, ast.Call):
+                    func_name = _base_name(value.func)
+                    if func_name == "make_fragment_scan_exp":
+                        frag = _base_name(value.args[0]) if value.args else None
+                        for target in node.targets:
+                            if isinstance(target, ast.Name):
+                                index.scan_exps.append((path, target.id, frag))
+                    elif func_name == "make_monitor_controller":
+                        for target in node.targets:
+                            if isinstance(target, ast.Name):
+                                index.monitor_exps.append((path, target.id))
     return index
 
 
@@ -190,7 +195,13 @@ def enumerate_experiments(branch: str, sources: dict[str, str]) -> list[Experime
         doc = index.docstring_of(frag) if frag else None
         found.append(Experiment(target, doc, branch, path))
 
-    # 2) raw experiment classes (raw ARTIQ, Calibration monitors, _Stub, ...)
+    # 2) monitor controllers: X = make_monitor_controller(...)
+    for path, target in index.monitor_exps:
+        if target.startswith("_"):
+            continue
+        found.append(Experiment(target, None, branch, path))
+
+    # 3) raw experiment classes (raw ARTIQ, Calibration monitors, _Stub, ...)
     for path, src in sources.items():
         for node in ast.parse(src).body:
             if not isinstance(node, ast.ClassDef):

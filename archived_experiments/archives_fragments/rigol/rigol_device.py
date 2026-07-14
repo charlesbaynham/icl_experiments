@@ -13,7 +13,7 @@ GATE_TIMES_TO_IDX = {
 
 class RigolCounter:
     def __init__(self, device_mgr, rigol_ip=None, gate_time="10 s"):
-        rigol_ip = rigol_ip or "rigol-dg4162-b.lan"
+        rigol_ip = rigol_ip or "rigol-dg4162-b.usl"
         self.gate_time_index = GATE_TIMES_TO_IDX[gate_time]
         self.instr = self.get_interface_lan(rigol_ip)
 

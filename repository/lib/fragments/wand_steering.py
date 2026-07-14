@@ -20,18 +20,30 @@ class WandSteering(Fragment):
         self.scheduler: Scheduler
 
     def steer_wand(
-        self, laser, offset=0.0, timeout=20.0, required_accuracy=2e6, leave_locked=False
+        self,
+        laser,
+        offset=0.0,
+        timeout=20.0,
+        required_accuracy=2e6,
+        leave_locked=False,
+        initial_gain=None,
+        initial_poll_time=None,
     ):
         logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
         self.wand_server.lock(laser=laser, set_point=offset, timeout=None)
 
         initial_laser_db = self.wand_server.get_laser_db()
 
-        logger.info("Laser config: %s", initial_laser_db[laser])
-
         # Save initial settings so we can restore them at the end
-        initial_gain = initial_laser_db[laser]["lock_gain"]
-        initial_poll_time = initial_laser_db[laser]["lock_poll_time"]
+        if initial_gain is None:
+            initial_gain = initial_laser_db[laser]["lock_gain"]
+        else:
+            initial_gain = float(initial_gain)
+
+        if initial_poll_time is None:
+            initial_poll_time = initial_laser_db[laser]["lock_poll_time"]
+        else:
+            initial_poll_time = float(initial_poll_time)
         initial_capture_range = initial_laser_db[laser]["lock_capture_range"]
 
         logger.debug("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)

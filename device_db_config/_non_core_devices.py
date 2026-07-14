@@ -186,7 +186,7 @@ def get_non_core_devices(simulation_mode=False):
             "module": "repository.lib.fragments.rigol.rigol_device",
             "class": "RigolCounter",
             "arguments": {
-                "rigol_ip": "rigol-dg4162-b.lan",
+                "rigol_ip": "rigol-dg4162-b.usl",
                 "gate_time": "10 s",
             },
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
@@ -195,7 +195,7 @@ def get_non_core_devices(simulation_mode=False):
         "clock_glitch_filter": {
             "type": "controller",
             "best_effort": True,
-            "host": "somewhereelse.lan",
+            "host": "somewhereelse.usl",
             "port": get_next_port(),
             "command": (
                 "python -m repository.lib.devices.aqctl_clock_glitch_filter"
@@ -206,7 +206,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "andor_camera": {
             "type": "controller",
-            "host": "labpc1.lan",
+            "host": "labpc1.usl",
             "port": 7777,
             "target": "AndorDriver",
             "mockmodule": "repository.lib.fragments.cameras.andor_mock",
@@ -220,7 +220,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-powersupply-1.lan",
+                "id": "tenma-powersupply-1.usl",
                 "port": 18200,
                 "simulation": simulation_mode,
             },
@@ -232,7 +232,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-aion-ch1-1.lan",
+                "id": "tenma-aion-ch1-1.usl",
                 "port": 18202,
                 "simulation": simulation_mode,
             },
@@ -244,7 +244,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-aion-ch1-2.lan",
+                "id": "tenma-aion-ch1-2.usl",
                 "port": 18203,
                 "simulation": simulation_mode,
             },
