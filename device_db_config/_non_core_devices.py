@@ -33,6 +33,16 @@ get_next_port = lambda: int(next(port_iterator))
 PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
 
+# WAND (wavemeter server) runs on its own dedicated node (Proxmox CT 102), not on
+# the ARTIQ master host. Experiments and the GUI reach it here, and the master's
+# ctlmgr no longer launches it locally (its host matches neither ::1 nor
+# connection_ip). Keep in sync with icl_aion_gui_config.pyon.
+WAND_HOST = "10.137.1.247"
+
+# InfluxDB + Grafana moved off the ARTIQ host onto the dockerhost; the monitor
+# controllers write their series to InfluxDB there.
+INFLUX_BASEURL = "http://10.137.1.246:8086"
+
 # N.B. this needs to be in sync with the hard-coded value in
 # `icl_aion_server_config.pyon`
 PORT_GAIO_WAND_DRIVER = 4001
@@ -49,7 +59,10 @@ def get_non_core_devices(simulation_mode=False):
             "host": "::1",
             "port": get_next_port(),
             "target": "influx_logger",
-            "command": "artiq_influx_generic --port {port} --bind {bind}",
+            "command": (
+                f"artiq_influx_generic --baseurl-db {INFLUX_BASEURL} "
+                "--port {port} --bind {bind}"
+            ),
         },
         "influx_scheduler_logger": {
             "type": "controller",
@@ -58,6 +71,7 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": (
                 "artiq_influxdb_schedule "
+                f"--baseurl-db {INFLUX_BASEURL} "
                 f"--server-master {ARTIQ_CONNECTION_IP} "
                 "--port-control {port} "
                 "--bind {bind}"
@@ -66,7 +80,7 @@ def get_non_core_devices(simulation_mode=False):
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": ARTIQ_CONNECTION_IP,
+            "host": WAND_HOST,
             "port": PORT_WAND_CONTROL,
             "command": (
                 "bash -c '"
