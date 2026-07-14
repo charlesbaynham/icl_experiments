@@ -220,8 +220,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                # "id": "tenma-powersupply-1.lan",
-                "id": "10.137.1.23",
+                "id": "tenma-powersupply-1.lan",
                 "port": 18200,
                 "simulation": simulation_mode,
             },
