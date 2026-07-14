@@ -19,7 +19,6 @@ from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoOut,
 )
 from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
 from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import MonitorToptica461
 from repository.database_monitors.monitor_topticas import MonitorToptica487
@@ -30,7 +29,6 @@ from repository.database_monitors.monitor_topticas import MonitorToptica698
 from repository.database_monitors.monitor_topticas import MonitorToptica707
 from repository.database_monitors.monitor_topticas import MonitorToptica1379
 from repository.database_monitors.monitor_wand import MonitorWAND
-from repository.database_monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
 
@@ -76,14 +74,14 @@ def my_db_logger(self, name, state, data_list):
 MonitorMaster = make_monitor_controller(
     "MonitorMaster",
     monitors={
-        "weather": MonitorWeather,
+        # "weather": MonitorWeather, # TODO debug this
         # "temperature_sidearm": MonitorTemperatureSidearm,  # TODO fix broken sidearm temperature sensor
         "temperature_denco_in": MonitorTemperatureDencoIn,
         "temperature_denco_out": MonitorTemperatureDencoOut,
         "temperature_PCW": MonitorTemperaturePCW,
         "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
         "ion_pump_cham2": MonitorAIONCh2IonPump,
-        "ion_pump_clock_ch1": MonitorClockCh1IonPump,
+        # "ion_pump_clock_ch1": MonitorClockCh1IonPump, # TODO plug this back in
         "ion_pump_clock_ch2": MonitorClockCh2IonPump,
         "heartbeat": MonitorHeartbeat,
         # "turbopump": MonitorTurbo,
