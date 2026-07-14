@@ -42,17 +42,17 @@ class _MonitorLabTemperature(Calibration):
 
 
 class MonitorTemperatureSidearm(_MonitorLabTemperature):
-    monitor_url = "http://temperature-nano1.lan/temp1.txt"
+    monitor_url = "http://temperature-nano1.usl/temp1.txt"
     description = "above_chamber"
 
 
 class MonitorTemperatureDencoOut(_MonitorLabTemperature):
-    monitor_url = "http://temperature-nano2.lan/temp1.txt"
+    monitor_url = "http://temperature-nano2.usl/temp1.txt"
     description = "denco_out"
 
 
 class MonitorTemperatureDencoIn(_MonitorLabTemperature):
-    monitor_url = "http://temperature-nano3.lan/temp1.txt"
+    monitor_url = "http://temperature-nano3.usl/temp1.txt"
     description = "denco_in"
 
 
@@ -73,5 +73,5 @@ class _InveoNanoThermocoupleMonitor(_MonitorLabTemperature):
 
 
 class MonitorTemperaturePCW(_InveoNanoThermocoupleMonitor):
-    monitor_url = "http://temperature-nano-thermocouple-1.lan/status.xml"
+    monitor_url = "http://temperature-nano-thermocouple-1.usl/status.xml"
     description = "PCW"
