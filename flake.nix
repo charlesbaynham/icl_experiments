@@ -372,6 +372,80 @@
             program = "${script}/bin/install_systemd";
           };
 
+          # Idempotently install the systemd unit for the dedicated WAND node
+          # (Proxmox CT 102). Unlike aion-artiq this is a long-running service
+          # (Type=simple, Restart=always) that on every (re)start (1) fast-forwards
+          # the checkout to origin/master and (2) runs ONLY the WAND server -- not
+          # the full ARTIQ stack. Run as root on the wand node:
+          #   sudo nix run .#install_wand_systemd
+          # The installer deliberately does NOT enable/start the service, so it
+          # stays dormant until the cutover that hands WAND off aion.
+          install_wand_systemd = let
+            serviceName = "wand-node";
+            repoDir = "/root/icl_experiments";
+            # The WAND node's own LAN address (device_db wand_server host +
+            # icl_aion_gui_config.pyon must match).
+            wandBind = "10.137.1.247";
+
+            unitFile = pkgs.writeText "${serviceName}.service" ''
+              [Unit]
+              Description=ICL AION WAND server (dedicated node)
+              After=network-online.target
+              Wants=network-online.target
+
+              [Service]
+              Type=simple
+              WorkingDirectory=${repoDir}
+              # systemd starts services with a minimal environment: put the Nix
+              # profile on PATH and pin HOME/USER (nix-daemon.sh derefs $HOME under
+              # `set -u`; the stack resolves ~/.nix-profile).
+              Environment=PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:/usr/bin:/bin
+              Environment=HOME=/root
+              Environment=USER=root
+              # HighFinesse NetAccess client library -> wavemeter server 10.137.1.253.
+              Environment=WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so
+              # Pull master on every start so the node always runs released WAND
+              # code/config. Hard-reset so a diverged/wedged checkout self-heals.
+              ExecStartPre=${pkgs.git}/bin/git fetch --prune origin
+              ExecStartPre=${pkgs.git}/bin/git checkout -f master
+              ExecStartPre=${pkgs.git}/bin/git reset --hard origin/master
+              ExecStart=/root/.nix-profile/bin/nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind ${wandBind} --port-notify 3277 --port-control 3276
+              Restart=always
+              RestartSec=5
+
+              [Install]
+              WantedBy=multi-user.target
+            '';
+
+            script = pkgs.writeShellScriptBin "install_wand_systemd" ''
+              set -euo pipefail
+              export PATH=${
+                pkgs.lib.makeBinPath [pkgs.systemd pkgs.coreutils]
+              }:$PATH
+
+              UNIT_DST=/etc/systemd/system/${serviceName}.service
+
+              if [ "$(id -u)" -ne 0 ]; then
+                echo "This installer writes to /etc/systemd/system and must be run as root." >&2
+                echo "Re-run with: sudo nix run .#install_wand_systemd" >&2
+                exit 1
+              fi
+
+              echo "Installing systemd unit -> $UNIT_DST"
+              install -Dm644 ${unitFile} "$UNIT_DST"
+              systemctl daemon-reload
+
+              echo
+              echo "Installed '${serviceName}.service' (NOT enabled or started)."
+              echo "It fast-forwards to origin/master and runs ONLY the WAND server."
+              echo "At cutover (once WAND is handed off aion): systemctl enable --now ${serviceName}.service"
+              echo "Status: systemctl status ${serviceName}.service"
+            '';
+          in {
+            type = "app";
+            program = "${script}/bin/install_wand_systemd";
+          };
+
           dedrifter = let
             script = pkgs.writeShellScriptBin "dedrifter" ''
               export PATH=${
@@ -452,9 +526,11 @@
           artiq = overriddenOutputs.apps.artiq.override (prev: bind_settings);
 
           full_stack = let
-            backup_database = "nix run .#backup_database";
+            # InfluxDB, Grafana and their nightly backups moved off aion to the
+            # dockerhost (docker compose). aion no longer supervises them; the
+            # `database` and `grafana` commands are stripped from prev.commands
+            # below. `backup_datasets` (ARTIQ results -> RDS) stays here.
             backup_datasets = "nix run .#backup_datasets";
-            backup_grafana = "nix run .#backup_grafana";
 
             # Automatic startup of database monitors. Pin -r master: the served
             # repository is the stub catalog, so an unpinned -R submit would run
@@ -487,13 +563,13 @@
             overriddenOutputs.apps.full_stack.override (prev:
               {
                 commands =
-                  prev.commands
+                  # Drop the InfluxDB + Grafana processes inherited from pyaion's
+                  # artiq_background_extras -- they now run on the dockerhost.
+                  (builtins.removeAttrs prev.commands ["database" "grafana"])
                   // {
                     inherit
                       artiq_master
-                      backup_database
                       backup_datasets
-                      backup_grafana
                       monitor_launcher
                       watch_master
                       ;
