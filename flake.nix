@@ -456,12 +456,6 @@
             backup_datasets = "nix run .#backup_datasets";
             backup_grafana = "nix run .#backup_grafana";
 
-            # This is an extra instance of ctlmgr which searches for controllers assigned to
-            # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
-            # since we must hard-code the IP of the labserver in the moninj proxy otherwise
-            # dashboards don't know where to connect to it.
-            moninj_proxy_ctlmgr = "sleep 120 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
-
             # Automatic startup of database monitors. Pin -r master: the served
             # repository is the stub catalog, so an unpinned -R submit would run
             # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
@@ -500,7 +494,6 @@
                       backup_database
                       backup_datasets
                       backup_grafana
-                      moninj_proxy_ctlmgr
                       monitor_launcher
                       watch_master
                       ;
