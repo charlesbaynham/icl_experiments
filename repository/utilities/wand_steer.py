@@ -19,6 +19,7 @@ class Lasers(Enum):
     laser_707 = "707"
     laser_679 = "679"
     laser_688 = "688"
+    laser_641 = "641"
 
 
 class WANDSteerFrag(ExpFragment):
