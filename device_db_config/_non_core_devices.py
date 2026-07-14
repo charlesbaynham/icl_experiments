@@ -232,7 +232,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "unittest.mock",
             "mockclass": "MagicMock",
             "arguments": {
-                "id": "tenma-aion-ch1-1.usl",
+                "id": "tenma-aion-ch1-1.lan",
                 "port": 18202,
                 "simulation": simulation_mode,
             },
