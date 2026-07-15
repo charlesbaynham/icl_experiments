@@ -118,13 +118,13 @@ class _DeclarativeClockRatioCalBase(
 
 
 class DeclarativeClockRatioCalUpFrag(_DeclarativeClockRatioCalBase):
-    """Up-beam clock Rabi/set-point ratio calibration."""
+    """Up-beam clock spec with ratio"""
 
     lmt_sequence = _ratio_cal_sequence(Beam.UP)
 
 
 class DeclarativeClockRatioCalDownFrag(_DeclarativeClockRatioCalBase):
-    """Down-beam clock Rabi/set-point ratio calibration."""
+    """Down-beam clock spec with ratio"""
 
     lmt_sequence = _ratio_cal_sequence(Beam.DOWN)
 
