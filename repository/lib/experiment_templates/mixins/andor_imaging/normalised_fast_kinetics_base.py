@@ -41,6 +41,27 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_ROI_TARGETS_DATASET,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_SEPARATOR_WIDTH,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -52,9 +73,56 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 
 logger = logging.getLogger(__name__)
 
-ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
-ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+# Full clock-delivery setpoint, resolved host-side (string-keyed dict lookups are
+# not permitted inside kernels) for the full-power readout selection pulse.
+CLOCK_DELIVERY_SETPOINT_V: float = constants.SUSERVOED_BEAMS["clock_delivery"].setpoint
+# OPLL offset the ladder resets to at sequence end. Resolved host-side (string
+# dict lookup is not allowed in @kernel) so readout can apply free-fall Doppler
+# at the live pulse time.
+READOUT_START_OPLL_OFFSET: float = constants.URUKULED_BEAMS[
+    "698_clock_OPLL_offset"
+].frequency
+# DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
+READOUT_BEAM_SIGN: float = -1.0
+
+# 5x7 pixel bitmaps for the composite monitor frame labels, rows top-to-bottom.
+_LABEL_BITMAPS = {
+    "G": [
+        "01110",
+        "10001",
+        "10000",
+        "10111",
+        "10001",
+        "10001",
+        "01110",
+    ],
+    "E": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "10000",
+        "10000",
+        "11111",
+    ],
+}
+
+
+def _stamp_frame_label(image, letter, a0, b0, value):
+    """Draw ``letter`` into ``image`` with its top-left pixel at array index
+    (``a0``, ``b0``).
+
+    Bitmap columns run along array axis 0 (rendered horizontally) and rows along
+    axis 1 (rendered vertically), matching the composite monitor image.
+    """
+    for row, bits in enumerate(_LABEL_BITMAPS[letter]):
+        for col, bit in enumerate(bits):
+            if bit == "1":
+                a = a0 + col
+                b = b0 + row
+                if 0 <= a < image.shape[0] and 0 <= b < image.shape[1]:
+                    image[a, b] = value
 
 
 class NormalisedFKConfig(FastKineticsCameraConfig):
@@ -368,35 +436,28 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     def host_setup(self):
         super().host_setup()
 
-        rois = self.andor_camera_config.get_rois()
-        default_rois_ground = [
-            list(rois[0]),
-        ]
-        default_rois_excited = [
-            list(rois[1]),
-        ]
-
-        # Subtract the fast kinetics height from the y coordinates of the
-        # excited state ROIs
-        for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height
-            roi[3] -= self.andor_camera_config.fast_kinetics_height
+        default_rois_ground, default_rois_excited = (
+            self._split_bg_corrected_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+            )
+        )
 
         self.set_dataset(
-            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, default_rois_ground, broadcast=True
         )
         self.set_dataset(
-            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, default_rois_excited, broadcast=True
         )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
     def fast_kinetics_setup_results(self):
@@ -536,6 +597,69 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
+    @host_only
+    def update_andor_monitor_hook(self, images):
+        """
+        Show a composite of the background-corrected ground and excited state
+        images, stacked vertically, instead of the raw first image.
+
+        The monitor applet renders array axis 1 vertically, so a vertical stack
+        is a concatenation along axis 1 (``np.hstack``), with a bright separator
+        strip between the two frames and an "E" / "G" label stamped into each
+        frame's corner. In this codebase axis 1 is the ROI y-axis and is
+        *flipped* (see :meth:`~AndorImagingBase.slice_from_roi_params`), so the
+        excited frame, which ``np.hstack`` places at the low-index end, is the
+        one whose ROI is offset in y by the sub-frame height plus the separator
+        width; the ground frame keeps its coordinates.
+        """
+        ground_corrected = np.int32(images[0]) - np.int32(images[2])
+        excited_corrected = np.int32(images[1]) - np.int32(images[3])
+
+        separator_width = ANDOR_MONITOR_SEPARATOR_WIDTH
+        label_value = int(max(excited_corrected.max(), ground_corrected.max()))
+        separator = np.full(
+            (excited_corrected.shape[0], separator_width),
+            label_value,
+            dtype=np.int32,
+        )
+        composite = np.hstack([excited_corrected, separator, ground_corrected])
+
+        # Label each frame in its corner: "E" on the excited frame (low-index
+        # end), "G" on the ground frame (past the separator).
+        frame_height = excited_corrected.shape[1]
+        _stamp_frame_label(composite, "E", 3, 3, label_value)
+        _stamp_frame_label(
+            composite, "G", 3, frame_height + separator_width + 3, label_value
+        )
+
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            composite,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        # Rebuild the monitor ROI targets to line up on the composite. Routed
+        # through an overridable method so mixins with dynamically-predicted
+        # ROIs (whose positions are only current kernel-side) can supply the
+        # live ROIs instead of the stale host-side get_rois() sampled here.
+        self._broadcast_monitor_roi_targets()
+
+    @host_only
+    def _broadcast_monitor_roi_targets(self):
+        """Broadcast the composite monitor ROI targets from the host-side
+        ``get_rois()``. Correct for static-config experiments; overridden by
+        dynamic-ROI mixins that must source the ROIs kernel-side."""
+        self.set_dataset(
+            ANDOR_MONITOR_ROI_TARGETS_DATASET,
+            self._composite_monitor_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+            ),
+            broadcast=True,
+        )
+
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
@@ -655,37 +779,30 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     def host_setup(self):
         super().host_setup()
 
-        rois = self.andor_camera_config.get_rois()
-        default_rois_ground = [
-            list(rois[0]),
-            list(rois[2]),
-        ]
-        default_rois_excited = [
-            list(rois[1]),
-            list(rois[3]),
-        ]
-
-        # Subtract the fast kinetics height from the y coordinates of the
-        # excited state ROIs
-        for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height
-            roi[3] -= self.andor_camera_config.fast_kinetics_height
+        default_rois_ground, default_rois_excited = (
+            self._split_bg_corrected_roi_targets(
+                self.andor_camera_config.get_rois(),
+                self.andor_camera_config.fast_kinetics_height,
+                ground_indices=(0, 2),
+                excited_indices=(1, 3),
+            )
+        )
 
         self.set_dataset(
-            "g_bg_corrected_roi_targets", default_rois_ground, broadcast=True
+            ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET, default_rois_ground, broadcast=True
         )
         self.set_dataset(
-            "e_bg_corrected_roi_targets", default_rois_excited, broadcast=True
+            ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET, default_rois_excited, broadcast=True
         )
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset g_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --rois_dataset {ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET}",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset e_bg_corrected_roi_targets",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --rois_dataset {ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET}",
         )
 
     def fast_kinetics_setup_results(self):
@@ -938,6 +1055,23 @@ class NormalisedFastKineticsClockPulseMixin(
     def do_first_pulse(self):
         self.do_pulse()
         delay(self.delay_clock_after_first_pulse.get())
+
+        # A truncated sequence can leave the delivery servo at whatever setpoint
+        # its last executed event set (e.g. the low shelving setpoint after a
+        # slice-only truncation), so drive it to full power here. This makes the
+        # readout a full-power, fast (Fourier-broad) DOWN pi identical in speed
+        # to the launch/mirror pulses - the M-state-resolving selection pulse.
+        self.set_clock_delivery_aom(
+            freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
+            setpoint_v=CLOCK_DELIVERY_SETPOINT_V,
+        )
+        delay(constants.CLOCK_DELIVERY_PREEMPT_TIME)
+
+        # Put the OPLL on the free-fall Doppler resonance the falling atoms
+        # actually see. Called before the switch-DDS write so the OPLL write
+        # gets a ladder-like settling margin before the switch opens.
+        self._set_readout_opll_for_fall()
+
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.imaging_clock_pulse_detuning.get()
@@ -947,11 +1081,21 @@ class NormalisedFastKineticsClockPulseMixin(
 
         delay(1e-6)
 
-        # PI PULSE
-
         self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
+        delay(constants.DOWN_CLOCK_BEAM_PI_TIME)
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def _set_readout_opll_for_fall(self):
+        """Set readout OPLL to the free-fall Doppler resonance at pulse time."""
+        t_release_mu = (
+            self.get_t_release_mu()
+        )  # pyright: ignore[reportAttributeAccessIssue]
+        t_fall = self.core.mu_to_seconds(now_mu() - t_release_mu)
+        self.set_clock_opll(  # pyright: ignore[reportAttributeAccessIssue]
+            READOUT_START_OPLL_OFFSET
+            + READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+        )
 
 
 class NormalisedFastKineticsDoubleTrapRepumpedMixin(

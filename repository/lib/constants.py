@@ -61,19 +61,41 @@ CLOCK_WAVELENGTH_M = scipy_constants.c / SR_FACTS["FREQUENCIES"]["698"]
 # (perpendicular), +z = up.  Gravity points downward.
 GRAVITY_VEC_M_PER_S2 = np.array([0.0, 0.0, -scipy_constants.g])
 
-# Side-view Andor camera: looks from the +y direction toward the trap.
-# Sensor +x maps to lab +x; sensor +y maps to lab +z so that falling atoms
-# appear to move in the -y direction on the sensor, matching experiment.
-ANDOR_OPTICAL_AXIS_DEFAULT = np.array([0.0, 1.0, 0.0])
-ANDOR_SENSOR_X_AXIS_DEFAULT = np.array([1.0, 0.0, 0.0])
-ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
+# Side-view Andor camera looking from +y toward the trap. Sensor +x → lab +x;
+# sensor +y → lab +z, so falling atoms move in -y on the sensor.
+ANDOR_OPTICAL_AXIS = np.array([0.0, 1.0, 0.0])
+ANDOR_SENSOR_X_AXIS = np.array([1.0, 0.0, 0.0])
+ANDOR_SENSOR_Y_AXIS = np.array([0.0, 0.0, 1.0])
 
 # Clock beam direction: +is_up kick is in the +z (up) direction.
 CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
 
-# Default ROI dimensions for dynamic-ROI imaging (pixels).
-DEFAULT_ROI_WIDTH = 100
-DEFAULT_ROI_HEIGHT = 100
+# Initial (release) z-velocity of the velocity-selected class along the clock
+# axis (positive = up), inferred from the down-launch resonance offset.
+# TODO(charles): consider deriving this from the drop time instead of a constant.
+DEFAULT_INITIAL_VELOCITY_M_S = 0.0
+
+# Probe AC-Stark shift coefficient: the clock light shift is alpha * rabi**2 (Hz),
+# where ``rabi`` is the LINEAR Rabi frequency in Hz (= 1/(2*T_pi)).
+#
+# The clock-shift calibration ("2026-06-09 Clock shift gap-filling even Omega2
+# grid") measured the slope in the ANGULAR convention, omega_probe = alpha_ang *
+# Omega**2 with Omega = pi/T_pi (rad/s), giving alpha_ang ~= 3.25e-7 Hz*s**2.
+# Because Omega = 2*pi*rabi, Omega**2 = 4*pi**2 * rabi**2, so the coefficient for
+# the linear-rabi formula used here is alpha = alpha_ang * 4*pi**2. The previous
+# value (3.24e-7) plugged the angular-convention number straight into the
+# linear-rabi formula, under-counting the light shift by a factor 4*pi**2 (~39.5)
+# -- it produced ~17 Hz where the measurement gives ~1 kHz at a 55 us pi pulse.
+DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = -1.688e-5  # Hz/Hz^2
+
+# Default ROI dimensions for dynamic-ROI imaging (pixels). Sized to enclose a
+# single fast-kinetics cloud with a little margin. The box must stay well inside
+# one FK sub-frame band: an over-large box (e.g. the old 100x100) overflows the
+# fast-kinetics frame and bleeds counts between the ground and excited ports,
+# which silently corrupts excitation_fraction. Override per experiment if a given
+# readout needs a larger window.
+DEFAULT_ROI_WIDTH = 28
+DEFAULT_ROI_HEIGHT = 16
 
 USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
@@ -128,7 +150,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=83.5e6,
+        frequency=93.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -513,7 +535,7 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 227
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 254
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -790,7 +812,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4618e6,
+        99.4201e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1164,7 +1186,7 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 56e-6
-CLOCK_DOWN_PI_TIME = 67e-6
+CLOCK_DOWN_PI_TIME = 69e-6
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
@@ -1555,10 +1577,24 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
-DOWN_CLOCK_BEAM_PI_TIME = 68e-6
-MOMENTUM_KICK_DETUNING = 9400
+DOWN_CLOCK_BEAM_PI_TIME = 67e-6
+# Doppler shift per photon recoil, = 2x recoil frequency
+MOMENTUM_KICK_DETUNING = scipy_constants.h / (SR_ATOM_MASS_KG * CLOCK_WAVELENGTH_M**2)
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
+
+# Defaults for the global-parameter symmetric Mach-Zehnder generator. The
+# velocity-selective pulse provides the first kick, so the launch ladder runs
+# from m = 1 and ends at m = 1 + LMT_N_LAUNCH_DEFAULT.
+LMT_N_LAUNCH_DEFAULT = 0
+LMT_N_RECOILS_DEFAULT = 2
+
+
+# Dynamic ROI
+# (x,y) position of the atom cloud at t0, i.e. before it is dropped from the dipole trap
+# TODO: Merge with the (several) other ways of expressing this
+ATOM_POSITION_T0 = (180, 297)
+DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
 
 # Squeezing / Vacuum Rabi splitting stuff
 # This is in a glitch free urukul, so need to restart the crate for it take effect!
