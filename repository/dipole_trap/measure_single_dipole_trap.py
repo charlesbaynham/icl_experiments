@@ -3,6 +3,8 @@ import logging
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -71,6 +73,84 @@ class MeasureSingleXODTBGCorrectedFrag(
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
+
+
+class MeasureSingleXODTWithMolassesBGCorrectedFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODTMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
+):
+    """
+    Transparency-beam bring-up check: a single XODT with a molasses stage.
+
+    Adds the transparency-protected molasses cooling stage on top of
+    :class:`MeasureSingleXODTBGCorrectedFrag`. With a healthy transparency beam
+    the molasses recaptures atoms into the trap, so the BG-corrected atom number
+    is *higher* than the plain (no-molasses) XODT. A blocked or dark transparency
+    beam instead lets the molasses light blast the trapped atoms, so the atom
+    number does not rise (and typically falls). Comparing this against
+    :class:`MeasureSingleXODTBGCorrectedFrag` is therefore a remote health check
+    for the transparency beam.
+
+    ``protect_with_transparency`` False skips the transparency turn-on, forcing
+    the dead-beam case: it must destroy the enhancement, which is what makes this
+    a check that can actually fail.
+    """
+
+    def build_fragment(self):
+        self.setattr_param(
+            "protect_with_transparency",
+            BoolParam,
+            "Turn the transparency beam on during the molasses stage",
+            default=True,
+        )
+        self.protect_with_transparency: BoolParamHandle
+
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "protect_with_transparency_invariant",
+        }
+
+        super().build_fragment()
+
+    def host_setup(self):
+        # Bools cannot be scanned, so bake it in as a kernel invariant
+        self.protect_with_transparency_invariant = self.protect_with_transparency.get()
+        return super().host_setup()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+    @kernel
+    def dipole_trap_molasses_hook_first_xodt_molasses(self):
+        # Mirrors XODTSingleMolassesMixin, gating the transparency turn-on so the
+        # dead-beam case can be reproduced on demand.
+        red_suservos = (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        )
+        for i in range(len(red_suservos)):
+            red_suservos[i].setter.set_setpoint(0.0)
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
+        if self.protect_with_transparency_invariant:
+            self.transparency_setter.turn_on_all()
+        self.blue_3d_mot.repump_beam_setter.turn_beams_on()
+        self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
+            detuning=self.stir_beam_detuning_molasses_1.get()
+        )
+
+        self.molasses_xodt_1.do_phase()
+
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+        self.blue_3d_mot.repump_beam_setter.turn_beams_off(ignore_shutters=True)
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
+        )
 
 
 class SingleXODTSloshedFrag(
@@ -220,6 +300,9 @@ class MeasureCooledXODTFrag(
 
 
 MeasureSingleXODTBGCorrected = make_fragment_scan_exp(MeasureSingleXODTBGCorrectedFrag)
+MeasureSingleXODTWithMolassesBGCorrected = make_fragment_scan_exp(
+    MeasureSingleXODTWithMolassesBGCorrectedFrag
+)
 MeasureSingleXODTAbs = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 MeasureCooledXODT = make_fragment_scan_exp(MeasureCooledXODTFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
