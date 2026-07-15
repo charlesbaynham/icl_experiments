@@ -12,6 +12,7 @@ from ndscan.experiment.result_channels import LastValueSink
 from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
+from qbutler.optimizers import zoom_grid_optimizer
 from repository.lib import constants
 from repository.lib.calibrations.blue_mot import PUSH_SETPOINT_DEFAULT
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
@@ -78,6 +79,7 @@ class RedMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
 
         self.set_timeout(300.0)  # 300s for testing only
         self.set_optimization_type("max")
+        self.set_optimizer(zoom_grid_optimizer(zoom_factor=10))
 
         self._atom_sum_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
