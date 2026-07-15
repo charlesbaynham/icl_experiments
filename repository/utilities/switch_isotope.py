@@ -39,7 +39,7 @@ class SwitchIsotopeFrag(ExpFragment):
             "sr87",
             BoolParam,
             "True = sr87, false = sr88",
-            default=False,
+            default=constants.USE_SR87,
         )
         self.sr87: BoolParamHandle
         self.set_sidebands_frag.bind_param("sr87", self.sr87)
