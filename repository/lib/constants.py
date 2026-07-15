@@ -1075,7 +1075,7 @@ WAND_SETPOINTS_88 = {
 
 
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 + _ISOTOPE_SHIFT_461, True),
+    "461": (_default_461 + _ISOTOPE_SHIFT_461, False),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
     "487": (_default_487, True),

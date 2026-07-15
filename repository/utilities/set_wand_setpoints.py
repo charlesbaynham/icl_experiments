@@ -35,10 +35,14 @@ class SetWandSetpoints(EnvExperiment):
             constants.WAND_SETPOINTS_87 if self.sr87 else constants.WAND_SETPOINTS_88
         )
 
-        for laser, (reference, _locked) in setpoints.items():
+        for laser, (reference, locked) in setpoints.items():
             logger.info(
                 "Setting laser %s reference frequency to %.6f THz",
                 laser,
                 reference * 1e-12,
             )
             self.wand_server.set_reference_freq(laser=laser, f_ref=reference)
+
+            if locked:
+                logger.info("Setting laser %s lock state to %s", laser, locked)
+                self.wand_server.lock(laser=laser, set_point=0.0)
