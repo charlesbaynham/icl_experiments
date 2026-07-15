@@ -12,6 +12,7 @@ from ndscan.experiment.result_channels import LastValueSink
 from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
+from repository.lib import constants
 from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.lib.calibrations.red_mot import RedMOTCalibration
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
@@ -20,6 +21,8 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
+
+_Z_FIELD_DEFAULT = constants.RED_NARROWBAND_BIAS_FIELD_Z
 
 
 class _SimpleSingleXODTBGCorrectedFrag(
@@ -39,11 +42,9 @@ class _SimpleSingleXODTBGCorrectedFrag(
 
 
 class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
-    """Check that the XODT is working
-
-    No optimisation here, just a check
-
-    TODO: Add optimization
+    """Check that the XODT is working; optimizes the Z bias field current
+    used during the final (narrowband) stage of the red MOT that loads the
+    XODT.
     """
 
     def build_calibration(self):
@@ -69,6 +70,23 @@ class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
         # The optimizer re-measures many times inside one fix, so the measurement
         # owns its own lifecycle and channels (see the MOT calibrations).
         self.detach_fragment(self.meas)
+
+        self.setattr_param_optimizable(
+            "xodt_z_field",
+            "Z bias field current during the final narrowband red MOT stage",
+            min=_Z_FIELD_DEFAULT - 0.2,
+            max=_Z_FIELD_DEFAULT + 0.2,
+            default=_Z_FIELD_DEFAULT,
+            unit="A",
+        )
+        self.xodt_z_field: FloatParamHandle
+
+        # Bind the swept Z field to a store now, at build time, so the kernel
+        # can set it on-core (params aren't readable via .get() until
+        # init_params(), after build; see RedMOTCalibration).
+        _, self._z_field_store = self.meas.red_mot.override_param(
+            "narrowband_bias_z", _Z_FIELD_DEFAULT
+        )
 
         self._measurement_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._measurement_sink)
@@ -104,6 +122,7 @@ class SingleXODTCalibration(InfluxRecalibrationLogMixin, Calibration):
 
     @kernel
     def check_own_state(self):
+        self._z_field_store.set_value(self.xodt_z_field.get())
 
         self.core.break_realtime()
         self.meas.device_setup()
