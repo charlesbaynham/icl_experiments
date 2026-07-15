@@ -24,3 +24,12 @@ NOTE: to make the applets open as windows (not just appear in the Applets dock
 list), set the dashboard's CCB policy for the "Calibrations" group to
 "Create and enable/disable applets"; the default global policy is "Create
 applets", which creates them disabled.
+
+LOCAL PATCH (not in feature/applets @ b51f7c5b): optimizers.py additionally
+carries zoom_grid_optimizer, cherry-picked from qbutler PR #25
+(feature/zoom-grid-optimizer-precompiled @ 8c1a5c2) — a two-stage grid search
+that scans the full [min, max] grid, picks the best point, then re-scans the
+same number of points per axis over a window centred on the optimum and
+zoom_factor (default 10) times smaller. Sits alongside grid_search_optimizer
+and coordinate_descent_optimizer. When re-vendoring from feature/applets,
+re-apply this addition (or land it upstream first).
