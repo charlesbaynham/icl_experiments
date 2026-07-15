@@ -26,6 +26,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 logger = logging.getLogger(__name__)
 
 DATASET_OD_KEY = "abs_od_img"
+DATASET_OD_ROI_TARGETS = "od_image_roi_targets"
 
 
 class AbsorptionImagingConfig(AndorCameraConfig):
@@ -159,11 +160,11 @@ class AbsorptionImagingBase(AndorImagingBase):
             )
         self.andor_camera_control.cam.start_acquisition()  # HACK base and andor cam frag should be changed so acq is only started once.
 
-        self.set_dataset("od_omage_roi_targets", self.get_abs_rois(), broadcast=True)
+        self.set_dataset(DATASET_OD_ROI_TARGETS, self.get_abs_rois(), broadcast=True)
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --rois_dataset od_omage_roi_targets --dataset_prefix od_omage",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --rois_dataset {DATASET_OD_ROI_TARGETS} --dataset_prefix od_image",
         )
 
     def hook_setup_andor_results(self):

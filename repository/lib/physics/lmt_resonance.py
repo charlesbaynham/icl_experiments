@@ -1,59 +1,117 @@
 """
-LMT pulse resonance predictor
-=============================
+LMT pulse resonance predictor and recorded-intent vocabulary
+============================================================
 
-Pure host-side (no ARTIQ) physics for predicting the resonance of large
-momentum transfer (LMT) clock pulses on the 698 nm transition.
+Pure host-side (no ARTIQ) physics for predicting the resonance of large momentum
+transfer (LMT) clock pulses on the 698 nm transition, plus the shared vocabulary
+of the recorded *intent* stream.
 
-This is a minimal port of the Bordé-frame resonance bookkeeping from the
-``lmt_sim`` simulation package (https://github.com/charlesbaynham/LMT_sim_scratch),
-restricted to the single question the experiment needs answered at build time:
+This module has two responsibilities:
 
-    "Which OPLL offset frequency addresses momentum class m with the up or
-    down beam?"
+1. **Resonance physics** - a minimal port of the Bordé-frame resonance
+   bookkeeping from the ``lmt_sim`` simulation package
+   (https://github.com/charlesbaynham/LMT_sim_scratch), restricted to the single
+   question the experiment needs answered at build time:
+
+       "Which OPLL offset frequency addresses momentum class m with the up or
+       down beam?"
+
+2. **Recorded-intent vocabulary** - the enums (:class:`Kind`,
+   :class:`StateEffect`, :class:`AddressedState`), the :data:`M_AUTO` sentinel
+   and the :class:`IntentEvent` decoding helpers that describe the *intent*
+   stream recorded by
+   :class:`~repository.lib.fragments.pulse_recorder_and_tracker.PulseDMARecording`
+   alongside the pulse facts. Every atom-affecting event (clock pulses, 461 nm
+   clearouts and "callback" pulses) registers one entry describing **what it is
+   meant to do to the atomic populations, assumed 100 % efficient**. The stream
+   is consumed by the dynamic-ROI trajectory predictor
+   (:mod:`repository.lib.physics.trajectory`) and the spacetime diagram
+   (:mod:`repository.lib.physics.lmt_spacetime`).
 
 Conventions
 -----------
 
 - Momentum classes ``m`` are integer multiples of the single-photon recoil
-  ``hbar * k``, counted **positive in the launch (upward) direction**.
-- Internal states are labelled ``"g"`` (ground) and ``"e"`` (excited).
+  ``hbar * k``, counted **positive in the upward direction**.
+- Internal states are :class:`InternalState` members ``GROUND`` and ``EXCITED``.
 - Beam directions are described by ``beam_sign``: ``+1`` for the up beam and
   ``-1`` for the down beam.
 - A beam with sign ``s`` couples the pair ``|g, m_g> <-> |e, m_g + s>``.
 
-The atomic-frame resonance detuning (relative to the unperturbed transition,
-for an atom at rest) of the pair with ground class ``m_g`` driven by beam
-``s`` is
+Intent record schema
+---------------------
+
+One entry per atom-affecting event, in firing order:
+
+==================  =======  ====================================================
+field               type     meaning
+==================  =======  ====================================================
+``t_start_mu``      int64    timeline position when the event starts
+``duration_mu``     int64    event duration
+``kind``            int32    ``Kind.PULSE``, ``Kind.CLEAROUT``, ``Kind.WAIT``
+                             (a pure dark time: occupies its ``[t_start,
+                             t_start + duration]`` interval but changes no
+                             population) or ``Kind.PHASE`` (a zero-duration,
+                             non-atom-affecting marker recorded only so the
+                             spacetime applet can draw it). (``Kind.CALLBACK``
+                             is reserved but no longer emitted: a callback
+                             records one ordinary ``Kind.PULSE`` row per
+                             declared action.)
+``state_effect``    int32    ``StateEffect.FLIP`` (pi-like full transfer),
+                             ``StateEffect.SUPERPOSE`` (pi/2-like split: both
+                             pair members populated) or ``StateEffect.NONE``
+``addressed_state`` int32    internal state of the population the event
+                             addresses: ``AddressedState.GROUND``,
+                             ``AddressedState.EXCITED`` or ``AddressedState.AUTO``
+                             (resolve from the population walk)
+``addressed_m``     int32    momentum class of the addressed population, or
+                             :data:`M_AUTO`
+``delta_m``         int32    recoils given to the transferred component in the
+                             ground->excited direction (the excited->ground
+                             direction gets the negative).
+==================  =======  ====================================================
+
+The atomic-frame resonance detuning (relative to the unperturbed transition, for
+an atom at rest) of the pair with ground class ``m_g`` driven by beam ``s`` is
 
     delta_atom = s * m_g * kick + kick / 2
 
-where ``kick = 2 * f_recoil`` is the Doppler shift produced by one photon
-recoil (~9.4 kHz for Sr-87 at 698 nm) and the constant ``kick / 2`` is the
-photon-recoil energy term. Both terms are always included - there are no
-back-compatibility switches.
+where ``kick = 2 * f_recoil`` is the Doppler shift produced by one photon recoil
+(~9.4 kHz for Sr-87 at 698 nm) and the constant ``kick / 2`` is the
+photon-recoil energy term.
 
 OPLL mapping
 ------------
 
-Both the up and down beams are derived from the same laser, whose frequency
-is steered by the OPLL offset DDS. An increase of the OPLL offset shifts the
-*atomic detuning* of every transition by the same amount with a fixed
-hardware sign. The sign convention used throughout the declarative LMT stack
-(matching the empirically-verified frequencies in the legacy LMT code) is
+Both the up and down beams are derived from the same laser, whose frequency is
+steered by the OPLL offset DDS. The Sirah laser is locked to the *negative
+sideband* of the beat with the ECDL. Positive changes to the OPLL reference
+therefore result in negative changes to the frequency at the atoms. Since we
+tune the other AOMs (particularly the SUServo delivery AOM) for resonance at the
+velocity slice, the first pulse is always resonant at
+`START_OPLL - constants.MOMENTUM_KICK_DETUNING/2`. The subsequent frequencies of
+the OPLL should therefore be:
 
-    f_opll = START_OPLL + s * D(t) - opll_m_term_hz(...) + user_offset
+```
+    f_opll = START_OPLL + s * D(t) - opll_m_term_hz(...) + v0_term + user_offset
+```
 
 where ``D(t)`` is the gravity Doppler accumulated since release (computed at
-runtime in the kernel from the pulse timestamp) and ``opll_m_term_hz`` is the
-static, m-dependent part computed here on the host.
+runtime in the kernel from the pulse's timestamp and ramped throughout the
+pulse) and ``opll_m_term_hz`` is the static, m-dependent part computed here on
+the host, calculated for the pulse mid-point.
 
-Relative to the legacy loop formulas (which omit the recoil energy term),
-``f_opll`` differs by exactly ``-s * kick / 2``; this is pinned by the unit
-tests in ``tests/test_lmt_resonance.py``.
+``v0_term`` corrects the atom's *initial-velocity* Doppler shift and is
+**tethered to the first pulse** (see :func:`v0_doppler_term_hz`): that pulse
+selects the velocity class, so it carries ``v0_term = 0`` and every other pulse
+carries ``(s_ref - s) * v0 / lambda`` where ``s_ref`` is the first pulse's beam
+sign. For the usual up-first sequence the up reference carries ``0`` and a down
+pulse carries ``+2*v0/lambda`` (i.e. the v0 term moves a down-beam resonance by
+``2/lambda = 2.865 kHz per mm/s`` and does not move the up reference).
 """
 
 from dataclasses import dataclass
+from enum import Enum
 from enum import IntEnum
 from typing import Sequence
 
@@ -61,8 +119,21 @@ import scipy.constants
 
 from repository.lib import constants
 
-GROUND = "g"
-EXCITED = "e"
+
+class InternalState(Enum):
+    GROUND = "g"
+    EXCITED = "e"
+
+    def __lt__(self, other):
+        # Orderable so populations of (state, m) pairs can be sorted for
+        # deterministic log/error messages (ordered by the "g"/"e" value).
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+
+GROUND = InternalState.GROUND
+EXCITED = InternalState.EXCITED
 
 #: Photon recoil energy of the 698 nm clock transition expressed as a
 #: frequency: f_rec = hbar * k^2 / (4 * pi * M) = h / (2 * M * lambda^2).
@@ -72,9 +143,52 @@ RECOIL_FREQUENCY_HZ = scipy.constants.h / (
 
 #: Doppler shift produced by a single photon recoil: v_rec / lambda. This is
 #: the frequency step between adjacent momentum classes and equals twice the
-#: recoil frequency. The empirically-used value in the experiment is
-#: ``constants.MOMENTUM_KICK_DETUNING`` (9.4 kHz); the two agree to < 0.1 %.
-DOPPLER_PER_KICK_HZ = 2 * RECOIL_FREQUENCY_HZ
+#: recoil frequency. ``constants.MOMENTUM_KICK_DETUNING`` is the same quantity
+#: derived from fundamental constants, so the two are identical.
+DOPPLER_PER_KICK_HZ = constants.MOMENTUM_KICK_DETUNING
+
+
+def v0_doppler_term_hz(
+    beam_sign: int,
+    reference_beam_sign: int = 1,
+    initial_velocity_m_s: float = constants.DEFAULT_INITIAL_VELOCITY_M_S,
+    wavelength_m: float = constants.CLOCK_WAVELENGTH_M,
+) -> float:
+    """OPLL correction (Hz) for the atom's initial-velocity Doppler shift.
+
+    The v0 term is **tethered to the first pulse of the sequence**: that pulse
+    selects the velocity class, so it carries no v0 term and every other pulse
+    is corrected differentially against it. With ``reference_beam_sign`` the
+    beam sign of the first pulse, the term for a pulse on beam ``beam_sign`` is
+
+        (reference_beam_sign - beam_sign) * v0 / lambda
+
+    For the usual up-first sequence (``reference_beam_sign = +1``): the up
+    reference carries ``0`` and a down pulse carries ``+2*v0/lambda``.
+
+    ``beam_sign`` and ``reference_beam_sign`` are each +1 (up) or -1 (down).
+    """
+    if beam_sign not in (1, -1):
+        raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
+    if reference_beam_sign not in (1, -1):
+        raise ValueError(
+            f"reference_beam_sign must be +1 or -1, got {reference_beam_sign!r}"
+        )
+    return (reference_beam_sign - beam_sign) * initial_velocity_m_s / wavelength_m
+
+
+def probe_stark_term_hz(
+    rabi_hz: float,
+    alpha_hz_s2: float = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
+) -> float:
+    """OPLL correction (Hz) for the probe AC-Stark light shift.
+
+    The light shift raises the resonance by ``alpha * rabi**2``, so to stay
+    resonant the OPLL centre is moved with it: the correction added to the OPLL
+    frequency is ``-alpha * rabi**2``. (``alpha`` is our convention for the
+    light shift per unit ``rabi**2``.)
+    """
+    return -alpha_hz_s2 * rabi_hz * rabi_hz
 
 
 def transition_detuning_hz(
@@ -98,6 +212,7 @@ def transition_detuning_hz(
     Returns:
         Detuning in Hz.
     """
+    # TODO: validate against LMT_simulations by running a no-atom sequence, extracting the reported pulse sequence and putting it through LMT_simulations to test it
     if k_sign not in (1, -1):
         raise ValueError(f"k_sign must be +1 or -1, got {k_sign!r}")
     return k_sign * m_ground * kick_hz + kick_hz / 2.0
@@ -128,7 +243,19 @@ def addressed_ground_class(
     return (effective_detuning_hz - kick_hz / 2.0) / (k_sign * kick_hz)
 
 
-def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
+def _ground_class_of_pair(m: int, is_ground: bool, beam_sign: int) -> int:
+    """Ground class ``m_g`` of the pair ``|g, m_g> <-> |e, m_g + beam_sign>``.
+
+    A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so the
+    populated state ``(is_ground, m)`` lies on the ground side at ``m_g = m`` or
+    on the excited side at ``m_g = m - s``. This is the single source of the
+    pairing rule, shared by :func:`pair_ground_class` and
+    :meth:`IntentEvent.addresses_pair`.
+    """
+    return m if is_ground else m - beam_sign
+
+
+def pair_ground_class(m: int, internal_state: InternalState, beam_sign: int) -> int:
     """Ground class of the pair addressed when driving state ``(internal_state, m)``.
 
     A beam with sign ``s`` couples ``|g, m_g> <-> |e, m_g + s>``, so driving a
@@ -137,7 +264,7 @@ def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
 
     Args:
         m: Momentum class of the populated state being addressed.
-        internal_state: ``"g"`` or ``"e"``.
+        internal_state: :data:`GROUND` or :data:`EXCITED`.
         beam_sign: Beam direction, +1 (up) or -1 (down).
 
     Returns:
@@ -146,32 +273,30 @@ def pair_ground_class(m: int, internal_state: str, beam_sign: int) -> int:
     if beam_sign not in (1, -1):
         raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
     if internal_state == GROUND:
-        return m
+        return _ground_class_of_pair(m, True, beam_sign)
     if internal_state == EXCITED:
-        return m - beam_sign
+        return _ground_class_of_pair(m, False, beam_sign)
     raise ValueError(f"internal_state must be 'g' or 'e', got {internal_state!r}")
 
 
 def opll_m_term_hz(
     m: int,
-    internal_state: str,
+    internal_state: InternalState,
     beam_sign: int,
     kick_hz: float = constants.MOMENTUM_KICK_DETUNING,
 ) -> float:
     """Static m-dependent term of the OPLL frequency for an LMT pulse.
 
     This is the atomic-frame detuning of the addressed pair,
-    :func:`transition_detuning_hz`, to be used in the kernel formula
-
-        f_opll = START_OPLL + beam_sign * D(t) - opll_m_term_hz(...) + offset
-
-    where ``D(t)`` is the runtime gravity Doppler term.
+    :func:`transition_detuning_hz`, to be used in the kernel formula (see module
+    docstring).
 
     Args:
-        m: Momentum class of the populated state being addressed.
-        internal_state: Internal state (``"g"`` or ``"e"``) of that population.
-        beam_sign: Beam direction, +1 (up) or -1 (down).
-        kick_hz: Doppler shift per photon recoil.
+        m:              Momentum class of the populated state being addressed.
+        internal_state: Internal state (:data:`GROUND` or :data:`EXCITED`) of
+                        that population.
+        beam_sign:      Beam direction, +1 (up) or -1 (down). kick_hz: Doppler shift
+                        per photon recoil.
 
     Returns:
         Frequency term in Hz.
@@ -208,6 +333,16 @@ class Kind(IntEnum):
     # pulse intent row per declared callback action). Kept to document the
     # record schema and preserve the IntEnum numbering.
     CALLBACK = 2
+    # A pure dark time: occupies [t_start, t_start + duration] in the stream so
+    # the sequence-end anchor counts it and the predictor images that much
+    # later, but carries no state flip and no momentum change.
+    WAIT = 3
+    # A non-atom-affecting marker: an absolute switch-AOM phase change. It does
+    # NOT move the populations, so the intent walkers skip it for the trajectory;
+    # it is recorded only so the spacetime applet can draw a marker at its time.
+    # Its state_effect/addressed_state/addressed_m/delta_m columns carry neutral
+    # valid codes (NONE / AUTO / M_AUTO / 0).
+    PHASE = 4
 
 
 class StateEffect(IntEnum):

@@ -42,7 +42,6 @@ the same time::
 import abc
 import logging
 
-import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import portable
@@ -51,28 +50,22 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
+from repository.lib.experiment_templates.dma_actions_after_drop import (
+    DMAActionsAfterDropMixin,
 )
 from repository.lib.experiment_templates.mixins.external_triggering import (
     External50HzTriggerMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperimentBase,
-)
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
-from repository.lib.fragments.pulse_recorder_and_tracker import PulseDMARecording
 
 logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
 
-class DipoleTrapWithExperimentBase(
-    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperimentBase
-):
+class DipoleTrapWithExperimentBase(External50HzTriggerMixin, DMAActionsAfterDropMixin):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -127,35 +120,15 @@ class DipoleTrapWithExperimentBase(
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
-        self.setattr_fragment(
-            "dma_recording_fragment", PulseDMARecording, outer_self=self
-        )
-        self.dma_recording_fragment: PulseDMARecording
-
-        # Tracking state for clock-pulse frequency recording.
-        # Updated by the set_clock_* / start_clock_opll_ramp wrappers below.
-        # Read by PulseDMARecording.register_pulse via outer_self.
-        self._tracked_opll_freq = 80e6  # Hz, current static OPLL offset
-        self._tracked_opll_ramp_active = False  # whether a DRG ramp is running
-        self._tracked_opll_ramp_rate = 0.0  # Hz/s
-        self._tracked_opll_ramp_low = 80e6  # Hz, ramp lower bound
-        self._tracked_opll_ramp_high = 80e6  # Hz, ramp upper bound
-        self._tracked_opll_ramp_wave = np.int32(0)  # 0=triangle, 1=pos saw, 2=neg saw
-        self._tracked_opll_ramp_start_mu = np.int64(
-            0
-        )  # machine-unit timestamp of start_ramp
-        # Switch DDS defaults — overridden by ClockSpectroscopyBase to nominal values
-        self._tracked_up_switch_freq = 0.0  # Hz, last commanded up-beam switch DDS freq
-        self._tracked_down_switch_freq = (
-            0.0  # Hz, last commanded down-beam switch DDS freq
-        )
-        # Delivery AOM tracking — overridden by ClockSpectroscopyBase to nominal values
-        self._tracked_delivery_aom_freq = 0.0  # Hz, delivery AOM frequency
-        self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
-
-    @kernel
-    def DMA_record_hook(self):
-        self.dma_recording_fragment.record_pulse_sequence()
+        # The dipole drop (t_dipole_beams_off) is stamped by the active clock
+        # mixin INSIDE the DMA recording, so it is recording-relative; the live
+        # release time is t_playback_start_mu + t_dipole_beams_off (see
+        # get_t_release_mu). Defaulted here so non-clock dipole experiments
+        # still construct; the clock mixins overwrite it each shot. The DMA
+        # recording fragment and clock-tracking state come from
+        # DMAActionsAfterDropMixin.
+        if not hasattr(self, "t_dipole_beams_off"):
+            self.t_dipole_beams_off = int64(0)
 
     @kernel
     def DMA_initialization_hook(self):
@@ -164,6 +137,8 @@ class DipoleTrapWithExperimentBase(
 
     @kernel
     def DMA_initialization_hook_dipole_trap_default(self):
+        # The after-drop handle fetch. Kept as a named sub-hook because the many
+        # dipole experiments that override DMA_initialization_hook chain it.
         self.dma_recording_fragment.DMA_initialization_hook_after_drop()
 
     @kernel
@@ -193,14 +168,9 @@ class DipoleTrapWithExperimentBase(
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
 
-        # This plays back the pre-recorded version of `actions_after_drop`:
-        self.dma_recording_fragment.playback()
-
-    @kernel
-    def launch_hook(self):
-        """
-        Hook for implementation of launching. By default, do nothing
-        """
+        # Load the trap on the live timeline first (above), then play back the
+        # pre-recorded `actions_after_drop`.
+        self.play_actions_after_drop()
 
     @kernel
     def dipole_trap_loading_hook(self):
@@ -252,52 +222,35 @@ class DipoleTrapWithExperimentBase(
         By default, do nothing.
         """
 
-    @kernel
-    def register_pulse(self, is_up: bool, duration_s: float):
-        """
-        Delegate to dma_recording_fragment.register_pulse. `register_pulse` is
-        defined on the RedMOTExperimentBase as a no-op, so experiments that use
-        clock-pulse mixins can call self.register_pulse unconditionally without
-        knowing whether a DMA fragment exists.
-        """
-        self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
-
     # ------------------------------------------------------------------
-    # Clock-frequency tracking state lives here (read by
-    # PulseDMARecording.register_pulse via a typed outer_self), but the
-    # command wrappers that update it are defined on the clock-specific
-    # bases next to the devices they drive:
-    #   * set_clock_up_dds / set_clock_down_dds -> ClockSpectroscopyBase
-    #   * set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp
-    #     -> LMTBase
-    # This keeps clock hardware off non-clock dipole experiments.
+    # Timebase accessor for the dynamic-ROI predictor (DynamicROIImagingMixin).
+    # The release time is dipole-specific (overrides the mixin default); the
+    # playback-start accessor and the DMA / clock-tracking machinery come from
+    # DMAActionsAfterDropMixin.
     # ------------------------------------------------------------------
 
     @portable
-    def _get_opll_instantaneous(self, t_mu: int64) -> float:
-        """
-        Return the instantaneous OPLL offset frequency (Hz) at timeline
-        position t_mu.  For a static setting this is trivial; for an active
-        DRG ramp the frequency is extrapolated linearly from the ramp start.
+    def get_t_release_mu(self) -> int64:
+        """Live-timeline time the atoms were released (dipole beams off).
 
-        wave_type 2 (negative sawtooth) ramps down from freq_high;
-        all other wave types ramp up from freq_low.
-        The ramp spans used for gravity compensation are ~2 MHz wide at
-        ~5 kHz/s, so wrapping never occurs within a single experiment shot.
+        The drop is stamped by the active clock mixin inside the DMA
+        recording, so ``t_dipole_beams_off`` is recording-relative; its live
+        time is the playback-start cursor plus that offset.
         """
-        if not self._tracked_opll_ramp_active:
-            return self._tracked_opll_freq
-        dt_s = self.core.mu_to_seconds(t_mu - self._tracked_opll_ramp_start_mu)
-        if self._tracked_opll_ramp_wave == 2:
-            f = self._tracked_opll_ramp_high - self._tracked_opll_ramp_rate * dt_s
-            if f < self._tracked_opll_ramp_low:
-                return self._tracked_opll_ramp_low
-            return f
-        else:
-            f = self._tracked_opll_ramp_low + self._tracked_opll_ramp_rate * dt_s
-            if f > self._tracked_opll_ramp_high:
-                return self._tracked_opll_ramp_high
-            return f
+        return self.t_playback_start_mu + self.t_dipole_beams_off
+
+    @portable
+    def get_t_release_minus_playback_mu(self) -> int64:
+        """Release time relative to the DMA playback origin, in machine units.
+
+        Equals ``t_release_mu - t_playback_start_mu``. The dynamic-ROI
+        predictor needs only this difference (the absolute playback cursor
+        cancels), so it can run in ``before_start_hook`` before either live
+        timestamp is stamped. For the dipole path the drop is stamped inside
+        the recording, so the offset is simply ``+t_dipole_beams_off``
+        (available after the DMA recording completes).
+        """
+        return self.t_dipole_beams_off
 
     @kernel
     def post_dipole_trap_hook_default(self):

@@ -145,6 +145,9 @@ class CameraFrag(Fragment):
         )
 
         self.cam: Camera = self.get_device(self.camera_device)
+        # The device manager caches the camera across pause/resume, but
+        # host_cleanup shut it down - bring the connection back
+        self.cam.reopen()
 
         # Set sensible defaults. The user might change these
         self.cam.set_feature("ExposureMode", "Timed")

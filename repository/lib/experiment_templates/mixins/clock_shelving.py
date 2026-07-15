@@ -21,10 +21,12 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
+    ClockOPLLTrackingMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -35,7 +37,7 @@ CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
+class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentBase):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
@@ -48,10 +50,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
 
     def build_fragment(self):
         super().build_fragment()
-
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -192,11 +190,14 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
         delay_mu(int64(self.core.ref_multiplier))
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.stop_clock_opll_ramp()
 
         delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
 
         # Clear out the ground state
+        self.dma_recording_fragment.register_clearout(
+            duration_s=self.shelving_pulse_clearout_duration.get()
+        )
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
             ignore_final_shutters=True,
@@ -208,7 +209,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         Fire the clock shelving pulse onto the atoms.
         """
         d = self.shelving_pulse_time.get()
-        self.register_pulse(is_up=True, duration_s=d)
+        self.dma_recording_fragment.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -221,7 +222,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         Advances the timeline by the duration of SPI writes
         """
 
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.start_clock_opll_ramp(
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
@@ -236,7 +237,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
     @kernel
     def post_sequence_cleanup_hook_shelving(self):
         # stop the clock laser ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.stop_clock_opll_ramp()
 
 
 class ClockShelvingAndClearoutDipoleTrapMixin(
