@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
 from artiq.experiment import kernel
@@ -13,6 +14,7 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
+from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib.calibrations.coarse_clock_centre import CoarseClockCentreCalibration
 from repository.lib.calibrations.xodt_calibration import SingleXODTCalibration
 from repository.LMT_declarative.lmt_tune_slice import NarrowDownAfterSliceFrag

@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
 from artiq.experiment import kernel
@@ -13,12 +14,60 @@ from qbutler import dag
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from repository.lib import constants
-from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
+from repository.lib.calibrations._fit_helpers import fit_peak_x
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
+from repository.lib.calibrations.influx_logging import InfluxRecalibrationLogMixin
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalDownFrag
 from repository.LMT.lmt_clock_ratio_calibration import DeclarativeClockRatioCalUpFrag
 
 logger = logging.getLogger(__name__)
+
+#: Points in one probe-duration sweep during a fix. 31 over [1 us, 2.5 x pi_nom]
+#: resolves the flop (>1 full oscillation) with ~12 points up to the first max.
+_SWEEP_POINTS = 31
+
+#: Fractional band around the nominal (anchor) pi time within which a fitted pi
+#: time is trusted; outside it, flag rather than silently persist.
+_SANE_BAND = 0.4
+
+
+def _make_rabi_flop_optimizer(nominal_pi_time):
+    """Build a qbutler optimizer generator that sweeps the probe duration once,
+    finds the first Rabi-flop maximum (= pi time) by a parabolic peak fit, and
+    returns it -- unless it lands outside the sane band, in which case it returns
+    None so the framework raises rather than persisting a bad value.
+    """
+
+    def _optimizer(param_specs):
+        (spec,) = param_specs
+        durations = np.linspace(spec.min, spec.max, _SWEEP_POINTS)
+
+        excitations = []
+        for t in durations:
+            _, data = yield {spec.name: float(t)}
+            excitations.append(data if isinstance(data, (int, float)) else np.nan)
+
+        pi_time = fit_peak_x(durations, excitations)
+        if pi_time is None:
+            logger.warning("Rabi flop fit failed: no finite excitation data")
+            return None
+
+        lo, hi = (1 - _SANE_BAND) * nominal_pi_time, (1 + _SANE_BAND) * nominal_pi_time
+        if not (lo <= pi_time <= hi):
+            logger.warning(
+                "Fitted pi time %.2f us outside sane band [%.2f, %.2f] us "
+                "(nominal %.2f); not persisting",
+                1e6 * pi_time,
+                1e6 * lo,
+                1e6 * hi,
+                1e6 * nominal_pi_time,
+            )
+            return None
+
+        logger.info("Rabi flop fit: pi time %.2f us", 1e6 * pi_time)
+        return {spec.name: float(pi_time)}
+
+    return _optimizer
 
 
 class _RabiPiTimeCalibrationBase(InfluxRecalibrationLogMixin, Calibration):

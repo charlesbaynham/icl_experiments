@@ -10,6 +10,7 @@ handle attribute name, so both are tested without building an ARTIQ fragment.
 import pytest
 
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
+from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
@@ -56,11 +57,14 @@ def test_event_count_scales_with_counts():
     # 8 events per recoil (separate + rejoin, two arms, two halves)
     assert n_events(4, 1) - n_events(4, 0) == 8
     assert n_events(4, 2) - n_events(4, 1) == 8
-    # Closed form: 9 fixed + launch pulses + post-launch clearout (even only)
-    # + 8 per recoil
+    # Closed form: 11 fixed + launch pulses + post-launch clearout (even only)
+    # + 8 per recoil. The 11 fixed are the 9 structural events (slice setpoint,
+    # slice pulse, full setpoint, post-slice clearout, and the bs1/dark1/mirror/
+    # dark2/bs2 interferometer) plus the two interferometry Phase events (mirror,
+    # bs2).
     for n_launch in range(0, 7):
         for n_recoils in range(0, 4):
-            expected = 9 + n_launch + (1 if n_launch % 2 == 0 else 0) + 8 * n_recoils
+            expected = 11 + n_launch + (1 if n_launch % 2 == 0 else 0) + 8 * n_recoils
             assert n_events(n_launch, n_recoils) == expected
 
 
@@ -75,11 +79,14 @@ def test_structure_and_labels():
     assert kinds[3] == EVENT_CLEAROUT
     assert kinds[4:8] == [EVENT_PULSE] * 4  # launch ladder
     assert kinds[8] == EVENT_CLEAROUT  # post-launch (even launch)
-    # interferometer: bs1, dark1, mirror, dark2, bs2 (no augmentation)
+    # interferometer: bs1, phase(mirror), dark1, mirror, phase(bs2), dark2, bs2
+    # (each interferometry Phase dial is emitted just before its dark wait)
     assert kinds[9:] == [
         EVENT_PULSE,
+        EVENT_PHASE,
         EVENT_WAIT,
         EVENT_PULSE,
+        EVENT_PHASE,
         EVENT_WAIT,
         EVENT_PULSE,
     ]
