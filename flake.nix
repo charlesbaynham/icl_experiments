@@ -537,6 +537,13 @@
             # the MonitorMaster *stub* (a no-op that raises NotImplementedError).
             monitor_launcher = "sleep 120 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R -r master --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
+            # One-shot at startup: apply the WAND laser reference frequencies
+            # (set points) for the default isotope. Pin -r master for the same
+            # reason as monitor_launcher (the served catalog is the stub). This
+            # is a single submit (no -R/--flush); sleep infinity keeps
+            # concurrently --kill-others from tearing the stack down.
+            wand_setpoints_launcher = "sleep 120 && artiq_client -s ${bind_settings.connection_ip} submit -p startup -P -5 -r master -c SetWandSetpoints repository/utilities/set_wand_setpoints.py && sleep infinity";
+
             # Auto-refresh the served stub catalog when origin/master advances.
             # Delay the first cycle until the master is up (like monitor_launcher
             # / ndscan_janitor); the launcher inherits ARTIQ_CONNECTION_IP from
@@ -571,6 +578,7 @@
                       artiq_master
                       backup_datasets
                       monitor_launcher
+                      wand_setpoints_launcher
                       watch_master
                       ;
                     ndscan_janitor = "sleep 120 && ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
