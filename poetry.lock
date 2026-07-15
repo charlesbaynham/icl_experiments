@@ -4087,9 +4087,9 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
-url = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
+url = "https://github.com/charlesbaynham/qbutler.git"
 reference = "HEAD"
-resolved_reference = "11e951efcad2633167074fa48da7d7f3654ea7b0"
+resolved_reference = "646fee1f7074861be42512b1e8f588a6f3b4f42f"
 
 [[package]]
 name = "rapidfuzz"
@@ -5206,4 +5206,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "78536cde74df3f77e012cce477d2ffd25f0cf30d1f2850439a1f910cdb29bea1"
+content-hash = "649d345b5d6cffca1f26081035de455c3cf3f71ad23ba101e75493b8edd0ea28"
