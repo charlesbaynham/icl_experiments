@@ -171,6 +171,16 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.setattr_param(
+            "pre_experiment_delay",
+            FloatParam,
+            "Delay before experiment sequence",
+            default=10e-6,
+            unit="us",
+            min=0.0,
+        )
+        self.pre_experiment_delay: FloatParamHandle
+
         self.red_mot.broadband_red_phase.bind_param(
             "bias_field_x_start", self.blue_3d_mot.chamber_2_bias_x
         )
@@ -323,6 +333,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
 
         # This one for the Andor
         self.save_andor_data_hook()
+        self.after_save_andor_data_hook()
 
         # Do extra functions at end of experiment
         self.host_functions_after_experiment_hook()
@@ -375,6 +386,12 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
 
     @kernel
+    def after_save_andor_data_hook(self):
+        """
+        This one is a bit of a hack job. Sorry
+        """
+
+    @kernel
     def save_flir_data_hook(self):
         """
         Run after the sequence has ended. This hook is intended to save data
@@ -412,9 +429,17 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
         Hook for core actions before the start of the atomics sequence.
 
+        Runs after DMA recording + handle init, before MOT loading. Overrides
+        MUST call :meth:`before_start_hook_default` by name (ARTIQ kernels do
+        not support ``super()``) so base behaviour and other mixins still run.
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
         """
+        self.before_start_hook_default()
+
+    @kernel
+    def before_start_hook_default(self):
+        """Default :meth:`before_start_hook` behaviour: nothing."""
 
     @kernel
     def pre_sequence_hook(self):
@@ -522,24 +547,56 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
             self.spectroscopy_field_gradient.get()
         )
 
-    @abc.abstractmethod
+    @kernel
     def do_experiment_after_red_mot_hook(self):
         """
-        Hook for the implementation of the following cooling stages or
-        whatever pulses, executed after the programmed expansion time is
+        The experiment, executed after the programmed expansion time is
         completed.
+
+        The default runs the post-drop sequence (:meth:`actions_after_drop`)
+        live. :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`
+        overrides this to record that sequence into DMA and play it back
+        instead; the dipole-trap base overrides it to load the trap first.
         """
-        raise NotImplementedError
+        self.actions_after_drop()
 
     @kernel
-    def register_pulse(self, is_up: bool, duration_s: float):
+    def actions_after_drop(self):
         """
-        No-op base implementation. Overridden by DipoleTrapWithExperimentBase to
-        record the pulse for dynamic ROI positioning.
+        Everything that happens after the atoms are released, factored out so
+        that :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`
+        can pre-record it in DMA (for fast playback and known-in-advance
+        timings for camera-ROI prediction). When DMA-recorded, no RPCs are
+        allowed in here or in any hook it calls.
+        """
+        # Unconditional marker so a DMA recording is never empty even with all
+        # hooks left as defaults (core_dma cannot play back an empty recording).
+        delay(1e-6)
+        self.post_drop_hook()
+        self.launch_hook()
+        delay(self.pre_experiment_delay.get())
+        self.do_experiment_after_drop_hook()
 
-        Call this immediately before turning the clock AOM on, passing the full
-        pulse duration. This will be used to record what sequence was run, and
-        used to predict the location of the atoms for imaging.
+    @kernel
+    def post_drop_hook(self):
+        """
+        Hook for actions immediately after the atoms are released, e.g.
+        velocity slicing. By default, do nothing.
+        """
+
+    @kernel
+    def launch_hook(self):
+        """
+        Hook for implementation of launching (e.g. an LMT launch ladder). By
+        default, do nothing.
+        """
+
+    @kernel
+    def do_experiment_after_drop_hook(self):
+        """
+        Hook for the spectroscopy / interferometry / whatever sequence, fired
+        ``pre_experiment_delay`` after the post-drop and launch hooks. By
+        default, do nothing.
         """
 
     @kernel

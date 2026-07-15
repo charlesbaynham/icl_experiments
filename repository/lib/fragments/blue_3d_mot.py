@@ -458,9 +458,7 @@ class Blue3DMOTFrag(Fragment):
 
     @kernel
     def turn_on_repumpers(self):
-        self.repump_beam_setter.turn_beams_on(
-            ignore_shutters=True
-        )  # TODO: remove the ignore shutter
+        self.repump_beam_setter.turn_beams_on(ignore_shutters=False)
 
     @kernel
     def turn_off_repumpers(self):
