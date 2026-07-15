@@ -156,6 +156,16 @@ class CoarseClockCentreCalibration(Calibration):
         self.meas.run_once()
         self.meas.device_cleanup()
 
+    def _ensure_armed(self):
+        # Arm the (detached) measurement lazily, ONCE per process (the imaging
+        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle;
+        # see the MOT calibrations). A dependent's host_setup arms the whole
+        # chain by calling this on every node, so it must live here too, not
+        # only inline in check_own_state.
+        if not self._armed:
+            self.meas.host_setup()
+            self._armed = True
+
     def check_own_state(self):
         if self._delivery_store is None:
             _, self._delivery_store = self.meas.clock_default_setter.override_param(
@@ -163,12 +173,7 @@ class CoarseClockCentreCalibration(Calibration):
             )
         self._delivery_store.set_value(self.delivery_frequency.get())
 
-        # Arm the (detached) measurement lazily, ONCE per process (the imaging
-        # wrapper does not survive a host_setup/host_cleanup/host_setup cycle;
-        # see the MOT calibrations).
-        if not self._armed:
-            self.meas.host_setup()
-            self._armed = True
+        self._ensure_armed()
 
         samples = []
         for _ in range(int(self.num_averages.get())):
