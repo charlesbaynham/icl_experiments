@@ -373,10 +373,10 @@ def get_non_core_devices(simulation_mode=False):
         },
         "vrs_scope": {
             "type": "local",
-            "module": "repository.lib.devices.rohde_schwarz_devices",
-            "class": "RSDevice",
+            "module": "repository.lib.devices.rigol_dho_scope",
+            "class": "RigolDHO",
             "arguments": {
-                "address": "TCPIP::10.137.1.19::INSTR",
+                "address": "TCPIP::10.137.3.5::INSTR",
                 "id_query": True,
                 "reset": True,
             },
