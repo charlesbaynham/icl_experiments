@@ -240,15 +240,22 @@ class TestDHOSetupFrag(ExpFragment):
         self.rigol.reset()
         self.rigol.set_trigger_source("EDGE", "EXT")
         self.rigol.set_trigger_level("EDGE", 1)
-        self.rigol.set_trigger_mode("NORM")
+        self.rigol.set_trigger_sweep("NORM")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
-        self.rigol.set_acquisition_depth(25e6)
+        self.rigol.set_acquisition_depth("auto")
+
+    @rpc
+    def set_timescale(self):
+        self.rigol.set_timescale(self.acquisition_time.get() / 10)
+
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+        self.set_timescale()
 
     @kernel
     def run_once(self) -> None:
-        self.rigol.set_timescale(self.acquisition_time.get() / 10)
         logger.warning("Begin the pulse")
         self.core.break_realtime()
         delay(5.0)

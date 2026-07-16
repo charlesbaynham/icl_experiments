@@ -378,8 +378,8 @@ def get_non_core_devices(simulation_mode=False):
             "arguments": {
                 "id": "TCPIP::10.137.3.5::INSTR",
             },
-            "mockmodule": "repository.lib.mock_device",
-            "mockclass": "MockDevice",
+            # "mockmodule": "repository.lib.mock_device",
+            # "mockclass": "MockDevice",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:
