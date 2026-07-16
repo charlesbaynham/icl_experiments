@@ -79,7 +79,7 @@ class RedMOTCalibration(InfluxRecalibrationLogMixin, Calibration):
 
         self.set_timeout(300.0)  # 300s for testing only
         self.set_optimization_type("max")
-        self.set_optimizer(zoom_grid_optimizer(zoom_factor=10))
+        self.set_optimizer(zoom_grid_optimizer(zoom_factor=5))
 
         self._atom_sum_sink = LastValueSink()
         self.meas.andor_sum_bg_corrected.set_sink(self._atom_sum_sink)
