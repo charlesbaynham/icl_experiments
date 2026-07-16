@@ -83,7 +83,7 @@ aliases = {
     "ttl_shutter_red_axial_spin_pol": "ttl23",
     "ttl_shutter_red_wavemeter_689_master": "ttl24",
     "ttl_shutter_red_wavemeter_689_from_1379": "ttl25",
-    "ttl_vrs_scope_trigger": "ttl26",
+    "ttl_vrs_scope_trigger": "ttl28",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch0",
     "mirny_eom_707_sideband_A": "mirny0_ch1",
