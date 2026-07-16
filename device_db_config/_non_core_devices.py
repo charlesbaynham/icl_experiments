@@ -376,9 +376,7 @@ def get_non_core_devices(simulation_mode=False):
             "module": "repository.lib.devices.rigol_dho_scope",
             "class": "RigolDHO",
             "arguments": {
-                "address": "TCPIP::10.137.3.5::INSTR",
-                "id_query": True,
-                "reset": True,
+                "id": "TCPIP::10.137.3.5::INSTR",
             },
             "mockmodule": "repository.lib.mock_device",
             "mockclass": "MockDevice",
