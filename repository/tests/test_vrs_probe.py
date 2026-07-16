@@ -267,7 +267,7 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
-        data = self.rigol.get_data_from_scope()
+        data = self.get_data_from_scope()
 
         self.scope_data.push(data)
 
