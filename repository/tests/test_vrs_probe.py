@@ -244,4 +244,4 @@ TestVRSProbeRamper = make_fragment_scan_exp(
 
 TestRTBSetup = make_fragment_scan_exp(TestRTBSetupFrag)
 
-TestRTBSetup = make_fragment_scan_exp(TestDHOSetupFrag, max_rtio_underflow_retries=0)
+TestDHOSetup = make_fragment_scan_exp(TestDHOSetupFrag, max_rtio_underflow_retries=0)
