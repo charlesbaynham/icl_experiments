@@ -81,7 +81,7 @@ RigolDHO._register_query("force_trigger", "TFOR", response_parser=None)
 RigolDHO._register_query("get_horizontal_ref", "TIM:HREF:POS?", response_parser=str)
 
 RigolDHO._register_query(
-    "trigger_mode",
+    "set_trigger_mode",
     "TRIG:SWE",
     response_parser=None,
     args=[
@@ -94,7 +94,7 @@ RigolDHO._register_query(
 )
 
 RigolDHO._register_query(
-    "trigger_type",
+    "set_trigger_type",
     "TRIG:MODE",
     response_parser=None,
     args=[GenericDriver.Arg(name="type", validator=str)],

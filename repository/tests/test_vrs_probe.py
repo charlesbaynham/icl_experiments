@@ -234,8 +234,41 @@ class TestDHOSetupFrag(ExpFragment):
         self.setattr_device("ccb")
         self.ccb: CCB
 
+    @host_only
+    def host_setup(self):
+        # reset to default state
+        self.rigol.reset()
+        self.rigol.set_trigger_source("EDGE", "EXT")
+        self.rigol.set_trigger_level("EDGE", 1)
+        self.rigol.set_trigger_mode("NORM")
+
+        self.rigol.enable_roll(False)
+        self.rigol.set_vertscale(1, 30e-3)
+        self.rigol.set_acquisition_depth(25e6)
+
+    @kernel
     def run_once(self) -> None:
-        return super().run_once()
+        self.rigol.set_timescale(self.acquisition_time.get() / 10)
+        logger.warning("Begin the pulse")
+        self.core.break_realtime()
+        delay(5.0)
+        self.ttl.on()
+        delay(self.acquisition_time.get())
+        self.ttl.off()
+        self.core.wait_until_mu(now_mu())
+        self.get_data_from_scope()
+
+    @rpc
+    def get_data_from_scope(self):
+        data = self.rigol.get_data_from_scope()
+
+        self.scope_data.push(data)
+
+        xs = np.linspace(0, self.acquisition_time.get(), len(data))
+        self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
+
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
