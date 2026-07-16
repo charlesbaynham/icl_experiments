@@ -55,13 +55,19 @@ class RigolDHO(GenericDriver):
         self.instr.write(f":TRIG:{type}:LEV {level}")
         # Need a check but screw this!
 
-    def get_waveform(self, data_type: str):
+    def get_waveform_of_type(self, data_type: str):
         self.instr.write(f":WAV:MODE MAX")
         # I will assume we want all the data, this will defualt to normal or max depending on whether
         # the scope is stopped
         self.instr.write(f":WAV:FORM {data_type}")
         response = self.instr.query(":WAV:DATA?")
         return response
+
+    def get_waveform(self):
+        """
+        Default to ascii
+        """
+        return self.get_waveform_of_type("ascii")
 
     def reset(self):
         # Reset with OPC
