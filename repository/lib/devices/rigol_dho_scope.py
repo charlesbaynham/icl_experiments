@@ -64,6 +64,8 @@ class RigolDHO(GenericDriver):
 
 RigolDHO._register_query("get_identity", "*IDN?", response_parser=str)
 
+RigolDHO._register_query("reset", "*RST", response_parser=None)
+
 RigolDHO._register_query("stop", "STOP", response_parser=None)
 
 RigolDHO._register_query("run", "RUN", response_parser=None)
@@ -72,7 +74,11 @@ RigolDHO._register_query("clear", "CLE", response_parser=None)
 
 RigolDHO._register_query("single", "SING", response_parser=None)
 
+RigolDHO._register_query("opc", "*OPC?", response_parser=int)
+
 RigolDHO._register_query("force_trigger", "TFOR", response_parser=None)
+
+RigolDHO._register_query("get_horizontal_ref", "TIM:HREF:POS?", response_parser=str)
 
 RigolDHO._register_query(
     "trigger_mode",
@@ -153,8 +159,6 @@ RigolDHO._register_query(
 )
 
 
-RigolDHO._register_query("get_href", "TIM:HREF:POS?", response_parser=str)
-
 RigolDHO._register_query(
     "set_time_offset",
     "TIM:MAIN:OFFS",
@@ -163,12 +167,4 @@ RigolDHO._register_query(
 )
 
 scope = RigolDHO(id="TCPIP::10.137.3.5::INSTR")
-scope.clear()
-scope.set_trigger_source("EDGE", "EXT")
-scope.enable_roll(False)
-scope.set_timescale(0.03)
-# scope.set_data_source("CHAN2")
-scope.set_acquisition_depth("25M")
-# print(scope.get_waveform("ASCII"))
-scope.set_time_offset(1e-1)
-scope.close()
+scope.reset()

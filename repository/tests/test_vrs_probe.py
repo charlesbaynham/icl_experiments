@@ -19,6 +19,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from RsInstrument import RsInstrument
 
+from repository.lib.devices.rigol_dho_scope import RigolDHO
 from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
@@ -204,8 +205,43 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_str("SING")
 
 
+class TestDHOSetupFrag(ExpFragment):
+
+    def build_fragment(self, *args, **kwargs) -> None:
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "acquisition_time",
+            FloatParam,
+            "Scope Acquisition Time",
+            default=0.3,
+            unit="ms",
+            min=0.0,
+        )
+        self.acquisition_time: FloatParamHandle
+
+        self.setattr_result("scope_data", OpaqueChannel)
+        self.scope_data: ResultChannel
+
+        # setup the TTL
+        self.ttl = self.get_device("ttl_vrs_scope_trigger")
+        self.ttl: TTLOut
+
+        self.rigol: RigolDHO = self.get_device("vrs_scope")
+
+        # Make an applet
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
+    def run_once(self) -> None:
+        return super().run_once()
+
+
 TestVRSProbeRamper = make_fragment_scan_exp(
     TestVRSProbeRamperFrag, max_rtio_underflow_retries=0
 )
 
 TestRTBSetup = make_fragment_scan_exp(TestRTBSetupFrag)
+
+TestRTBSetup = make_fragment_scan_exp(TestDHOSetupFrag, max_rtio_underflow_retries=0)
