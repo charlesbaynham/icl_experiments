@@ -7,7 +7,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
-    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
@@ -22,6 +22,12 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
@@ -34,9 +40,10 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 class NarrowDownAfterSliceFrag(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
-    LoadSingleXODTMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -76,18 +83,21 @@ class NarrowDownAfterSliceFrag(
         self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_loading()
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
 class NarrowUpAfterSliceFrag(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,

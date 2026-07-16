@@ -16,7 +16,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from RsInstrument import RsInstrument
 
 from repository.lib.constants import VRS_SWEEP_ATTENUATION
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
@@ -32,7 +31,6 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
@@ -87,7 +85,7 @@ class SingleVRSSweepFrag(
         self.ttl: TTLOut
 
         # RS Scope for the VRS measurement
-        self.rtb_device: RSDevice = self.get_device("vrs_scope")
+        # self.rtb_device: RSDevice = self.get_device("vrs_scope")
 
         # Make an applet
         self.setattr_device("ccb")
@@ -141,31 +139,31 @@ class SingleVRSSweepFrag(
         # self.rtb = RsInstrument(
         #     get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
         # )
-        self.rtb: RsInstrument = self.rtb_device.get_instrument()
+        # self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Set a long Long timeout for visa
-        self.rtb.visa_timeout = 100000
+        # self.rtb.visa_timeout = 100000
         # Set the trigger to an external signal
-        self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
-        self.rtb.write_str("TRIG:A:SOUR EXT")
+        # self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
+        # self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
-        self.rtb.write_str("TRIG:A:TYPE EDGE")
-        self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
+        # self.rtb.write_str("TRIG:A:TYPE EDGE")
+        # self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
-        self.rtb.write_str("TRIG:A:LEV5 1")
+        # self.rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        self.rtb.write_float(
-            "TIM:ACQT", self.acquisition_time.get()
-        )  # Scope Acquisition time
+        # self.rtb.write_float(
+        # "TIM:ACQT", self.acquisition_time.get()
+        # )  # Scope Acquisition time
         # Set the trigger position to be at the start of the scope
-        self.rtb.write_float("TIM:POS", self.acquisition_time.get() / 2)
+        # self.rtb.write_float("TIM:POS", self.acquisition_time.get() / 2)
 
-        self.rtb.write_float("CHAN1:RANG", 0.2)  # Total Vertical range 5V (0.5V/div)
-        self.rtb.write_float("CHAN1:OFFS", -0.05)  # Offset 0
-        self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
+        # self.rtb.write_float("CHAN1:RANG", 0.2)  # Total Vertical range 5V (0.5V/div)
+        # self.rtb.write_float("CHAN1:OFFS", -0.05)  # Offset 0
+        # self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 1e6)
+        # self.rtb.write_float("ACQ:POIN", 1e6)
 
     @kernel
     def device_setup(self) -> None:
@@ -191,10 +189,10 @@ class SingleVRSSweepFrag(
         self.host_functions_after_experiment_hook_default()
 
         # Save the data!
-        if self.save_trace.get() is True:
-            self.get_data_from_scope()
-        else:
-            pass
+        # if self.save_trace.get() is True:
+        # self.get_data_from_scope()
+        # else:
+        # pass
 
     @rpc
     def get_data_from_scope(self) -> None:

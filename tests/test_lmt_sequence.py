@@ -18,12 +18,10 @@ from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
-from repository.lib.lmt_sequence import Arm
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
 from repository.lib.lmt_sequence import pi2
-from repository.lib.lmt_sequence import zigzag
 from repository.lib.physics import lmt_resonance as pulse_intent
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
@@ -532,67 +530,3 @@ def test_bad_initial_population_raises():
 def test_unknown_event_raises():
     with pytest.raises(SequenceError, match="unknown"):
         compile_sequence([*setpoints(), "pi u 0"], initial_population={(GROUND, 0)})
-
-
-def walk_zigzag(events, start):
-    """Population trajectory (state, m) after each pi pulse of a single-chain
-    sequence: each pulse flips the packet across its addressed pair."""
-    trajectory = []
-    state, m = start.state, start.m
-    for pulse in events:
-        s = pulse.beam.sign
-        m_g = m if state == GROUND else m - s
-        state, m = (EXCITED, m_g + s) if state == GROUND else (GROUND, m_g)
-        trajectory.append((state, m))
-    return trajectory
-
-
-def test_zigzag_trajectory_and_parity():
-    events = zigzag(n=12, m_turn=4)
-    assert [p.m for p in events] == [1, 2, 3, 4, 3, 2, 1, 2, 3, 4, 3, 2]
-    assert [p.beam.value for p in events] == list("duddudduddud")
-
-    trajectory = walk_zigzag(events, Arm(EXCITED, 1))
-    assert [m for _, m in trajectory] == [2, 3, 4, 3, 2, 1, 2, 3, 4, 3, 2, 1]
-    # Each pi flips the internal state: strict g/e alternation from (e, 1)
-    assert [s for s, _ in trajectory] == [GROUND, EXCITED] * 6
-    # Closure: the compiler's own walk agrees and ends back at the entry state
-    compiled = compile_sequence(
-        [*setpoints(), *events], initial_population={(EXCITED, 1)}
-    )
-    assert compiled.final_population == frozenset({(EXCITED, 1)})
-
-
-def test_zigzag_turn_pulses_share_resonance():
-    """The two consecutive same-beam pulses at each turn drive the SAME
-    transition pair, so they must compile to the same resonance."""
-    events = zigzag(n=12, m_turn=4)
-    compiled = compile_sequence(
-        [*setpoints(), *events], initial_population={(EXCITED, 1)}
-    )
-    pulses = [e for e in compiled.events if e.kind == EVENT_PULSE]
-
-    # Top turn: pulses 2 and 3 both down-beam on the pair |g,4> <-> |e,3>
-    assert (pulses[2].beam_sign, pulses[3].beam_sign) == (-1, -1)
-    assert pulses[2].addressed_pair == pulses[3].addressed_pair
-    assert pulses[2].m_term_hz == pytest.approx(pulses[3].m_term_hz, abs=1e-9)
-    # Bottom turn: pulses 5 and 6 both down-beam on |g,2> <-> |e,1>
-    assert (pulses[5].beam_sign, pulses[6].beam_sign) == (-1, -1)
-    assert pulses[5].addressed_pair == pulses[6].addressed_pair
-    assert pulses[5].m_term_hz == pytest.approx(pulses[6].m_term_hz, abs=1e-9)
-
-
-def test_zigzag_bounded_at_100_pulses():
-    events = zigzag(n=100, m_turn=14)
-    assert len(events) == 100
-    compile_sequence([*setpoints(), *events], initial_population={(EXCITED, 1)})
-    trajectory = walk_zigzag(events, Arm(EXCITED, 1))
-    assert all(1 <= m <= 14 for _, m in trajectory)
-    assert max(m for _, m in trajectory) == 14
-
-
-def test_zigzag_validation():
-    with pytest.raises(ValueError, match="m_turn"):
-        zigzag(n=10, m_turn=1)
-    with pytest.raises(ValueError, match="start.m"):
-        zigzag(n=10, m_turn=4, start=Arm(GROUND, 7))

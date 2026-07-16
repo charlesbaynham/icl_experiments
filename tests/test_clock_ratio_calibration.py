@@ -8,7 +8,6 @@ flop reflects the probe pulse alone.
 
 import pytest
 
-from repository.LMT.lmt_clock_ratio_calibration import _ratio_cal_sequence
 from repository.lib import constants
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
@@ -16,6 +15,7 @@ from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.physics.lmt_resonance import GROUND
+from repository.LMT.lmt_clock_ratio_calibration import _ratio_cal_sequence
 
 
 @pytest.mark.parametrize(

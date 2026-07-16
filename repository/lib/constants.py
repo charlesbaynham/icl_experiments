@@ -150,7 +150,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=83.5e6,
+        frequency=93.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -812,7 +812,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4262e6,
+        99.4201e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1075,7 +1075,7 @@ WAND_SETPOINTS_88 = {
 
 
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 + _ISOTOPE_SHIFT_461, True),
+    "461": (_default_461 + _ISOTOPE_SHIFT_461, False),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
     "487": (_default_487, True),
@@ -1186,7 +1186,7 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 56e-6
-CLOCK_DOWN_PI_TIME = 67e-6
+CLOCK_DOWN_PI_TIME = 69e-6
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
@@ -1596,6 +1596,10 @@ LMT_N_RECOILS_DEFAULT = 2
 ATOM_POSITION_T0 = (180, 297)
 DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
 
+# Squeezing / Vacuum Rabi splitting stuff
+# This is in a glitch free urukul, so need to restart the crate for it take effect!
+VRS_SWEEP_ATTENUATION = 1.0
+
 
 # qbutler calibration acceptance thresholds: the minimum metric a node must
 # reach for its state to be judged OK. The calibration DAG drives to green from
@@ -1606,8 +1610,3 @@ RED_MOT_MIN_OK_ATOM_SUM = 2.0e6
 CLOCK_COARSE_MIN_OK_EXCITATION = 0.15
 CLOCK_REFINED_MIN_OK_EXCITATION = 0.5
 CLOCK_RABI_MIN_OK_EXCITATION = 0.5
-
-
-# Squeezing / Vacuum Rabi splitting stuff
-# This is in a glitch free urukul, so need to restart the crate for it take effect!
-VRS_SWEEP_ATTENUATION = 1.0

@@ -14,8 +14,11 @@ from repository.lib.lmt_sequence import EVENT_PHASE
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import Pulse
+from repository.lib.lmt_sequence import SequenceError
+from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
@@ -58,10 +61,9 @@ def test_event_count_scales_with_counts():
     assert n_events(4, 1) - n_events(4, 0) == 8
     assert n_events(4, 2) - n_events(4, 1) == 8
     # Closed form: 11 fixed + launch pulses + post-launch clearout (even only)
-    # + 8 per recoil. The 11 fixed are the 9 structural events (slice setpoint,
-    # slice pulse, full setpoint, post-slice clearout, and the bs1/dark1/mirror/
-    # dark2/bs2 interferometer) plus the two interferometry Phase events (mirror,
-    # bs2).
+    # + 8 per recoil. The 11 fixed events are the 9 core events plus the two
+    # interferometry-phase events that precede the mirror and the second beam
+    # splitter.
     for n_launch in range(0, 7):
         for n_recoils in range(0, 4):
             expected = 11 + n_launch + (1 if n_launch % 2 == 0 else 0) + 8 * n_recoils
@@ -79,15 +81,16 @@ def test_structure_and_labels():
     assert kinds[3] == EVENT_CLEAROUT
     assert kinds[4:8] == [EVENT_PULSE] * 4  # launch ladder
     assert kinds[8] == EVENT_CLEAROUT  # post-launch (even launch)
-    # interferometer: bs1, phase(mirror), dark1, mirror, phase(bs2), dark2, bs2
-    # (each interferometry Phase dial is emitted just before its dark wait)
+    # interferometer (no augmentation): bs1, dark1, phase, mirror, dark2,
+    # phase, bs2 -- an interferometry-phase event precedes the mirror and the
+    # second beam splitter.
     assert kinds[9:] == [
         EVENT_PULSE,
-        EVENT_PHASE,
         EVENT_WAIT,
+        EVENT_PHASE,
         EVENT_PULSE,
-        EVENT_PHASE,
         EVENT_WAIT,
+        EVENT_PHASE,
         EVENT_PULSE,
     ]
     # The slice pulse is governed by the slice SetPoint (index 0); the launch
@@ -268,6 +271,73 @@ def test_binding_hooks_map_slots_to_global_handles():
     for inert in (wait, clearout, full_setpoint):
         assert hooks.lmt_global_offset_attr(inert) is None
         assert hooks.lmt_global_duration_attr(inert) is None
+
+
+def test_beam_splitters_bind_to_pi2_duration_not_pi():
+    """bs1/bs2 (pi/2 events) must bind to the dedicated per-beam pi/2 duration
+    handle, not the shared pi duration handle - the bug that fired them as full
+    pi pulses in global mode."""
+    hooks = _hooks()
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    events = compiled.events
+
+    pi2_events = [e for e in events if e.kind == EVENT_PULSE and hooks._is_pi2_pulse(e)]
+    # A symmetric Mach-Zehnder has exactly two beam splitters, both down-beam.
+    assert len(pi2_events) == 2
+    for bs in pi2_events:
+        assert bs.beam_sign < 0
+        assert hooks.lmt_global_duration_attr(bs) == "lmt_down_pi2_duration"
+        assert hooks.lmt_global_duration_attr(bs) != "lmt_down_duration"
+        # The offset stays on the shared per-beam handle (resonance is unchanged).
+        assert hooks.lmt_global_offset_attr(bs) == "lmt_down_offset"
+
+
+def test_pi_pulses_still_bind_to_pi_duration():
+    """Full pi pulses (launch, mirror) keep the shared per-beam pi duration."""
+    hooks = _hooks()
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    full_pi = [
+        e
+        for e in compiled.events
+        if e.kind == EVENT_PULSE
+        and not hooks._is_slice_pulse(e)
+        and not hooks._is_pi2_pulse(e)
+    ]
+    assert full_pi  # launch + augmentation + mirror pulses
+    for e in full_pi:
+        expected = "lmt_up_duration" if e.beam_sign > 0 else "lmt_down_duration"
+        assert hooks.lmt_global_duration_attr(e) == expected
+
+
+def test_compiled_pulse_carries_area():
+    """The compiler records each pulse's declared area (the discriminator the
+    binding hook relies on)."""
+    compiled = compile_sequence(
+        _make(n_launch=2, n_recoils=1), initial_population={(GROUND, 0)}
+    )
+    areas = sorted({e.area for e in compiled.events if e.kind == EVENT_PULSE})
+    assert areas == [0.5, 1.0]
+
+
+def test_unexpected_area_pulse_raises_loudly():
+    """A full-intensity pulse whose area is neither pi nor pi/2 has no duration
+    handle and must raise rather than silently fall through to the pi handle -
+    the fall-through that fired the beam splitters as full pi pulses."""
+    hooks = _hooks()
+    sequence = [
+        SetPoint(setpoint=0.012, rabi_up=1e3, label="slice"),  # index 0 (slice)
+        SetPoint(setpoint=2.6, rabi_up=9e3, label="full"),  # index 1 (full)
+        Pulse(area=0.75, beam=Beam.UP, m=0),  # governed by the full SetPoint
+    ]
+    compiled = compile_sequence(sequence, initial_population={(GROUND, 0)})
+    odd_pulse = compiled.events[2]
+    assert not hooks._is_slice_pulse(odd_pulse)
+    with pytest.raises(SequenceError):
+        hooks.lmt_global_duration_attr(odd_pulse)
 
 
 def test_global_phase_attr_defaults_to_none():

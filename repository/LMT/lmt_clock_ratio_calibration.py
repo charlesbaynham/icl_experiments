@@ -9,12 +9,9 @@ delivery set point ``V_ref``. The slice and probe share a beam (and therefore a
 Doppler class), unlike the normal declarative LMT sequence which slices up and
 launches down.
 
-Readout is re-pumped (parameter-independent), so the flop is imaged without a
-clock pulse whose frequency would itself depend on the delivery calibration. The
-qbutler ``RabiUp/DownPiTimeCalibration`` wrap these fragments and persist the
-fitted pi time to a dataset (``constants.py`` holds the fallback default); the
-clock AC-Stark retake (``DeclarativeClockShift{Up,Down}``) and any slice-time
-consumer read that dataset.
+The clock AC-Stark retake (DeclarativeClockShift{Up,Down}) consumes the
+``(V_ref, T_ref)`` measured here to build its ``V_auto = V_ref*(T_ref/T)**2``
+grid, so fold the fitted values back into ``constants.py`` once measured.
 """
 
 from artiq.language import kernel
@@ -26,7 +23,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
-    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
@@ -41,7 +38,10 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.lmt_sequence import Beam, Clearout, SetPoint, pi
+from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import SetPoint
+from repository.lib.lmt_sequence import pi
 from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -84,7 +84,7 @@ def _ratio_cal_sequence(beam: Beam):
 
 class _DeclarativeClockRatioCalBase(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedRepumpedMixin,
+    NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -118,13 +118,13 @@ class _DeclarativeClockRatioCalBase(
 
 
 class DeclarativeClockRatioCalUpFrag(_DeclarativeClockRatioCalBase):
-    """Up-beam clock Rabi/set-point ratio calibration."""
+    """Up-beam clock spec with ratio"""
 
     lmt_sequence = _ratio_cal_sequence(Beam.UP)
 
 
 class DeclarativeClockRatioCalDownFrag(_DeclarativeClockRatioCalBase):
-    """Down-beam clock Rabi/set-point ratio calibration."""
+    """Down-beam clock spec with ratio"""
 
     lmt_sequence = _ratio_cal_sequence(Beam.DOWN)
 

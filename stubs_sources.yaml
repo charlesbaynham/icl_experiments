@@ -25,5 +25,4 @@
 
 branches:
     - master
-    - origin/declarative-lmt
-    - origin/feature/calibrations
+    - origin/cali-recover

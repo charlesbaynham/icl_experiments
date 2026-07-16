@@ -19,7 +19,6 @@ from artiq.language import TList
 from artiq.language import at_mu
 from artiq.language import host_only
 from artiq.language import kernel
-from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
@@ -64,6 +63,53 @@ _START_OPLL_OFFSET = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
 
 # DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
 _READOUT_BEAM_SIGN = -1.0
+
+
+# %% Utility functions
+
+
+@portable
+def _fill_clamped_roi(
+    roi_buffer,
+    index,
+    centre_x,
+    centre_y_frame,
+    half_width,
+    half_height,
+    frame_width,
+    frame_height,
+) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+    """Write one ROI centred on a predicted position into ``roi_buffer``.
+
+    Clamped to the readout frame, then ordering is enforced (``x1 >= x0``,
+    ``y1 >= y0``) so a fully off-frame prediction is degenerate-but-valid, never
+    negative-area. Returns 1 if any coordinate had to be clamped, else 0.
+    """
+    x0 = centre_x - half_width
+    y0 = centre_y_frame - half_height
+    x1 = centre_x + half_width
+    y1 = centre_y_frame + half_height
+
+    cx0 = min(max(x0, 0), frame_width)
+    cy0 = min(max(y0, 0), frame_height)
+    cx1 = min(max(x1, 0), frame_width)
+    cy1 = min(max(y1, 0), frame_height)
+
+    clipped = 0
+    if cx0 != x0 or cy0 != y0 or cx1 != x1 or cy1 != y1:
+        clipped = 1
+
+    cx1 = max(cx1, cx0)
+    cy1 = max(cy1, cy0)
+
+    roi_buffer[index][0] = cx0
+    roi_buffer[index][1] = cy0
+    roi_buffer[index][2] = cx1
+    roi_buffer[index][3] = cy1
+    return clipped
+
+
+# %% Camera config
 
 
 # %% Utility functions
@@ -700,61 +746,34 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
 class NormalisedFastKineticsLMTCorrectedMixin(
     DynamicROIImagingMixin,
-    NormalisedFastKineticsClockPulseMixin,
+    NormalisedFastKineticsRepumpedMixin,
 ):
     """
     Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
     ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` in the MRO)
-    plus the clock pi pulse of :class:`~.NormalisedFastKineticsClockPulseMixin`
-    (which still wins ``do_first_pulse``).
+    plus the 679/707 repump of :class:`~.NormalisedFastKineticsRepumpedMixin`
+    (which wins ``do_first_pulse``).
+
+    This is the default LMT readout. For momentum-resolved state readout use
+    :class:`~.NormalisedFastKineticsLMTCorrectedClockMixin` instead.
 
     ``DynamicROIImagingMixin`` is listed first so its precedence over the
     static-config base hooks is explicit. See
     :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract.
     """
 
-    @kernel
-    def prepare_readout_opll_hook(self):
-        # The ladder resets the OPLL to start_opll_offset at sequence end, but
-        # the atoms are still falling: the readout DOWN pi must carry the same
-        # gravity Doppler an in-sequence DOWN pulse would at this fall time.
-        # get_t_release_mu() is the live-timeline release stamp; now_mu() is the
-        # readout pi moment, so this covers a truncated (skip_after) sequence too
-        # - now_mu already reflects the post-truncation timeline.
-        t_fall = self.core.mu_to_seconds(now_mu() - self.get_t_release_mu())
-        self.set_clock_opll(
-            _START_OPLL_OFFSET
-            + _READOUT_BEAM_SIGN * t_fall * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-        )
 
-
-class NormalisedFastKineticsLMTCorrectedRepumpedMixin(
+class NormalisedFastKineticsLMTCorrectedClockMixin(
     DynamicROIImagingMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
 ):
     """
-    Re-pumped sibling of :class:`~.NormalisedFastKineticsLMTCorrectedMixin`.
+    As :class:`~.NormalisedFastKineticsLMTCorrectedMixin`, but the ``do_first_pulse``
+    hook is the full-power broad clock selection pulse of
+    :class:`~.NormalisedFastKineticsClockPulseMixin` instead of the 679/707 repump.
 
-    Same dynamic, trajectory-predicted ROIs from :class:`~.DynamicROIImagingMixin`,
-    but the readout ``do_first_pulse`` comes from
-    :class:`~.NormalisedFastKineticsRepumpedMixin` (679/707 repump) instead of a
-    clock pi pulse. The readout is therefore parameter-independent, so it works
-    when the correct clock parameters are not yet known.
-
-    This is the imaging mixin for CALIBRATION sequences (e.g. slice/Stark tuning,
-    clock-ratio calibration): a calibration cannot read out via a clock pulse
-    whose parameters it is itself trying to determine. Multi-pulse LMT and
-    Mach-Zehnder sequences, which read out momentum classes through the clock,
-    keep :class:`~.NormalisedFastKineticsLMTCorrectedMixin`. The choice is made
-    at compile time by which of the two a sequence names in its bases.
-
-    ``DynamicROIImagingMixin`` is listed first (matching its sibling) so its
-    precedence over the static-config base hooks
-    (``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` /
-    ``before_start_hook``) is explicit; the repump mixin, which overrides only
-    ``do_first_pulse``, still wins the readout. See
-    :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract; a host
-    fragment must also provide ``blue_3d_mot`` (via
-    :class:`~repository.lib.experiment_templates.red_mot_experiment.RedMOTWithExperimentBase`,
-    which every declarative-LMT base already inherits).
+    Scanning ``imaging_clock_pulse_detuning`` then resolves adjacent momentum
+    (M-)states, reading out atom number per state and momentum class. Repumped vs
+    clock readout is a compile-time choice: name whichever aggregator you want in
+    the experiment Frag's bases.
     """

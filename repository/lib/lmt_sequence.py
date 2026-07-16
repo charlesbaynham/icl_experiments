@@ -436,49 +436,6 @@ def _lower_arm(arm: Arm) -> "tuple[Pulse, Arm]":
     return pi(Beam.UP, m=arm.m, state=EXCITED), Arm(GROUND, arm.m - 1)
 
 
-def zigzag(
-    n: int,
-    m_turn: int,
-    start: Arm = Arm(EXCITED, 1),
-    m_bottom: int = 1,
-) -> list:
-    """``n`` pi pulses walking the packet up to ``m_turn``, back down to
-    ``m_bottom``, up again, and so on - a launch ladder that reverses direction
-    at the turning points so the cloud stays within the imaging window for an
-    arbitrarily long pulse train.
-
-    The walk is threaded through the packet's ``(state, m)`` (via
-    :func:`_raise_arm`/:func:`_lower_arm`), not through addressed-m arithmetic:
-    each pi pulse addresses the *current* population and moves it one recoil.
-    At a turning point the same beam fires twice in a row - the turn pulse
-    re-addresses the pair the previous pulse just populated, so both compile
-    to the same resonance.
-
-    Args:
-        n: Total number of pi pulses.
-        m_turn: Momentum class at which the ladder turns downward.
-        start: The packet's state and momentum class entering the zigzag.
-        m_bottom: Momentum class at which the ladder turns upward again.
-    """
-    if m_turn <= m_bottom:
-        raise ValueError(f"m_turn ({m_turn}) must exceed m_bottom ({m_bottom})")
-    if not m_bottom <= start.m <= m_turn:
-        raise ValueError(
-            f"start.m ({start.m}) must lie within [{m_bottom}, {m_turn}]"
-        )
-    events: list = []
-    arm = start
-    climbing = True
-    for _ in range(int(n)):
-        if climbing and arm.m >= m_turn:
-            climbing = False
-        elif not climbing and arm.m <= m_bottom:
-            climbing = True
-        pulse, arm = (_raise_arm if climbing else _lower_arm)(arm)
-        events.append(pulse)
-    return events
-
-
 def symmetric_mach_zehnder_sequence(
     *,
     n_launch: int,
@@ -612,14 +569,14 @@ def symmetric_mach_zehnder_sequence(
                 sequence.append(Wait(param="clearout_duration", label="clearout_delay"))
 
     separate()
-    sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))
     sequence.append(Wait(param=dark_param_1, label="dark1"))
     rejoin()
+    sequence.append(Phase(param=phase_param, multiplier=1.0, label="mirror"))
     sequence.append(pi(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="mirror"))
     separate()
-    sequence.append(Phase(param=phase_param, multiplier=4.0, label="bs2"))
     sequence.append(Wait(param=dark_param_2, label="dark2"))
     rejoin()
+    sequence.append(Phase(param=phase_param, multiplier=4.0, label="bs2"))
     sequence.append(pi2(Beam.DOWN, m=min(arm_hi.m, arm_lo.m) + 1, label="bs2"))
     return sequence
 
@@ -663,6 +620,12 @@ class CompiledEvent:
     contributes N pulse-like columns to the on-disk record.
     ``declared_duration_s`` is the :class:`Callback`'s nominal duration (0.0
     for everything else).
+
+    ``area`` is a *pulse* event's declared area in units of pi (1.0 for a pi
+    pulse, 0.5 for a pi/2 pulse); it defaults to 1.0 for non-pulse events. It
+    lets global-parameter binding hooks distinguish beam splitters from full pi
+    pulses so a pi/2 is not bound to the pi duration handle (see
+    :meth:`~repository.lib.experiment_templates.mixins.lmt_global_params.LMTGlobalParamsSymmetricMachZehnderMixin.lmt_global_duration_attr`).
     """
 
     index: int
@@ -670,6 +633,7 @@ class CompiledEvent:
     beam_sign: int = 0
     m_term_hz: float = 0.0
     rabi_hz: float = 0.0
+    area: float = 1.0
     callback_id: int = -1
     governing_setpoint_index: int = -1
     offset_param: ParamSpec | None = None
@@ -1031,6 +995,7 @@ def _compile_pulse(
         beam_sign=s,
         m_term_hz=m_term,
         rabi_hz=rabi_frequency,
+        area=event.area,
         governing_setpoint_index=setpoint_index,
         # Intent: a pi pulse swaps the addressed pair's populations; any
         # other area populates both sides. delta_m is the beam sign (recoils
