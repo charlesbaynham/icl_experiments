@@ -247,7 +247,7 @@ class TestDHOSetupFrag(ExpFragment):
         self.rigol.set_acquisition_depth("auto")
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
-        self.rigol.set_time_offset(-self.acquisition_time.get() / 2)
+        self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
     @rpc
     def set_timescale(self):
