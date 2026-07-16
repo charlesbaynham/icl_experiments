@@ -10,19 +10,23 @@ calibrations.status dataset).
 
 import logging
 
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 
 logger = logging.getLogger(__name__)
 
 
-class EnsureClockCentreFrag(ExpFragment):
+class EnsureClockCentreFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(ClockDeliveryAOMCalibration)
         self.ClockDeliveryAOMCalibration: ClockDeliveryAOMCalibration
 
@@ -34,13 +38,9 @@ class EnsureClockCentreFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        self.ClockDeliveryAOMCalibration.fix_state(force=self.force_recalibrate.get())
-
-        result, data = self.ClockDeliveryAOMCalibration.check_state()
-        logger.info("Clock centre chain state: %s (data=%s)", result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(f"Clock centre chain not OK after fix_state: {result}")
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
 
-EnsureClockCentre = make_fragment_scan_exp(EnsureClockCentreFrag)
+EnsureClockCentre = make_calibrated_experiment(EnsureClockCentreFrag)

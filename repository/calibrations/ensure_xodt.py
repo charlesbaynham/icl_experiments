@@ -1,19 +1,14 @@
-"""Client for the full clock-calibration DAG: XODT -> Cal1 (delivery) ->
-{Cal2 up-pi, Cal3 down-pi}. Pulling both Rabi calibrations dedups the shared
-ClockDeliveryAOMCalibration node, so one run walks the whole DAG and publishes
-all three nodes to calibrations.dag / calibrations.status (rendered by the DAG
-applet).
-"""
+"""Client for the XODT calibration alone: check, and fix if required."""
 
 import logging
-import time
 
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.xodt_calibration import SingleXODTCalibration
 
 logger = logging.getLogger(__name__)
@@ -23,8 +18,11 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureXODTFrag(ExpFragment):
+class EnsureXODTFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(SingleXODTCalibration)
         self.SingleXODTCalibration: SingleXODTCalibration
 
@@ -36,19 +34,13 @@ class EnsureXODTFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        force = self.force_recalibrate.get()
-        # Up first fixes the shared delivery node; down then reuses it.
-        self.SingleXODTCalibration.fix_state(force=force)
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
-        result, data = self.SingleXODTCalibration.check_state()
-        logger.info("%s state: %s (data=%s)", self.SingleXODTCalibration, result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(
-                f"{self.SingleXODTCalibration} not OK after fix_state: {result}"
-            )
-
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureXODT = make_fragment_scan_exp(EnsureXODTFrag)
+EnsureXODT = make_calibrated_experiment(EnsureXODTFrag)

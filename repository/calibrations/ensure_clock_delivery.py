@@ -1,14 +1,14 @@
 """Client for the clock delivery-AOM centring calibration alone: check, fix."""
 
 import logging
-import time
 
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.clock_delivery import ClockDeliveryAOMCalibration
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,11 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureClockDeliveryFrag(ExpFragment):
+class EnsureClockDeliveryFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(ClockDeliveryAOMCalibration)
         self.ClockDeliveryAOMCalibration: ClockDeliveryAOMCalibration
 
@@ -31,17 +34,13 @@ class EnsureClockDeliveryFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        self.ClockDeliveryAOMCalibration.fix_state(force=self.force_recalibrate.get())
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
-        result, data = self.ClockDeliveryAOMCalibration.check_state()
-        logger.info("Clock delivery state: %s (data=%s)", result, data)
-        logger.info("Sleeping for %.0fs...", IDLE_SLEEP_S)
-
-        if result != CalibrationResult.OK:
-            raise RuntimeError(f"Clock delivery not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureClockDelivery = make_fragment_scan_exp(EnsureClockDeliveryFrag)
+EnsureClockDelivery = make_calibrated_experiment(EnsureClockDeliveryFrag)

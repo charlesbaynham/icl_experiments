@@ -6,14 +6,14 @@ applet).
 """
 
 import logging
-import time
 
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.rabi_pi_time import RabiDownPiTimeCalibration
 from repository.lib.calibrations.rabi_pi_time import RabiUpPiTimeCalibration
 
@@ -24,13 +24,24 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureClockPiTimesFrag(ExpFragment):
+class EnsureClockPiTimesFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(RabiUpPiTimeCalibration)
         self.RabiUpPiTimeCalibration: RabiUpPiTimeCalibration
         # Dedups the shared ClockDeliveryAOMCalibration dependency
         self.setattr_calibration(RabiDownPiTimeCalibration)
         self.RabiDownPiTimeCalibration: RabiDownPiTimeCalibration
+
+        # Maintain both leaves rather than just auto-discovering one: the
+        # union walk fixes their shared ClockDeliveryAOMCalibration dependency
+        # once, ahead of both.
+        self.calibration_targets = [
+            self.RabiUpPiTimeCalibration,
+            self.RabiDownPiTimeCalibration,
+        ]
 
         self.setattr_param(
             "force_recalibrate",
@@ -40,19 +51,13 @@ class EnsureClockPiTimesFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        force = self.force_recalibrate.get()
-        # Up first fixes the shared delivery node; down then reuses it.
-        self.RabiUpPiTimeCalibration.fix_state(force=force)
-        self.RabiDownPiTimeCalibration.fix_state(force=force)
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
-        for cal in (self.RabiUpPiTimeCalibration, self.RabiDownPiTimeCalibration):
-            result, data = cal.check_state()
-            logger.info("%s state: %s (data=%s)", cal, result, data)
-            if result != CalibrationResult.OK:
-                raise RuntimeError(f"{cal} not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureClockPiTimes = make_fragment_scan_exp(EnsureClockPiTimesFrag)
+EnsureClockPiTimes = make_calibrated_experiment(EnsureClockPiTimesFrag)
