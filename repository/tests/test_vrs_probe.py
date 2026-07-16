@@ -19,6 +19,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from RsInstrument import RsInstrument
 
+from repository.lib.devices.rigol_dho_scope import RigolDHO
 from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
@@ -204,8 +205,83 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_str("SING")
 
 
+class TestDHOSetupFrag(ExpFragment):
+
+    def build_fragment(self, *args, **kwargs) -> None:
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "acquisition_time",
+            FloatParam,
+            "Scope Acquisition Time",
+            default=0.3,
+            unit="ms",
+            min=0.0,
+        )
+        self.acquisition_time: FloatParamHandle
+
+        self.setattr_result("scope_data", OpaqueChannel)
+        self.scope_data: ResultChannel
+
+        # setup the TTL
+        self.ttl = self.get_device("ttl_vrs_scope_trigger")
+        self.ttl: TTLOut
+
+        self.rigol: RigolDHO = self.get_device("vrs_scope")
+
+        # Make an applet
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
+    @host_only
+    def host_setup(self):
+        # reset to default state
+        self.rigol.reset()
+        self.rigol.set_trigger_source("EDGE", "EXT")
+        self.rigol.set_trigger_level("EDGE", 1)
+        self.rigol.set_trigger_sweep("NORM")
+
+        self.rigol.enable_roll(False)
+        self.rigol.set_vertscale(1, 30e-3)
+        self.rigol.set_acquisition_depth("auto")
+
+    @rpc
+    def set_timescale(self):
+        self.rigol.set_timescale(self.acquisition_time.get() / 10)
+
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+        self.set_timescale()
+
+    @kernel
+    def run_once(self) -> None:
+        logger.warning("Begin the pulse")
+        self.core.break_realtime()
+        delay(5.0)
+        self.ttl.on()
+        delay(self.acquisition_time.get())
+        self.ttl.off()
+        self.core.wait_until_mu(now_mu())
+        self.get_data_from_scope()
+
+    @rpc
+    def get_data_from_scope(self):
+        data = self.rigol.get_waveform()
+
+        self.scope_data.push(data)
+
+        xs = np.linspace(0, self.acquisition_time.get(), len(data))
+        self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
+
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
+
+
 TestVRSProbeRamper = make_fragment_scan_exp(
     TestVRSProbeRamperFrag, max_rtio_underflow_retries=0
 )
 
 TestRTBSetup = make_fragment_scan_exp(TestRTBSetupFrag)
+
+TestDHOSetup = make_fragment_scan_exp(TestDHOSetupFrag, max_rtio_underflow_retries=0)

@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from generic_scpi_driver.driver import GenericDriver
 from generic_scpi_driver.session import Session
@@ -9,6 +11,7 @@ class VisaSession(Session):
     def __init__(self, id: str, **kwargs) -> None:
         self._id = id
         self.session: Resource = ResourceManager().open_resource(self._id)
+        self.session.timeout = 10_000  # ms
 
     def write(self, s: str) -> None:
         """
@@ -40,10 +43,9 @@ class RigolDHO(GenericDriver):
         super().__init__(self, *args, id=id, simulation=simulation, **kwargs)
 
     def set_vertscale(self, channel: int, scale: float):
-        self.instr.write(f":chan{channel:d} {scale:.3f}")
-        checkval = self.instr.query(f":chan{channel:d}?")
-        if not np.isclose(float(checkval), scale):
-            raise RuntimeError()
+        self.instr.write(f":CHAN{channel:d}:SCAL {scale:.3f}")
+        checkval = self.instr.query(f":CHAN{channel:d}:SCAL?")
+        print("val is close:", np.isclose(float(checkval), scale))
 
     def set_trigger_source(self, type: str, source: str):
         self.instr.write(f":TRIG:{type}:SOUR {source}")
@@ -53,7 +55,7 @@ class RigolDHO(GenericDriver):
         self.instr.write(f":TRIG:{type}:LEV {level}")
         # Need a check but screw this!
 
-    def get_waveform(self, data_type: str):
+    def get_waveform_of_type(self, data_type: str):
         self.instr.write(f":WAV:MODE MAX")
         # I will assume we want all the data, this will defualt to normal or max depending on whether
         # the scope is stopped
@@ -61,8 +63,31 @@ class RigolDHO(GenericDriver):
         response = self.instr.query(":WAV:DATA?")
         return response
 
+    def get_waveform(self):
+        """
+        Default to ascii
+        """
+        return self.get_waveform_of_type("ascii")
 
-RigolDHO._register_query("get_identity", "*IDN?", response_parser=str)
+    def reset(self):
+        # Reset with OPC
+        self.instr.write("*RST")
+        self.instr.write("*OPC")
+        t0 = time.time()
+        t = time.time()
+        while (t - t0) < 1_000:
+            print(t)
+            qry = int(round(float(self.instr.query("*OPC?"))))
+            print(qry)
+            if qry:
+                # Operation complete, exit
+                break
+            else:
+                t = time.time()
+        return RuntimeError
+
+
+RigolDHO._register_query("get_id", "*IDN?", response_parser=str)
 
 RigolDHO._register_query("stop", "STOP", response_parser=None)
 
@@ -72,26 +97,35 @@ RigolDHO._register_query("clear", "CLE", response_parser=None)
 
 RigolDHO._register_query("single", "SING", response_parser=None)
 
+RigolDHO._register_query("set_opc", "*OPC", response_parser=int)
+
+RigolDHO._register_query("get_opc", "*OPC?", response_parser=int)
+
+RigolDHO._register_query("wait", "*WAI", response_parser=int)
+
 RigolDHO._register_query("force_trigger", "TFOR", response_parser=None)
 
+RigolDHO._register_query("get_horizontal_ref", "TIM:HREF:POS?", response_parser=str)
+
 RigolDHO._register_query(
-    "trigger_mode",
+    "set_trigger_sweep",
     "TRIG:SWE",
     response_parser=None,
     args=[
         GenericDriver.Arg(
             name="mode",
-            validator=lambda x: str(x).capitalize() in ["AUTO", "NORM", "SING"],
+            # validator=lambda x: str(x).capitalize() in ["AUTO", "NORM", "SING"],
+            validator=str,
             default="AUTO",
         )
     ],
 )
 
 RigolDHO._register_query(
-    "trigger_type",
+    "set_trigger_mode",
     "TRIG:MODE",
     response_parser=None,
-    args=[GenericDriver.Arg(name="type", validator=str)],
+    args=[GenericDriver.Arg(name="mode", validator=str)],
 )
 
 RigolDHO._register_query(
@@ -135,6 +169,7 @@ RigolDHO._register_query(
     args=[
         GenericDriver.Arg(
             name="memory",
+            validator=str,
         )
     ],
     response_parser=None,
@@ -153,8 +188,6 @@ RigolDHO._register_query(
 )
 
 
-RigolDHO._register_query("get_href", "TIM:HREF:POS?", response_parser=str)
-
 RigolDHO._register_query(
     "set_time_offset",
     "TIM:MAIN:OFFS",
@@ -162,13 +195,19 @@ RigolDHO._register_query(
     response_parser=str,
 )
 
-scope = RigolDHO(id="TCPIP::10.137.3.5::INSTR")
-scope.clear()
-scope.set_trigger_source("EDGE", "EXT")
-scope.enable_roll(False)
-scope.set_timescale(0.03)
-# scope.set_data_source("CHAN2")
-scope.set_acquisition_depth("25M")
-# print(scope.get_waveform("ASCII"))
-scope.set_time_offset(1e-1)
-scope.close()
+# scope = RigolDHO(id="TCPIP::10.137.3.5::INSTR")
+# scope.reset()
+# # time.sleep(3)
+# # scope.wait()
+# scope.set_trigger_source("EDGE", "EXT")
+# # scope.wait()
+# scope.set_trigger_level("EDGE", 1)
+# # scope.wait()
+# scope.set_trigger_sweep("NORM")
+# # scope.wait()
+# scope.enable_roll(False)
+# # scope.wait()
+# scope.set_vertscale(1, 30e-3)
+# scope.set_acquisition_depth("25M")
+# scope.set_timescale(30e-3)
+# scope.close()
