@@ -108,30 +108,38 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # Now do some actual interferometry
         # %% LMT beamsplitter
         Phase(phase=0.0, label="bs1"),
-        pi2(Beam.UP, m=M_TOP, label="bs1"),
-        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
+        pi2(Beam.DOWN, m=M_TOP, label="bs1"),
+        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.UP, clearout_from=0),
         # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         # %% LMT mirror
         *ladder(
             start_m=M_TOP + N_LMT,
             n=N_LMT,
             direction=-1,
-            first_beam=Beam.DOWN,
+            first_beam=Beam.UP,
+            clearout_from=0,
         ),
         Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
         # Clearout(),  # FIXME test
-        pi(Beam.UP, m=M_TOP, label="mirror"),
+        pi(Beam.DOWN, m=M_TOP, label="mirror"),
         # FIXME
-        *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
+        *ladder(
+            start_m=M_TOP,
+            n=N_LMT,
+            direction=+1,
+            first_beam=Beam.UP,
+            clearout_from=0,
+        ),
         Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         *ladder(
             start_m=M_TOP + N_LMT,
             n=N_LMT,
             direction=-1,
-            first_beam=Beam.DOWN,
+            first_beam=Beam.UP,
+            clearout_from=0,
         ),
         Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
-        pi2(Beam.UP, m=M_TOP, label="bs2"),
+        pi2(Beam.DOWN, m=M_TOP, label="bs2"),
     ]
 
     def build_fragment(self):
