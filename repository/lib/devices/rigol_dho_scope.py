@@ -67,7 +67,8 @@ class RigolDHO(GenericDriver):
         """
         Default to ascii
         """
-        return self.get_waveform_of_type("ascii")
+        data = self.get_waveform_of_type("ascii")
+        return np.array(data, dtype=float)
 
     def reset(self):
         # Reset with OPC
