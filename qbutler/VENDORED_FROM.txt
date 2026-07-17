@@ -43,3 +43,16 @@ this ndscan's ScanRunner.acquire takes a device_cleanup argument and calls it
 accordingly, since qbutler is vendored against pins on both sides of that
 ndscan change. When re-vendoring, check whether this commit has since been
 merged into kernels-with-precompilation and drop this note if so.
+
+LOCAL PATCH (not yet upstream in kernels-with-precompilation @ ffcba62):
+client.py makes CalibratedExpFragment's ``force`` recalibration one-shot. As
+vendored, ``force`` (e.g. an EnsureXxx client's force_recalibrate arg) made
+recalibrate_if_needed escape on EVERY re-entry — the static param re-reads True
+after each fix, so the client escaped max_recalibrations+1 times and died with
+"escaped for recalibration more than 20 times without settling" instead of ever
+running (reproduced live: RID 77957). The patch routes ``force`` through the
+_needs_recalibration RPC with a _force_consumed latch (escape+re-optimize once,
+then run) and a _force_fix_pending flag so the ensuing _recalibrate calls
+fix_targets(force=True) — i.e. ``force`` now re-optimizes the whole DAG
+unconditionally, exactly once. Upstream to kernels-with-precompilation and drop
+this note on the next re-vendor.

@@ -137,6 +137,15 @@ class CalibratedExpFragment(ExpFragment):
     calibration_targets: list = None
     max_recalibrations: int = 20
 
+    # One-shot latch for ``force``. A forced recalibration must escape and
+    # re-optimize the DAG exactly once, then let the client run; ``force`` is a
+    # static param, so re-reading it on every escape re-entry would escape
+    # forever (never settling -> CalibrationError). ``_force_consumed`` gates the
+    # escape; ``_force_fix_pending`` tells the ensuing fix walk to re-optimize
+    # unconditionally. Never reset per host_setup (it re-runs on every re-entry).
+    _force_consumed: bool = False
+    _force_fix_pending: bool = False
+
     def host_setup(self):
         super().host_setup()
         self._arm_calibration()
@@ -166,11 +175,12 @@ class CalibratedExpFragment(ExpFragment):
         safe — typically a scan-point boundary, not mid-shot.
 
         Args:
-            force: Skip the drift check and escape unconditionally, e.g. to
-                honour a client's own "re-measure and re-optimize
-                unconditionally" argument.
+            force: Re-measure and re-optimize the whole DAG once, even if it
+                looks healthy. Consumed after the first forced fix (see
+                :attr:`_force_consumed`) so the client eventually runs rather
+                than escaping forever.
         """
-        if force or self._needs_recalibration():
+        if self._needs_recalibration(force):
             raise CalibrationEscape("a calibration dependency needs recalibrating")
 
     def _ensure_cal_pool(self) -> PrecompilePool:
@@ -205,9 +215,12 @@ class CalibratedExpFragment(ExpFragment):
 
         The escape/re-enter loops (continuous and scanned) call this on a
         :class:`~qbutler.calibration.CalibrationEscape`; it walks the union so a
-        shared dependency is fixed once.
+        shared dependency is fixed once. A forced escape (see
+        :meth:`recalibrate_if_needed`) re-optimizes every node unconditionally.
         """
-        fix_targets(self._resolve_targets())
+        force = self._force_fix_pending
+        self._force_fix_pending = False
+        fix_targets(self._resolve_targets(), force=force)
 
     def _resolve_targets(self) -> list:
         if self.calibration_targets is not None:
@@ -242,7 +255,11 @@ class CalibratedExpFragment(ExpFragment):
         )
 
     @rpc
-    def _needs_recalibration(self) -> TBool:
+    def _needs_recalibration(self, force: TBool = False) -> TBool:
+        if force and not self._force_consumed:
+            self._force_consumed = True
+            self._force_fix_pending = True
+            return True
         targets = getattr(self, "_cal_targets", None) or self._resolve_targets()
         for node in dag.get_union_dependencies(targets):
             if node._guess_own_state() != CalibrationResult.OK:
