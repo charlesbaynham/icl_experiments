@@ -28,3 +28,30 @@ MonitorMaster = make_monitor_controller(
     experiments = generate_stubs.enumerate_experiments("master", sources)
 
     assert any(exp.name == "MonitorMaster" for exp in experiments)
+
+
+def test_calibrated_experiments_are_discovered():
+    sources = {
+        "repository/calibrations/ensure_blue_mot.py": '''
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
+
+
+class EnsureBlueMOTFrag(CalibratedExpFragment):
+    """Check the blue-MOT calibration and fix it if required."""
+
+    def build_fragment(self):
+        pass
+
+
+EnsureBlueMOT = make_calibrated_experiment(EnsureBlueMOTFrag)
+'''
+    }
+
+    experiments = generate_stubs.enumerate_experiments("master", sources)
+
+    assert any(
+        exp.name == "EnsureBlueMOT"
+        and exp.docstring == "Check the blue-MOT calibration and fix it if required."
+        for exp in experiments
+    )
