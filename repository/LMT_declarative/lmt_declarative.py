@@ -41,7 +41,7 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Beam, Phase, pi2
 from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
@@ -107,8 +107,8 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         Wait(t=DROP, label="droptime"),
         # # Now do some actual interferometry
         # # %% LMT beamsplitter
-        # Phase(phase=0.0, label="bs1"),
-        # pi2(Beam.UP, m=M_TOP, label="bs1"),
+        Phase(phase=0.0, label="bs1"),
+        pi2(Beam.UP, m=M_TOP, label="bs1"),
         # *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
         # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         # # %% LMT mirror
