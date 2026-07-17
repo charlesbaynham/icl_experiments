@@ -44,8 +44,8 @@ class RigolDHO(GenericDriver):
 
     def set_vertscale(self, channel: int, scale: float):
         self.instr.write(f":CHAN{channel:d}:SCAL {scale:.3f}")
-        checkval = self.instr.query(f":CHAN{channel:d}:SCAL?")
-        print("val is close:", np.isclose(float(checkval), scale))
+        # checkval = self.instr.query(f":CHAN{channel:d}:SCAL?")
+        # print("val is close:", np.isclose(float(checkval), scale))
 
     def set_trigger_source(self, type: str, source: str):
         self.instr.write(f":TRIG:{type}:SOUR {source}")
@@ -76,9 +76,9 @@ class RigolDHO(GenericDriver):
         t0 = time.time()
         t = time.time()
         while (t - t0) < 1_000:
-            print(t)
+            # print(t)
             qry = int(round(float(self.instr.query("*OPC?"))))
-            print(qry)
+            # print(qry)
             if qry:
                 # Operation complete, exit
                 break
@@ -194,20 +194,3 @@ RigolDHO._register_query(
     args=[GenericDriver.Arg(name="offset")],
     response_parser=str,
 )
-
-# scope = RigolDHO(id="TCPIP::10.137.3.5::INSTR")
-# scope.reset()
-# # time.sleep(3)
-# # scope.wait()
-# scope.set_trigger_source("EDGE", "EXT")
-# # scope.wait()
-# scope.set_trigger_level("EDGE", 1)
-# # scope.wait()
-# scope.set_trigger_sweep("NORM")
-# # scope.wait()
-# scope.enable_roll(False)
-# # scope.wait()
-# scope.set_vertscale(1, 30e-3)
-# scope.set_acquisition_depth("25M")
-# scope.set_timescale(30e-3)
-# scope.close()
