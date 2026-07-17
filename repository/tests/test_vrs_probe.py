@@ -244,7 +244,7 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
-        self.rigol.set_acquisition_depth("1k")
+        self.rigol.set_acquisition_depth("25M")
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
@@ -262,17 +262,16 @@ class TestDHOSetupFrag(ExpFragment):
     def run_once(self) -> None:
         self.core.break_realtime()
         logger.warning("Begin the pulse")
-        delay(5.0)
+        delay(1.0)
         self.ttl.on()
         delay(self.acquisition_time.get())
         self.ttl.off()
-        delay(4.0)
+        delay(1.0)
         self.core.wait_until_mu(now_mu())
         self.get_data_from_scope()
 
     @rpc
     def get_data_from_scope(self):
-        # self.rigol.stop()
         data = self.rigol.get_waveform()
         print(len(data))
 
