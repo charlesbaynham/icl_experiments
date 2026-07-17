@@ -243,7 +243,7 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
-        self.rigol.set_acquisition_depth("10K")
+        self.rigol.set_acquisition_depth("1K")
 
     @rpc
     def reset_scope(self):
