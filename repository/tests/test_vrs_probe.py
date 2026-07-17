@@ -262,7 +262,7 @@ class TestDHOSetupFrag(ExpFragment):
     def run_once(self) -> None:
         self.core.break_realtime()
         logger.warning("Begin the pulse")
-        delay(5)
+        delay(5.0)
         self.ttl.on()
         delay(self.acquisition_time.get())
         self.ttl.off()
