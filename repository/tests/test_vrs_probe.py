@@ -275,7 +275,7 @@ class TestDHOSetupFrag(ExpFragment):
     def get_data_from_scope(self):
         # need to parse the data from string to float array
         data = [float(x) for x in self.rigol.get_waveform().split(",")[:-1]]
-        # print(data)
+        print(data)
         # self.scope_data.push(data)
         # self.scope_data.push(np.array(data, dtype=np.float32))
 
