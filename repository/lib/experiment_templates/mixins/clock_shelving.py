@@ -198,7 +198,7 @@ class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentB
         self.dma_recording_fragment.register_clearout(
             duration_s=self.shelving_pulse_clearout_duration.get()
         )
-        self.fluorescence_pulse.do_imaging_pulse(
+        self.fluorescence_pulse.do_clearout_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
             ignore_final_shutters=True,
         )
