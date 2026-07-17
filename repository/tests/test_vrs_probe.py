@@ -272,10 +272,11 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
-        data = np.array(self.rigol.get_waveform())
+        data = self.rigol.get_waveform()
         print(len(data))
-        self.scope_data.push(data)
+        print(type(data))
         print(data)
+        self.scope_data.push(data)
 
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
