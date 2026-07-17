@@ -269,18 +269,20 @@ class TestDHOSetupFrag(ExpFragment):
         self.ttl.off()
         delay(1.0)
         self.core.wait_until_mu(now_mu())
-        # self.get_data_from_scope()
+        self.get_data_from_scope()
 
     @rpc
     def get_data_from_scope(self):
         # need to parse the data from string to float array
-        data = [float(x) for x in self.rigol.get_waveform().split(",")[:-1]]
-        print(data)
+        # data = [float(x) for x in self.rigol.get_waveform().split(",")[:-1]]
+        # print(data)
         # self.scope_data.push(data)
-        self.scope_data.push(np.array(data, dtype=np.float32))
+        # self.scope_data.push(np.array(data, dtype=np.float32))
 
-        xs = np.linspace(0, self.acquisition_time.get(), len(data))
-        self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
+        self.scope_data.push([])
+
+        # xs = np.linspace(0, self.acquisition_time.get(), len(data))
+        # self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
