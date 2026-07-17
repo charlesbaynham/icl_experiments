@@ -190,7 +190,7 @@ RigolDHO._register_query(
 
 RigolDHO._register_query(
     "set_time_offset",
-    "TIM:MAIN:OFFS",
+    "TIM:OFFS",
     args=[GenericDriver.Arg(name="offset")],
-    response_parser=str,
+    response_parser=None,
 )

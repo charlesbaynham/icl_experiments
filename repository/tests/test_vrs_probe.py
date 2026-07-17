@@ -252,7 +252,7 @@ class TestDHOSetupFrag(ExpFragment):
     @rpc
     def set_timescale(self):
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
-        self.rigol.set_time_offset(-self.acquisition_time.get() / 2)
+        self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
     def device_setup(self) -> None:
         self.device_setup_subfragments()
