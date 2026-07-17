@@ -273,6 +273,7 @@ class TestDHOSetupFrag(ExpFragment):
     def get_data_from_scope(self):
         data = self.rigol.get_waveform()
 
+        logger.warning(len(data))
         self.scope_data.push(data)
 
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
