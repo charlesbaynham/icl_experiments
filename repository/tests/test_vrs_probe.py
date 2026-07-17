@@ -245,6 +245,9 @@ class TestDHOSetupFrag(ExpFragment):
         self.rigol.set_vertscale(1, 30e-3)
         self.rigol.set_acquisition_depth("10K")
 
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
+
     @rpc
     def reset_scope(self):
         self.rigol.set_trigger_sweep("SING")
@@ -278,9 +281,6 @@ class TestDHOSetupFrag(ExpFragment):
 
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
-
-        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
-        self.ccb.issue("create_applet", "Scope Trace", cmd)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
