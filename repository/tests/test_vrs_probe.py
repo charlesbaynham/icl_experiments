@@ -244,7 +244,7 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
-        self.rigol.set_acquisition_depth("25M")
+        self.rigol.set_acquisition_depth("1M")
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
