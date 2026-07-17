@@ -277,6 +277,8 @@ class TestDHOSetupFrag(ExpFragment):
         self.scope_data.push(data)
         print(data)
 
+        self.set_dataset("scope_data", data, broadcast=True, archive=False)
+
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
 
