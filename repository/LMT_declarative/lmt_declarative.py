@@ -100,7 +100,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
             rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
         ),
         # Blast away the unselected ground-state atoms
-        Clearout(),  # FIXME Alice reports that these don't seem to change duration with their parameter
+        Clearout(duration=2.2e-3),
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-4),
