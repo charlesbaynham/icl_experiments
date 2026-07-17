@@ -280,8 +280,8 @@ class TestDHOSetupFrag(ExpFragment):
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
 
-        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
-        self.ccb.issue("create_applet", "Scope Trace", cmd)
+        # cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        # self.ccb.issue("create_applet", "Scope Trace", cmd)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
