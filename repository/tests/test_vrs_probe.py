@@ -281,8 +281,8 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.scope_data.push([])
 
-        # xs = np.linspace(0, self.acquisition_time.get(), len(data))
-        # self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
+        xs = np.linspace(0, self.acquisition_time.get(), len(data))
+        self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
