@@ -273,7 +273,8 @@ class TestDHOSetupFrag(ExpFragment):
         # need to parse the data from string to float array
         data = [float(x) for x in self.rigol.get_waveform().split(",")[:-1]]
         print(data)
-        self.scope_data.push(data)
+        # self.scope_data.push(data)
+        self.scope_data.push(np.array(data, dtype=np.float32))
 
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
