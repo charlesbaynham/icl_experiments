@@ -53,7 +53,7 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 LMT_INTERFEROMETER_TIME = 100e-6  # seconds
 # Number of launch pulses; the velocity-selective pulse provides the first
 # kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
-N_LAUNCH = 2
+N_LAUNCH = 10
 M_TOP = 1 + N_LAUNCH
 
 
