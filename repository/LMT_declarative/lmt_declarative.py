@@ -109,11 +109,11 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # %% LMT beamsplitter
         Phase(phase=0.0, label="bs1"),
         pi2(Beam.DOWN, m=M_TOP, label="bs1"),
-        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.UP, clearout_from=1),
+        *ladder(start_m=M_TOP + 1, n=N_LMT, first_beam=Beam.UP, clearout_from=1),
         # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         # %% LMT mirror
         *ladder(
-            start_m=M_TOP + N_LMT,
+            start_m=M_TOP + N_LMT + 1,
             n=N_LMT,
             direction=-1,
             first_beam=Beam.UP,
@@ -124,7 +124,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         pi(Beam.DOWN, m=M_TOP, label="mirror"),
         # FIXME
         *ladder(
-            start_m=M_TOP,
+            start_m=M_TOP + 1,
             n=N_LMT,
             direction=+1,
             first_beam=Beam.UP,
@@ -132,7 +132,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         ),
         Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         *ladder(
-            start_m=M_TOP + N_LMT,
+            start_m=M_TOP + N_LMT + 1,
             n=N_LMT,
             direction=-1,
             first_beam=Beam.UP,
