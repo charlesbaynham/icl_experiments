@@ -67,8 +67,7 @@ class RigolDHO(GenericDriver):
         """
         Default to ascii
         """
-        data = np.array(self.get_waveform_of_type("ascii"))
-        return data.astype(float)
+        return self.get_waveform_of_type("ascii")
 
     def reset(self):
         # Reset with OPC
@@ -195,3 +194,5 @@ RigolDHO._register_query(
     args=[GenericDriver.Arg(name="offset")],
     response_parser=None,
 )
+# scope = RigolDHO(id="TCPIP::10.137.3.5::INSTR")
+# print(type(np.array((scope.get_waveform()))))
