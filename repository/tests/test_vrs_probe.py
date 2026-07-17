@@ -238,9 +238,9 @@ class TestDHOSetupFrag(ExpFragment):
     def host_setup(self):
         # reset to default state
         self.rigol.reset()
-        self.rigol.set_trigger_source("EDGE", "EXT")
-        self.rigol.set_trigger_level("EDGE", 1)
-        self.rigol.set_trigger_sweep("NORM")
+        # self.rigol.set_trigger_source("EDGE", "EXT")
+        # self.rigol.set_trigger_level("EDGE", 1)
+        # self.rigol.set_trigger_sweep("NORM")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
@@ -248,6 +248,8 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
+        self.rigol.stop()
+        logger.warning(self.rigol.get_waveform())
 
     @rpc
     def set_timescale(self):
@@ -260,9 +262,8 @@ class TestDHOSetupFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
-        logger.warning("Begin the pulse")
         self.core.break_realtime()
-        delay(5.0)
+        logger.warning("Begin the pulse")
         self.ttl.on()
         delay(self.acquisition_time.get())
         self.ttl.off()
