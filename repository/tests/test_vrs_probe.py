@@ -240,22 +240,21 @@ class TestDHOSetupFrag(ExpFragment):
         self.rigol.reset()
         self.rigol.set_trigger_source("EDGE", "EXT")
         self.rigol.set_trigger_level("EDGE", 5)
-        self.rigol.set_trigger_sweep("NORM")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
         self.rigol.set_acquisition_depth("10K")
 
     @rpc
-    def set_timescale(self):
+    def reset_scope(self):
+        self.rigol.set_trigger_sweep("SING")
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-        self.set_timescale()
-        delay(2.0)
+        self.reset_scope()
 
     @kernel
     def run_once(self) -> None:

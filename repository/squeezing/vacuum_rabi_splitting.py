@@ -224,7 +224,8 @@ class SingleVRSSweepFrag(
         # data = self.rtb.query_bin_or_ascii_float_list(
         #     "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
         # )
-        data = [float(i) for i in self.rigol.get_waveform().strip(",")]
+        # Terrible hack
+        data = [float(i) for i in self.rigol.get_waveform().strip(",")[:-1]]
 
         logger.warning(len(data))
         self.scope_data.push(data)
