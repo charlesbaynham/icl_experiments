@@ -145,7 +145,6 @@ class SingleVRSSweepFrag(
         self.rigol.reset()
         self.rigol.set_trigger_source("EDGE", "EXT")
         self.rigol.set_trigger_level("EDGE", 5)
-        self.rigol.set_trigger_sweep("NORM")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
@@ -182,7 +181,8 @@ class SingleVRSSweepFrag(
         # self.rtb.write_float("ACQ:POIN", 1e6)
 
     @rpc
-    def set_timescale_of_scope(self):
+    def reset_scope(self):
+        self.rigol.set_trigger_sweep("SING")
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
@@ -191,7 +191,7 @@ class SingleVRSSweepFrag(
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(200e-3)
-        self.set_timescale_of_scope()
+        self.reset_scope()
         # maybe we need some delay
         self.dds.sw.set_o(True)
         self.dds.set(self.probe_ramper.min_f.get())
