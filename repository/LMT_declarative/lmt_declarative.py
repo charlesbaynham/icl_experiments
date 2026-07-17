@@ -32,15 +32,14 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusDipoleRampMixin,
-)
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     AdiabaticCoolingWithPaintedQuadraticMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadSingleXODTWithPainterMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusDipoleRampMixin,
 )
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
@@ -101,7 +100,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
             rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
         ),
         # Blast away the unselected ground-state atoms
-        Clearout(),
+        Clearout(),  # FIXME Alice reports that these don't seem to change duration with their parameter
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-4),
