@@ -238,9 +238,9 @@ class TestDHOSetupFrag(ExpFragment):
     def host_setup(self):
         # reset to default state
         self.rigol.reset()
-        # self.rigol.set_trigger_source("EDGE", "EXT")
-        # self.rigol.set_trigger_level("EDGE", 1)
-        # self.rigol.set_trigger_sweep("NORM")
+        self.rigol.set_trigger_source("EDGE", "EXT")
+        self.rigol.set_trigger_level("EDGE", 5)
+        self.rigol.set_trigger_sweep("SING")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
@@ -271,8 +271,9 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
-        self.rigol.stop()
+        # self.rigol.stop()
         data = self.rigol.get_waveform()
+        print(len(data))
 
         logger.warning(data)
         self.scope_data.push(data)
