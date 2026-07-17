@@ -1599,3 +1599,14 @@ DEFAULT_IMAGE_DELAY_AFTER_SEQUENCE_LMT_COMPENSATED = 5.0e-3
 # Squeezing / Vacuum Rabi splitting stuff
 # This is in a glitch free urukul, so need to restart the crate for it take effect!
 VRS_SWEEP_ATTENUATION = 1.0
+
+
+# qbutler calibration acceptance thresholds: the minimum metric a node must
+# reach for its state to be judged OK. The calibration DAG drives to green from
+# these constants alone (no dataset seeding). Found a better value on atoms?
+# Update the constant. Seeded from the 2026-07-04/07 on-atoms characterisation.
+BLUE_MOT_MIN_OK_FLUORESCENCE = 2.0
+RED_MOT_MIN_OK_ATOM_SUM = 2.0e6
+CLOCK_COARSE_MIN_OK_EXCITATION = 0.15
+CLOCK_REFINED_MIN_OK_EXCITATION = 0.5
+CLOCK_RABI_MIN_OK_EXCITATION = 0.5

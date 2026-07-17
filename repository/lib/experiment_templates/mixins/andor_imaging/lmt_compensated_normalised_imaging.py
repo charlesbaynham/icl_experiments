@@ -56,6 +56,61 @@ from repository.lib.physics.ballistic import CameraGeometry
 
 logger = logging.getLogger(__name__)
 
+# OPLL offset the ladder resets to at sequence end. Computed host-side (string
+# dict subscript is not allowed in @kernel) so the readout override can put the
+# OPLL on the same free-fall resonance the ladder pulses use.
+_START_OPLL_OFFSET = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
+
+# DOWN readout pulse -> beam_sign -1.0, matching _fire_pulse's is_up = sign > 0.
+_READOUT_BEAM_SIGN = -1.0
+
+
+# %% Utility functions
+
+
+@portable
+def _fill_clamped_roi(
+    roi_buffer,
+    index,
+    centre_x,
+    centre_y_frame,
+    half_width,
+    half_height,
+    frame_width,
+    frame_height,
+) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
+    """Write one ROI centred on a predicted position into ``roi_buffer``.
+
+    Clamped to the readout frame, then ordering is enforced (``x1 >= x0``,
+    ``y1 >= y0``) so a fully off-frame prediction is degenerate-but-valid, never
+    negative-area. Returns 1 if any coordinate had to be clamped, else 0.
+    """
+    x0 = centre_x - half_width
+    y0 = centre_y_frame - half_height
+    x1 = centre_x + half_width
+    y1 = centre_y_frame + half_height
+
+    cx0 = min(max(x0, 0), frame_width)
+    cy0 = min(max(y0, 0), frame_height)
+    cx1 = min(max(x1, 0), frame_width)
+    cy1 = min(max(y1, 0), frame_height)
+
+    clipped = 0
+    if cx0 != x0 or cy0 != y0 or cx1 != x1 or cy1 != y1:
+        clipped = 1
+
+    cx1 = max(cx1, cx0)
+    cy1 = max(cy1, cy0)
+
+    roi_buffer[index][0] = cx0
+    roi_buffer[index][1] = cy0
+    roi_buffer[index][2] = cx1
+    roi_buffer[index][3] = cy1
+    return clipped
+
+
+# %% Camera config
+
 
 # %% Utility functions
 

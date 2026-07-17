@@ -1,0 +1,45 @@
+ffcba624e74c2c2da95eab56e40d05b5a2d431e6
+github.com/charlesbaynham/qbutler branch kernels-with-precompilation —
+vendored copy; upstream fixes go to that repo.
+
+kernels-with-precompilation is the consolidated base: it merges feature/applets
+(self-visualising calibrations) with feature/zoom-grid-optimizer-precompiled
+(the zoom_grid_optimizer scan strategy), so both features are now native to
+this branch rather than carried as local patches.
+
+Includes the resident-kernel optimizer loop (_optimizer_kernel_loop): one
+kernel call per fix, the kernel pulling each next point from the host optimizer
+generator over sync RPC and applying it device-side, so ANY host strategy
+(grid, coordinate descent, zoom grid, Bayesian optimization) pays one
+compile+upload — no recompilation between points. The kernel-driven DAG fix
+fixes an entire calibration dependency tree from within a single kernel, plus
+the precompiled-host-DAG client machinery (client.py, precompile.py,
+worker_ipc_lock.py).
+
+optimizers.py carries grid_search_optimizer, coordinate_descent_optimizer, and
+zoom_grid_optimizer — the latter a two-stage grid search that scans the full
+[min, max] grid, picks the best point, then re-scans the same number of points
+per axis over a window centred on the optimum and zoom_factor (default 10)
+times smaller.
+
+qbutler auto-launches its own dashboard applets through the CCB (qbutler/ccb.py),
+so no client wiring is needed. publish_dag() creates a single "Calibration DAG"
+overview applet; each Calibration's optimizer creates a per-class
+"Optimizer: <Class>" trace applet as it starts, so every fix_state sweep is
+shown live in a plot namespaced to that class. The applets live in qbutler
+(qbutler/applets/dag_applet.py and qbutler/applets/optimizer_applet.py).
+
+NOTE: to make the applets open as windows (not just appear in the Applets dock
+list), set the dashboard's CCB policy for the "Calibrations" group to
+"Create and enable/disable applets"; the default global policy is "Create
+applets", which creates them disabled.
+
+LOCAL PATCH (not yet in kernels-with-precompilation @ ffcba62): patch_ndscan.py
+additionally carries the one commit by which
+feature/zoom-grid-optimizer-precompiled has moved past the tip merged into
+kernels-with-precompilation (8c1a5c2..7fa2d29, "Fix scanned-cal path for newer
+ndscan + refresh stale client-escape tests", qbutler PR #25) — detects whether
+this ndscan's ScanRunner.acquire takes a device_cleanup argument and calls it
+accordingly, since qbutler is vendored against pins on both sides of that
+ndscan change. When re-vendoring, check whether this commit has since been
+merged into kernels-with-precompilation and drop this note if so.
