@@ -7,14 +7,14 @@ at all (state is recalled from the calibrations.status dataset).
 """
 
 import logging
-import time
 
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.red_mot import RedMOTCalibration
 
 logger = logging.getLogger(__name__)
@@ -24,8 +24,11 @@ logger = logging.getLogger(__name__)
 IDLE_SLEEP_S = 30.0
 
 
-class EnsureRedMOTFrag(ExpFragment):
+class EnsureRedMOTFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(RedMOTCalibration)
         self.RedMOTCalibration: RedMOTCalibration
 
@@ -37,15 +40,13 @@ class EnsureRedMOTFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        self.RedMOTCalibration.fix_state(force=self.force_recalibrate.get())
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
-        result, data = self.RedMOTCalibration.check_state()
-        logger.info("Red MOT chain state: %s (data=%s)", result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(f"Red MOT chain not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureRedMOT = make_fragment_scan_exp(EnsureRedMOTFrag)
+EnsureRedMOT = make_calibrated_experiment(EnsureRedMOTFrag)

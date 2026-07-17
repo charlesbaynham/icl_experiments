@@ -1,14 +1,15 @@
 """Client for the blue-MOT calibration alone: check, and fix if required."""
 
 import logging
-import time
 
-from ndscan.experiment import ExpFragment
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from qbutler.calibration import CalibrationResult
+from qbutler import CalibratedExpFragment
+from qbutler import make_calibrated_experiment
 from repository.lib.calibrations.blue_mot import BlueMOTCalibration
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,11 @@ IDLE_SLEEP_S = 30.0
 BlueMOTCalibrationExp = make_fragment_scan_exp(BlueMOTCalibration)
 
 
-class EnsureBlueMOTFrag(ExpFragment):
+class EnsureBlueMOTFrag(CalibratedExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_calibration(BlueMOTCalibration)
         self.BlueMOTCalibration: BlueMOTCalibration
 
@@ -34,15 +38,13 @@ class EnsureBlueMOTFrag(ExpFragment):
         )
         self.force_recalibrate: BoolParamHandle
 
+    @kernel
     def run_once(self):
-        self.BlueMOTCalibration.fix_state(force=self.force_recalibrate.get())
+        self.recalibrate_if_needed(force=self.force_recalibrate.get())
 
-        result, data = self.BlueMOTCalibration.check_state()
-        logger.info("Blue MOT state: %s (data=%s)", result, data)
-        if result != CalibrationResult.OK:
-            raise RuntimeError(f"Blue MOT not OK after fix_state: {result}")
-
-        time.sleep(IDLE_SLEEP_S)
+        self.core.wait_until_mu(
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(IDLE_SLEEP_S)
+        )
 
 
-EnsureBlueMOT = make_fragment_scan_exp(EnsureBlueMOTFrag)
+EnsureBlueMOT = make_calibrated_experiment(EnsureBlueMOTFrag)

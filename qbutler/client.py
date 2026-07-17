@@ -155,17 +155,22 @@ class CalibratedExpFragment(ExpFragment):
             pool.shutdown()
 
     @kernel
-    def recalibrate_if_needed(self):
+    def recalibrate_if_needed(self, force: TBool = False):
         """From the kernel: recalibrate the DAG if anything has drifted.
 
         Cheap when everything is healthy (one RPC that only consults cached
-        check state, no hardware). If a dependency looks bad it raises
-        :class:`~qbutler.calibration.CalibrationEscape`, unwinding to the host,
-        which fixes the DAG and re-enters this kernel. Put it at a point where
-        interrupting and restarting the kernel is safe — typically a scan-point
-        boundary, not mid-shot.
+        check state, no hardware). If a dependency looks bad — or ``force`` is
+        set — it raises :class:`~qbutler.calibration.CalibrationEscape`,
+        unwinding to the host, which fixes the DAG and re-enters this kernel.
+        Put it at a point where interrupting and restarting the kernel is
+        safe — typically a scan-point boundary, not mid-shot.
+
+        Args:
+            force: Skip the drift check and escape unconditionally, e.g. to
+                honour a client's own "re-measure and re-optimize
+                unconditionally" argument.
         """
-        if self._needs_recalibration():
+        if force or self._needs_recalibration():
             raise CalibrationEscape("a calibration dependency needs recalibrating")
 
     def _ensure_cal_pool(self) -> PrecompilePool:
