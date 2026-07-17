@@ -266,8 +266,7 @@ class TestDHOSetupFrag(ExpFragment):
         self.ttl.on()
         delay(self.acquisition_time.get())
         self.ttl.off()
-        self.core.wait_until_mu(now_mu())
-        delay(5.0)
+        self.core.wait_until_mu(now_mu() + 100)
         self.get_data_from_scope()
 
     @rpc
