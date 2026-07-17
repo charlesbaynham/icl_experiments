@@ -825,7 +825,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     duration_s=clearout_duration
                 )
                 self.fluorescence_pulse.do_clearout_pulse(
-                    duration=clearout_duration,
+                    duration=clearout_duration,  # FIXME Alice hard coded it here and it STILL didn't work!!
                     ignore_final_shutters=True,
                 )
                 delay(8e-9)
