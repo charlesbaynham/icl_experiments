@@ -57,7 +57,7 @@ N_LAUNCH = 10
 M_TOP = 1 + N_LAUNCH
 
 
-N_LMT = 2
+N_LMT = 1
 
 # Post-ladder drop time: at higher launch the cloud leaves the fixed
 # fast-kinetics window; this Wait lets it fall back in before imaging.
@@ -109,8 +109,8 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         # %% LMT beamsplitter
         Phase(phase=0.0, label="bs1"),
         pi2(Beam.UP, m=M_TOP, label="bs1"),
-        # *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        *ladder(start_m=M_TOP, n=N_LMT, first_beam=Beam.DOWN),
+        # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         # %% LMT mirror
         # *ladder(
         #     start_m=M_TOP + N_LMT,
@@ -118,20 +118,20 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         #     direction=-1,
         #     first_beam=Beam.DOWN,
         # ),
-        Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
+        # Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
         # Clearout(),  # FIXME test
-        pi(Beam.UP, m=M_TOP, label="mirror"),
+        # pi(Beam.UP, m=M_TOP, label="mirror"),
         # FIXME
         # *ladder(start_m=M_TOP, n=N_LMT, direction=+1, first_beam=Beam.DOWN),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
         # *ladder(
         #     start_m=M_TOP + N_LMT,
         #     n=N_LMT,
         #     direction=-1,
         #     first_beam=Beam.DOWN,
         # ),
-        Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
-        pi2(Beam.UP, m=M_TOP, label="bs2"),
+        # Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
+        # pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
 
     def build_fragment(self):
