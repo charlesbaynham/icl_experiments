@@ -118,7 +118,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         #     direction=-1,
         #     first_beam=Beam.DOWN,
         # ),
-        Phase(param="interferometer_phase", label="mirror"),
+        Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
         # Clearout(),  # FIXME test
         pi(Beam.UP, m=M_TOP, label="mirror"),
         # FIXME
@@ -130,7 +130,7 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         #     direction=-1,
         #     first_beam=Beam.DOWN,
         # ),
-        Phase(param="interferometer_phase", label="bs2"),
+        Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
         pi2(Beam.UP, m=M_TOP, label="bs2"),
     ]
 
