@@ -156,8 +156,6 @@ class FluorescencePulseBase(Fragment):
 
         Advances the timeline by the duration of the pulse.
         """
-        print(duration)
-
         if duration < 0:
             duration = self.fluorescence_pulse_duration.get()
 
