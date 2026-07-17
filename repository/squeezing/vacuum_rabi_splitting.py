@@ -18,6 +18,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.constants import VRS_SWEEP_ATTENUATION
+from repository.lib.devices.rigol_dho_scope import RigolDHO
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImageMixin,
 )
@@ -85,7 +86,11 @@ class SingleVRSSweepFrag(
         self.ttl: TTLOut
 
         # RS Scope for the VRS measurement
+        # Currently disabled checkout an old commit for this
         # self.rtb_device: RSDevice = self.get_device("vrs_scope")
+
+        # Rigol Scope for the VRS measurement
+        self.rigol: RigolDHO = self.get_device("vrs_scope")
 
         # Make an applet
         self.setattr_device("ccb")
@@ -135,6 +140,17 @@ class SingleVRSSweepFrag(
     def host_setup(self):
         super().host_setup()
 
+        self.rigol
+        # reset to default state
+        self.rigol.reset()
+        self.rigol.set_trigger_source("EDGE", "EXT")
+        self.rigol.set_trigger_level("EDGE", 5)
+        self.rigol.set_trigger_sweep("NORM")
+
+        self.rigol.enable_roll(False)
+        self.rigol.set_vertscale(1, 30e-3)
+        self.rigol.set_acquisition_depth("10K")
+
         # and write a bunch of stuff to the scope
         # self.rtb = RsInstrument(
         #     get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
@@ -165,11 +181,18 @@ class SingleVRSSweepFrag(
         # Sample Data, we want the max of 20 MSa per segment
         # self.rtb.write_float("ACQ:POIN", 1e6)
 
+    @rpc
+    def set_timescale_of_scope(self):
+        self.rigol.set_timescale(self.acquisition_time.get() / 10)
+        self.rigol.set_time_offset(self.acquisition_time.get() / 2)
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(200e-3)
+        self.set_timescale_of_scope()
+        # maybe we need some delay
         self.dds.sw.set_o(True)
         self.dds.set(self.probe_ramper.min_f.get())
         # Make sure it starts in the off position
@@ -189,21 +212,23 @@ class SingleVRSSweepFrag(
         self.host_functions_after_experiment_hook_default()
 
         # Save the data!
-        # if self.save_trace.get() is True:
-        # self.get_data_from_scope()
-        # else:
-        # pass
+        if self.save_trace.get() is True:
+            self.get_data_from_scope()
+        else:
+            pass
 
     @rpc
     def get_data_from_scope(self) -> None:
         # Save the data in ascii format and save
         # logger.warning("Query")
-        data = self.rtb.query_bin_or_ascii_float_list(
-            "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
-        )
+        # data = self.rtb.query_bin_or_ascii_float_list(
+        #     "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
+        # )
+        data = [float(i) for i in self.rigol.get_waveform().strip(",")]
+
         logger.warning(len(data))
         self.scope_data.push(data)
-        self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
         fs = np.linspace(
             self.probe_ramper.min_f.get(), self.probe_ramper.max_f.get(), len(data)

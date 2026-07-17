@@ -240,14 +240,11 @@ class TestDHOSetupFrag(ExpFragment):
         self.rigol.reset()
         self.rigol.set_trigger_source("EDGE", "EXT")
         self.rigol.set_trigger_level("EDGE", 5)
-        self.rigol.set_trigger_sweep("SING")
+        self.rigol.set_trigger_sweep("NORM")
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
         self.rigol.set_acquisition_depth("10K")
-
-        self.rigol.set_timescale(self.acquisition_time.get() / 10)
-        self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
     @rpc
     def set_timescale(self):
@@ -272,11 +269,10 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
+        # need to parse the data from string to float array
         data = [float(x) for x in self.rigol.get_waveform().split(",")]
         print(data)
         self.scope_data.push(data)
-
-        self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
