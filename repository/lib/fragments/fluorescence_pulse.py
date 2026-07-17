@@ -305,4 +305,6 @@ class ToggleableFluorescencePulse(Fragment):
 
         Advances the timeline by the duration of the pulse.
         """
-        self.imaging_beam.do_clearout_pulse_base()
+        self.imaging_beam.do_clearout_pulse_base(
+            ignore_initial_shutters, ignore_final_shutters, duration
+        )
