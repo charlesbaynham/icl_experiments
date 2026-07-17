@@ -272,7 +272,7 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
-        data = [float(x) for x in self.rigol.get_waveform().split()]
+        data = [float(x) for x in self.rigol.get_waveform().split(",")]
         print(data)
         self.scope_data.push(data)
 
