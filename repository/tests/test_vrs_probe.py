@@ -248,8 +248,6 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
-        self.rigol.stop()
-        logger.warning(self.rigol.get_waveform())
 
     @rpc
     def set_timescale(self):
@@ -272,6 +270,7 @@ class TestDHOSetupFrag(ExpFragment):
 
     @rpc
     def get_data_from_scope(self):
+        self.rigol.stop()
         data = self.rigol.get_waveform()
 
         logger.warning(data)
