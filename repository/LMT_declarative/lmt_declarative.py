@@ -103,43 +103,43 @@ class DeclarativeLMTSymmetricMachZehnderFrag(
         Clearout(duration=2.2e-3),
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
-        *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-1),
-        Wait(t=DROP, label="droptime"),
-        # Now do some actual interferometry
-        # %% LMT beamsplitter
-        Phase(phase=0.0, label="bs1"),
-        pi2(Beam.DOWN, m=M_TOP, label="bs1"),
-        *ladder(start_m=M_TOP + 1, n=N_LMT, first_beam=Beam.UP, clearout_from=None),
+        # *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN, clearout_from=-1),
+        # Wait(t=DROP, label="droptime"),
+        # # Now do some actual interferometry
+        # # %% LMT beamsplitter
+        # Phase(phase=0.0, label="bs1"),
+        # pi2(Beam.DOWN, m=M_TOP, label="bs1"),
+        # *ladder(start_m=M_TOP + 1, n=N_LMT, first_beam=Beam.UP, clearout_from=None),
+        # # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
+        # # %% LMT mirror
+        # *ladder(
+        #     start_m=M_TOP + N_LMT + 1,
+        #     n=N_LMT,
+        #     direction=-1,
+        #     first_beam=Beam.UP,
+        #     clearout_from=None,
+        # ),
+        # Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
+        # # Clearout(),  # FIXME test
+        # pi(Beam.DOWN, m=M_TOP, label="mirror"),
+        # # FIXME
+        # *ladder(
+        #     start_m=M_TOP + 1,
+        #     n=N_LMT,
+        #     direction=+1,
+        #     first_beam=Beam.UP,
+        #     clearout_from=None,
+        # ),
         # Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
-        # %% LMT mirror
-        *ladder(
-            start_m=M_TOP + N_LMT + 1,
-            n=N_LMT,
-            direction=-1,
-            first_beam=Beam.UP,
-            clearout_from=None,
-        ),
-        Phase(param="interferometer_phase", label="mirror", multiplier=1.0),
-        # Clearout(),  # FIXME test
-        pi(Beam.DOWN, m=M_TOP, label="mirror"),
-        # FIXME
-        *ladder(
-            start_m=M_TOP + 1,
-            n=N_LMT,
-            direction=+1,
-            first_beam=Beam.UP,
-            clearout_from=None,
-        ),
-        Wait(t=LMT_INTERFEROMETER_TIME, label="T"),
-        *ladder(
-            start_m=M_TOP + N_LMT + 1,
-            n=N_LMT,
-            direction=-1,
-            first_beam=Beam.UP,
-            clearout_from=None,
-        ),
-        Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
-        pi2(Beam.DOWN, m=M_TOP, label="bs2"),
+        # *ladder(
+        #     start_m=M_TOP + N_LMT + 1,
+        #     n=N_LMT,
+        #     direction=-1,
+        #     first_beam=Beam.UP,
+        #     clearout_from=None,
+        # ),
+        # Phase(param="interferometer_phase", label="bs2", multiplier=4.0),
+        # pi2(Beam.DOWN, m=M_TOP, label="bs2"),
     ]
 
     def build_fragment(self):
