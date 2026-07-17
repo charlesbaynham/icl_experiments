@@ -244,7 +244,7 @@ class TestDHOSetupFrag(ExpFragment):
 
         self.rigol.enable_roll(False)
         self.rigol.set_vertscale(1, 30e-3)
-        self.rigol.set_acquisition_depth("1M")
+        self.rigol.set_acquisition_depth("10K")
 
         self.rigol.set_timescale(self.acquisition_time.get() / 10)
         self.rigol.set_time_offset(self.acquisition_time.get() / 2)
@@ -274,14 +274,14 @@ class TestDHOSetupFrag(ExpFragment):
     def get_data_from_scope(self):
         data = self.rigol.get_waveform()
         print(len(data))
-        # self.scope_data.push(data)
+        self.scope_data.push(data)
         print(data)
 
         xs = np.linspace(0, self.acquisition_time.get(), len(data))
         self.set_dataset("frequency_sweep", xs, broadcast=True, archive=False)
 
-        # cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
-        # self.ccb.issue("create_applet", "Scope Trace", cmd)
+        cmd = f"${{artiq_applet}}plot_xy scope_data --x frequency_sweep"
+        self.ccb.issue("create_applet", "Scope Trace", cmd)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
