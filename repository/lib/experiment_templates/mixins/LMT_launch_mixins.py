@@ -519,11 +519,11 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        # self.dma_recording_fragment.register_clearout(duration_s=50e-6)
-        # self.fluorescence_pulse.do_clearout_pulse(
-        #     duration=50e-6,  # self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
+        self.dma_recording_fragment.register_clearout(duration_s=50e-6)
+        self.fluorescence_pulse.do_clearout_pulse(
+            duration=50e-6,  # self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
         delay_mu(8)
 
         # delay_mu(8)
