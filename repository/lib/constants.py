@@ -1588,6 +1588,13 @@ MOMENTUM_KICK_DETUNING = scipy_constants.h / (SR_ATOM_MASS_KG * CLOCK_WAVELENGTH
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
 
+# Warn when a recorded interferometer's arms recombine further apart than this
+# (see PulseDMARecording). 0.5 um costs ~1 % contrast at the ~3 um coherence
+# length seen on 2026-07-18 (RID 78331: a missing 100 us dark time opened the
+# recombiner by ~2 um at N=2 and killed the contrast); the working hand-written
+# sequence closes to ~0.16 um.
+LMT_CLOSURE_MISS_WARNING_THRESHOLD = 0.5e-6  # metres
+
 # Defaults for the global-parameter symmetric Mach-Zehnder generator. The
 # velocity-selective pulse provides the first kick, so the launch ladder runs
 # from m = 1 and ends at m = 1 + LMT_N_LAUNCH_DEFAULT.
