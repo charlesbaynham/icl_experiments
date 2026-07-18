@@ -935,9 +935,10 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
-        self.do_clock_interferometry()
+        # self.prepare_clock_delivery_aom()
+        # delay_mu(16)
+        # self.do_clock_interferometry()
+        pass
 
     @kernel
     def do_clock_interferometry(self):
