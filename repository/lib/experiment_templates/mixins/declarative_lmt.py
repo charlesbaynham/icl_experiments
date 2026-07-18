@@ -671,7 +671,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             raw = self.get_dataset(dataset_path)
         except KeyError:
             return
-        counts, bins = np.histogram(raw, bins=50)
+        counts, bins = np.histogram(raw, bins="auto")
         self.set_dataset(
             EXCITATION_FRACTION_HIST_COUNTS_DATASET, counts, broadcast=True
         )
