@@ -728,26 +728,33 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     ):
         """Fire one pulse gated by the switch AOM, registering its intent.
 
-        The OPLL is chirped at the gravity rate for the duration of the
-        pulse so that long pulses stay on resonance with the falling atoms;
-        the chirp crosses ``freq_centre`` at the centre of the pulse. The
-        ramp is programmed before ``t_start``, so it starts running slightly
-        early - at ~14 MHz/s the resulting frequency error is negligible.
+        Start the OPLL ramping immediately to give it time to settle by the
+        start of the pulse. The OPLL is chirped at the gravity rate for the
+        duration of the pulse so that long pulses stay on resonance with the
+        falling atoms; the chirp crosses ``freq_centre`` at the centre of the
+        pulse.
 
-        The intent arguments are the compile-time-resolved effect of the
-        pulse (see :mod:`repository.lib.physics.lmt_resonance`), registered with the
+        The ramp is programmed before ``t_start``, so must start from an offset
+        such that it's in the right place once the pulse happens.
+
+        The intent arguments are the compile-time-resolved effect of the pulse
+        (see :mod:`repository.lib.physics.lmt_resonance`), registered with the
         pulse recorder alongside the pulse facts.
         """
+
         self.stop_clock_opll_ramp()
         delay_mu(int64(self.core.ref_multiplier))
+        time_until_pulse_centre = (
+            self.core.mu_to_seconds(t_start - now_mu()) + duration / 2
+        )
         # Start the OPLL ramp
         if is_up:
             # Gravity blue-shift the up beam
-            f_on = freq_centre - ramp_rate * duration / 2
+            f_on = freq_centre - ramp_rate * time_until_pulse_centre
             self.start_clock_opll_ramp(ramp_rate, f_on, f_on + 2e6, wave_type=1)
         else:
             # ... and red-shifts the down beam
-            f_on = freq_centre + ramp_rate * duration / 2
+            f_on = freq_centre + ramp_rate * time_until_pulse_centre
             self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
 
         at_mu(t_start)
