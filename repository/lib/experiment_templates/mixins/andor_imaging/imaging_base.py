@@ -39,6 +39,19 @@ logger = logging.getLogger(__name__)
 
 ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
+ANDOR_MONITOR_ROI_TARGETS_DATASET = "andor_monitor_roi_targets"
+
+# Background-corrected ground/excited image datasets and their ROI-overlay
+# target datasets, shared by the fast-kinetics imaging modules.
+ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
+ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
+ANDOR_FK_G_BG_CORR_ROI_TARGETS_DATASET = "g_bg_corrected_roi_targets"
+ANDOR_FK_E_BG_CORR_ROI_TARGETS_DATASET = "e_bg_corrected_roi_targets"
+
+# Width of the bright separator strip drawn between the excited and ground
+# sub-frames in the composite monitor image. The excited ROI is offset by this
+# plus the sub-frame height when mapping onto the composite.
+ANDOR_MONITOR_SEPARATOR_WIDTH = 2
 
 
 class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
@@ -273,15 +286,61 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
             self.andor_profile_ys.append(profile_y)  # type: ignore
             self.andor_images.append(image)  # type: ignore
 
+    @staticmethod
+    def _split_bg_corrected_roi_targets(
+        rois, fast_kinetics_height, ground_indices=(0,), excited_indices=(1,)
+    ):
+        """Map a get_rois() buffer to (ground_targets, excited_targets) lists
+        for the bg-corrected applets.
+
+        The excited ROIs are shifted up by the fast-kinetics height so they land
+        in the excited sub-frame's pixel coordinates (the applet shows each
+        fast-kinetics sub-frame separately). ``ground_indices`` /
+        ``excited_indices`` select the signal ROIs per trap (one pair for a
+        single trap, two pairs for a double trap).
+        """
+        ground = [list(rois[i]) for i in ground_indices]
+        excited = [list(rois[i]) for i in excited_indices]
+        for roi in excited:
+            roi[1] -= fast_kinetics_height
+            roi[3] -= fast_kinetics_height
+        return ground, excited
+
+    @staticmethod
+    def _composite_monitor_roi_targets(rois, fast_kinetics_height):
+        """Map a get_rois() buffer to the two ROI targets for the composite
+        monitor image (``[excited_target, ground_target]``).
+
+        The composite stacks the excited sub-frame (low index) above a
+        ``ANDOR_MONITOR_SEPARATOR_WIDTH``-wide separator and the ground
+        sub-frame. Because the applet renders array axis 1 flipped, the excited
+        ROI is shifted up in y by the sub-frame height plus the separator width
+        while the ground ROI keeps its sub-frame coordinates.
+
+        This must be fed ROIs sampled at the same instant as the dedicated
+        ground/excited applet targets: for dynamically-predicted ROIs those
+        positions are only current kernel-side, so pass the ``get_rois()``
+        result from a kernel hook rather than sampling on the host.
+        """
+        ground, excited = AndorImagingBase._split_bg_corrected_roi_targets(
+            rois, fast_kinetics_height
+        )
+        y_offset = fast_kinetics_height + ANDOR_MONITOR_SEPARATOR_WIDTH
+        excited[0][1] += y_offset
+        excited[0][3] += y_offset
+        return [excited[0], ground[0]]
+
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():
             monitor_rois = np.array(self.get_monitor_rois()).tolist()
-            self.set_dataset("andor_monitor_roi_targets", monitor_rois, broadcast=True)
+            self.set_dataset(
+                ANDOR_MONITOR_ROI_TARGETS_DATASET, monitor_rois, broadcast=True
+            )
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --rois_dataset andor_monitor_roi_targets --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --rois_dataset {ANDOR_MONITOR_ROI_TARGETS_DATASET} --dataset_prefix 'andor_monitor'",
             )
 
             # Also make an applet for every image. Don't include the ROIs on
@@ -444,6 +503,10 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         if self.use_andor_driver.get():
             self._call_camera_rpc()
         self.get_grabber_data()
+
+    @kernel
+    def after_save_andor_data_hook(self):
+        pass
 
     @kernel
     def get_grabber_data(self):

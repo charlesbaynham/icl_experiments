@@ -16,9 +16,9 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from RsInstrument import RsInstrument
 
 from repository.lib.constants import VRS_SWEEP_ATTENUATION
+from repository.lib.devices.rigol_dho_scope import RigolDHO
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImageMixin,
 )
@@ -32,7 +32,6 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.devices.rohde_schwarz_devices import RSDevice
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
@@ -87,7 +86,11 @@ class SingleVRSSweepFrag(
         self.ttl: TTLOut
 
         # RS Scope for the VRS measurement
-        self.rtb_device: RSDevice = self.get_device("vrs_scope")
+        # Currently disabled checkout an old commit for this
+        # self.rtb_device: RSDevice = self.get_device("vrs_scope")
+
+        # Rigol Scope for the VRS measurement
+        self.rigol: RigolDHO = self.get_device("vrs_scope")
 
         # Make an applet
         self.setattr_device("ccb")
@@ -137,41 +140,59 @@ class SingleVRSSweepFrag(
     def host_setup(self):
         super().host_setup()
 
+        self.rigol
+        # reset to default state
+        self.rigol.reset()
+        self.rigol.set_trigger_source("EDGE", "EXT")
+        self.rigol.set_trigger_level("EDGE", 5)
+
+        self.rigol.enable_roll(False)
+        self.rigol.set_vertscale(1, 30e-3)
+        self.rigol.set_acquisition_depth("1K")
+
         # and write a bunch of stuff to the scope
         # self.rtb = RsInstrument(
         #     get_configuration_from_db("VRS_scope_address"), id_query=True, reset=True
         # )
-        self.rtb: RsInstrument = self.rtb_device.get_instrument()
+        # self.rtb: RsInstrument = self.rtb_device.get_instrument()
 
         # Set a long Long timeout for visa
-        self.rtb.visa_timeout = 100000
+        # self.rtb.visa_timeout = 100000
         # Set the trigger to an external signal
-        self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
-        self.rtb.write_str("TRIG:A:SOUR EXT")
+        # self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
+        # self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
-        self.rtb.write_str("TRIG:A:TYPE EDGE")
-        self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
+        # self.rtb.write_str("TRIG:A:TYPE EDGE")
+        # self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
-        self.rtb.write_str("TRIG:A:LEV5 1")
+        # self.rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        self.rtb.write_float(
-            "TIM:ACQT", self.acquisition_time.get()
-        )  # Scope Acquisition time
+        # self.rtb.write_float(
+        # "TIM:ACQT", self.acquisition_time.get()
+        # )  # Scope Acquisition time
         # Set the trigger position to be at the start of the scope
-        self.rtb.write_float("TIM:POS", self.acquisition_time.get() / 2)
+        # self.rtb.write_float("TIM:POS", self.acquisition_time.get() / 2)
 
-        self.rtb.write_float("CHAN1:RANG", 0.2)  # Total Vertical range 5V (0.5V/div)
-        self.rtb.write_float("CHAN1:OFFS", -0.05)  # Offset 0
-        self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
+        # self.rtb.write_float("CHAN1:RANG", 0.2)  # Total Vertical range 5V (0.5V/div)
+        # self.rtb.write_float("CHAN1:OFFS", -0.05)  # Offset 0
+        # self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 1e6)
+        # self.rtb.write_float("ACQ:POIN", 1e6)
+
+    @rpc
+    def reset_scope(self):
+        self.rigol.set_trigger_sweep("SING")
+        self.rigol.set_timescale(self.acquisition_time.get() / 10)
+        self.rigol.set_time_offset(self.acquisition_time.get() / 2)
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(200e-3)
+        self.reset_scope()
+        # maybe we need some delay
         self.dds.sw.set_o(True)
         self.dds.set(self.probe_ramper.min_f.get())
         # Make sure it starts in the off position
@@ -200,12 +221,15 @@ class SingleVRSSweepFrag(
     def get_data_from_scope(self) -> None:
         # Save the data in ascii format and save
         # logger.warning("Query")
-        data = self.rtb.query_bin_or_ascii_float_list(
-            "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
-        )
+        # data = self.rtb.query_bin_or_ascii_float_list(
+        #     "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
+        # )
+        # Terrible hack
+        data = [float(i) for i in self.rigol.get_waveform().strip(",")[:-1]]
+
         logger.warning(len(data))
         self.scope_data.push(data)
-        self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
         fs = np.linspace(
             self.probe_ramper.min_f.get(), self.probe_ramper.max_f.get(), len(data)

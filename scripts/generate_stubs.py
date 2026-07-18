@@ -57,8 +57,8 @@ EXP_ROOTS = {
 }
 # ...and these are the (disjoint) fragment roots: a class that reaches one
 # of these is a Fragment, which is only an experiment once wrapped in
-# ``make_fragment_scan_exp``.
-FRAG_ROOTS = {"ExpFragment", "Fragment"}
+# ``make_fragment_scan_exp`` (or qbutler's ``make_calibrated_experiment``).
+FRAG_ROOTS = {"ExpFragment", "Fragment", "CalibratedExpFragment"}
 
 STUB_BASE_MODULE = "repository.stub_experiment"
 
@@ -168,7 +168,10 @@ def index_tree(sources: dict[str, str]) -> TreeIndex:
                 value = node.value
                 if isinstance(value, ast.Call):
                     func_name = _base_name(value.func)
-                    if func_name == "make_fragment_scan_exp":
+                    if func_name in (
+                        "make_fragment_scan_exp",
+                        "make_calibrated_experiment",
+                    ):
                         frag = _base_name(value.args[0]) if value.args else None
                         for target in node.targets:
                             if isinstance(target, ast.Name):
@@ -186,9 +189,10 @@ def enumerate_experiments(branch: str, sources: dict[str, str]) -> list[Experime
     found: list[Experiment] = []
 
     # 1) ndscan: X = make_fragment_scan_exp(FragClass)
-    # make_fragment_scan_exp copies the fragment's __name__ onto the shim, and
-    # ARTIQ's is_public_experiment tests that __name__ - so publicness keys on
-    # the fragment name, while the explorer lists it under the target var name.
+    #    qbutler: X = make_calibrated_experiment(FragClass)
+    # Both copy the fragment's __name__ onto the shim, and ARTIQ's
+    # is_public_experiment tests that __name__ - so publicness keys on the
+    # fragment name, while the explorer lists it under the target var name.
     for path, target, frag in index.scan_exps:
         if frag and frag.startswith("_"):
             continue  # non-public experiment
