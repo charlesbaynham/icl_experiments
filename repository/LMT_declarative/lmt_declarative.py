@@ -41,12 +41,14 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.lmt_sequence import Beam, Phase, pi2
+from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
+from repository.lib.lmt_sequence import Phase
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import ladder
 from repository.lib.lmt_sequence import pi
+from repository.lib.lmt_sequence import pi2
 from repository.lib.physics.lmt_resonance import GROUND
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -57,7 +59,7 @@ N_LAUNCH = 10
 M_TOP = 1 + N_LAUNCH
 
 
-N_LMT = 4
+N_LMT = 0
 
 # Post-ladder drop time: at higher launch the cloud leaves the fixed
 # fast-kinetics window; this Wait lets it fall back in before imaging.
