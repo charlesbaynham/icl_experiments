@@ -231,6 +231,17 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.clearout_duration: FloatParamHandle
 
         self.setattr_param(
+            "lmt_pulse_programming_margin",
+            FloatParam,
+            "Margin before a pulse's t_start, for the OPLL ramp to be "
+            "programmed before the switch opens",
+            default=constants.LMT_PULSE_PROGRAMMING_MARGIN,
+            unit="us",
+            min=0.0,
+        )
+        self.lmt_pulse_programming_margin: FloatParamHandle
+
+        self.setattr_param(
             "lmt_initial_velocity",
             FloatParam,
             "Release z-velocity v0 (up positive)",
@@ -776,7 +787,6 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self.clock_down_dds.sw.off()
         delay_mu(int64(self.core.ref_multiplier))
         self.stop_clock_opll_ramp()
-        delay(10e-6)
 
     @kernel
     def lmt_sequence_callback_hook(self, callback_id: int32):
@@ -834,8 +844,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
             if kind == EVENT_PULSE:
                 duration = self._lmt_duration_handles[i].get()
-                # Margin for programming the OPLL ramp before the switch opens
-                t_start = now_mu() + self.core.seconds_to_mu(10e-6)
+                t_start = now_mu() + self.core.seconds_to_mu(
+                    self.lmt_pulse_programming_margin.get()
+                )
                 t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
 
                 # Gravity Doppler evaluated at the pulse centre, accumulated

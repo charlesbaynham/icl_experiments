@@ -1577,6 +1577,9 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
+# Margin between a pulse's t_start and the time it is scheduled, giving the
+# OPLL ramp time to be programmed before the switch opens
+LMT_PULSE_PROGRAMMING_MARGIN = 10e-6
 DOWN_CLOCK_BEAM_PI_TIME = (
     CLOCK_DOWN_PI_TIME  # Kept for legacy, but pinned to the above version
 )
