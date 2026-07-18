@@ -59,7 +59,7 @@ N_LAUNCH = 10
 M_TOP = 1 + N_LAUNCH
 
 
-N_LMT = 0
+N_LMT = 2
 
 # Post-ladder drop time: at higher launch the cloud leaves the fixed
 # fast-kinetics window; this Wait lets it fall back in before imaging.
