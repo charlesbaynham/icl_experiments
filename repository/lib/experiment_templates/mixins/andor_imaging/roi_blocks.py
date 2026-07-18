@@ -125,12 +125,30 @@ def background_corrected_counts(
 
 @portable
 def rois_intersect(
-    ax0, ay0, ax1, ay1, bx0, by0, bx1, by1
+    ax0: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    ay0: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    ax1: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    ay1: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    bx0: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    by0: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    bx1: TInt32,  # pyright: ignore[reportInvalidTypeForm]
+    by1: TInt32,  # pyright: ignore[reportInvalidTypeForm]
 ) -> TBool:  # pyright: ignore[reportInvalidTypeForm]
     """Whether two axis-aligned ROIs share any area.
 
     Touching edges do not count as intersecting, matching how the flanks are
     built: a background ROI abuts its own signal at ``x0``/``x1`` by
     construction and must not be read as overlapping it.
+
+    Written as separate rejections rather than a chained ``and`` because ARTIQ
+    types ``and`` by its operands, so the chained form infers as int, not bool.
     """
-    return ax0 < bx1 and bx0 < ax1 and ay0 < by1 and by0 < ay1
+    if ax0 >= bx1:
+        return False
+    if bx0 >= ax1:
+        return False
+    if ay0 >= by1:
+        return False
+    if by0 >= ay1:
+        return False
+    return True
