@@ -47,12 +47,15 @@ from artiq.coredevice.dma import CoreDMA
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
+from repository.lib import constants
+from repository.lib.physics import lmt_spacetime
 from repository.lib.physics.lmt_resonance import M_AUTO
 from repository.lib.physics.lmt_resonance import AddressedState
 from repository.lib.physics.lmt_resonance import Kind
@@ -232,6 +235,10 @@ class PulseDMARecording(Fragment):
         # Checksummer object
         self.checksummer = FastIntChecksum(seed=0)
 
+        # Last intent record checked for interferometer closure (host-side
+        # memo so each unique sequence is checked and warned about once).
+        self._closure_checked_record = ()
+
     def host_setup(self):
         # Create the broadcast datasets for live monitoring. archive=False avoids
         # h5py ragged-array errors; host_cleanup encodes them to flat arrays for archiving.
@@ -249,6 +256,7 @@ class PulseDMARecording(Fragment):
             self.outer_self.actions_after_drop()
         self._save_pulse_sequence_to_dataset()
         self._save_intent_record_to_dataset()
+        self._warn_if_interferometer_open()
 
     @kernel
     def _save_pulse_sequence_to_dataset(self):
@@ -412,6 +420,38 @@ class PulseDMARecording(Fragment):
             )
 
         self._intent_record_checksum = checksum
+
+    @rpc(flags={"async"})
+    def _warn_if_interferometer_open(self):
+        """
+        Flag a recorded sequence whose interferometer fails to close.
+
+        Runs host-side (fire-and-forget from the kernel) after each recording:
+        walks the just-saved intent record into arm trajectories
+        (:mod:`repository.lib.physics.lmt_spacetime`) and warns loudly if any
+        output port's branches recombine further apart than
+        ``constants.LMT_CLOSURE_MISS_WARNING_THRESHOLD``. Guards against
+        time-asymmetric sequences: on 2026-07-18 a commented-out 100 us Wait
+        (RID 78331) opened the recombiner by ~2 um at N = 2 and silently
+        destroyed the LMT contrast. Each unique record is checked once.
+        """
+        records = self.get_dataset("pulse_intent_record", archive=False)
+        record = lmt_spacetime.most_recent_valid_record(records)
+        if record is None or len(record[0]) == 0:
+            return
+        key = tuple(tuple(np.asarray(row).tolist()) for row in record)
+        if key == self._closure_checked_record:
+            return
+        self._closure_checked_record = key
+        for error in lmt_spacetime.closure_errors_from_record(
+            record, constants.LMT_CLOSURE_MISS_WARNING_THRESHOLD
+        ):
+            logger.warning(
+                "INTERFEROMETER DOES NOT CLOSE: %s. Contrast will collapse "
+                "with LMT order even if every pulse is perfect - check the "
+                "declared sequence is time-symmetric about the mirror.",
+                error,
+            )
 
     @kernel
     def DMA_initialization_hook_after_drop(self):

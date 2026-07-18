@@ -447,6 +447,69 @@ def infer_trajectory_from_intent_record(records):
     return walk_intent_to_trajectory(events)
 
 
+# --- Interferometer closure check -------------------------------------------
+
+
+def interferometer_output_port_misses(clouds):
+    """Worst recombination miss per interferometer output port.
+
+    An output port is a group of two or more live branches sharing the same
+    final internal state and momentum class: their wavepackets interfere, and
+    any spread in their final positions is a closure error that costs contrast
+    against the cloud's coherence length. Returns ``(is_ground, m, miss_m)``
+    per port; empty when the walked record recombines nothing (any
+    non-interferometric sequence).
+    """
+    ports: dict = {}
+    for cloud in clouds:
+        if cloud.alive:
+            ports.setdefault((cloud.is_ground[-1], cloud.m[-1]), []).append(cloud.z[-1])
+    return [
+        (is_ground, m, max(zs) - min(zs))
+        for (is_ground, m), zs in sorted(ports.items())
+        if len(zs) >= 2
+    ]
+
+
+def closure_errors_from_record(record, threshold):
+    """Check one decoded intent record for interferometer closure.
+
+    Walks the record and returns a human-readable error string per problem
+    found: an output port whose branches recombine more than ``threshold``
+    metres apart, or a sequence that splits the cloud at least twice yet never
+    recombines any branches into a common port. An empty list means the record
+    passes.
+
+    Only sequences that declare ``SUPERPOSE`` intents (the declarative-LMT
+    stack) open an interferometer this check can see; legacy sequences record
+    every pulse as a default ``FLIP`` and pass trivially.
+    """
+    events = intent_events_from_record(record)
+    _, clouds, _, _ = walk_intent_to_trajectory(events)
+    n_superpose = sum(
+        1
+        for e in events
+        if e.kind == Kind.PULSE and e.state_effect == StateEffect.SUPERPOSE
+    )
+    misses = interferometer_output_port_misses(clouds)
+
+    errors = []
+    if n_superpose >= 2 and not misses:
+        errors.append(
+            f"the sequence splits the cloud {n_superpose} times but no branches "
+            "recombine into a common output port (state and momentum never "
+            "re-overlap)"
+        )
+    for is_ground, m, miss in misses:
+        if miss > threshold:
+            state = "g" if is_ground else "e"
+            errors.append(
+                f"arms recombine {miss * 1e6:.2f} um apart at output port "
+                f"({state}, m={m:+d}), threshold {threshold * 1e6:.2f} um"
+            )
+    return errors
+
+
 #: matplotlib tab10 palette as RGB tuples, so the applet's colours match the
 #: simulator's matplotlib figure exactly.
 TAB10_RGB = [

@@ -239,3 +239,67 @@ def test_infer_returns_none_for_empty_or_disabled():
         st.infer_trajectory_from_intent_record([[[st.INTENT_RECORD_DISABLED_SENTINEL]]])
         is None
     )
+
+
+def test_symmetric_mach_zehnder_closes():
+    record = _record(_symmetric_mach_zehnder_events())
+    assert st.closure_errors_from_record(record, threshold=0.5e-6) == []
+
+
+def test_time_asymmetric_mach_zehnder_flagged_open():
+    """The RID 78331 failure mode: one dark time longer than the other."""
+    t_pulse = 30e-6
+    T = 1e-3
+    dark_time_error = 100e-6
+    events = [
+        _pulse(0.0, t_pulse, pi.StateEffect.SUPERPOSE, pi.AddressedState.GROUND, 0, +1),
+        _pulse(T, t_pulse, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1),
+        _pulse(
+            2 * T + dark_time_error,
+            t_pulse,
+            pi.StateEffect.SUPERPOSE,
+            pi.AddressedState.GROUND,
+            0,
+            +1,
+        ),
+    ]
+
+    _, clouds, _, _ = st.walk_intent_to_trajectory(
+        st.intent_events_from_record(_record(events))
+    )
+    misses = st.interferometer_output_port_misses(clouds)
+    # Both output ports miss by one recoil velocity times the timing error.
+    assert len(misses) == 2
+    for _, _, miss in misses:
+        assert miss == pytest.approx(st.RECOIL_VELOCITY * dark_time_error)
+
+    errors = st.closure_errors_from_record(_record(events), threshold=0.5e-6)
+    assert len(errors) == 2
+    assert all("recombine" in e for e in errors)
+
+    # A threshold above the miss silences it.
+    assert st.closure_errors_from_record(_record(events), threshold=1e-6) == []
+
+
+def test_single_beamsplitter_not_flagged():
+    record = _record(
+        [_pulse(0.0, 30e-6, pi.StateEffect.SUPERPOSE, pi.AddressedState.GROUND, 0, +1)]
+    )
+    assert st.closure_errors_from_record(record, threshold=0.5e-6) == []
+
+
+def test_never_recombining_split_flagged():
+    """Two splits whose branches never share an output port."""
+    record = _record(
+        [
+            _pulse(
+                0.0, 30e-6, pi.StateEffect.SUPERPOSE, pi.AddressedState.GROUND, 0, +1
+            ),
+            _pulse(
+                1e-3, 30e-6, pi.StateEffect.SUPERPOSE, pi.AddressedState.EXCITED, 1, -1
+            ),
+        ]
+    )
+    errors = st.closure_errors_from_record(record, threshold=0.5e-6)
+    assert len(errors) == 1
+    assert "no branches" in errors[0]
