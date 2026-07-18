@@ -40,6 +40,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.roi_blocks import (
+    background_corrected_counts,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.roi_blocks import (
+    fill_signal_bg_roi_row,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
@@ -82,24 +88,15 @@ def _background_correct_trap_block(sums, areas, start_index):
     signal-excited, then the left and right background ROIs for each signal.
     The background sums are scaled by ROI area so the correction matches the
     signal ROI area before subtraction.
+
+    This is the block-strided view of :func:`~.roi_blocks.background_corrected_counts`;
+    the stride convention lives here and nowhere else.
     """
-    ground_signal_index = start_index
-    excited_signal_index = start_index + 1
-    ground_background_indices = (start_index + 2, start_index + 4)
-    excited_background_indices = (start_index + 3, start_index + 5)
-
-    ground_norm_factor = areas[ground_signal_index] / (
-        areas[ground_background_indices[0]] + areas[ground_background_indices[1]]
+    ground_atom_number = background_corrected_counts(
+        sums, areas, start_index + 0, start_index + 2, start_index + 4
     )
-    excited_norm_factor = areas[excited_signal_index] / (
-        areas[excited_background_indices[0]] + areas[excited_background_indices[1]]
-    )
-
-    ground_atom_number = sums[ground_signal_index] - ground_norm_factor * (
-        sums[ground_background_indices[0]] + sums[ground_background_indices[1]]
-    )
-    excited_atom_number = sums[excited_signal_index] - excited_norm_factor * (
-        sums[excited_background_indices[0]] + sums[excited_background_indices[1]]
+    excited_atom_number = background_corrected_counts(
+        sums, areas, start_index + 1, start_index + 3, start_index + 5
     )
 
     return ground_atom_number, excited_atom_number
@@ -115,36 +112,35 @@ def _copy_trap_roi_block(
     into an existing buffer so it can be used from ARTIQ ``@portable`` code.
     The camera-config classes use this helper to avoid allocating a fresh array
     while still sharing one ROI layout definition.
+
+    Both rows come from :func:`~.roi_blocks.fill_signal_bg_roi_row` at the same
+    x, the excited one displaced by ``step`` in y: one trap imaged twice, its
+    cloud having fallen between the two fast-kinetics shots. (The LMT readout
+    instead places two independently predicted *ports* and cannot use this
+    helper — see :mod:`~.lmt_compensated_single_image_imaging`.)
     """
-    roi_buffer[start_index + 0][0] = x0
-    roi_buffer[start_index + 0][1] = y0_minus_offset
-    roi_buffer[start_index + 0][2] = x1
-    roi_buffer[start_index + 0][3] = y1_minus_offset
-
-    roi_buffer[start_index + 1][0] = x0
-    roi_buffer[start_index + 1][1] = y0_minus_offset + step
-    roi_buffer[start_index + 1][2] = x1
-    roi_buffer[start_index + 1][3] = y1_minus_offset + step
-
-    roi_buffer[start_index + 2][0] = x0 - bg_width
-    roi_buffer[start_index + 2][1] = y0_minus_offset
-    roi_buffer[start_index + 2][2] = x0
-    roi_buffer[start_index + 2][3] = y1_minus_offset
-
-    roi_buffer[start_index + 3][0] = x0 - bg_width
-    roi_buffer[start_index + 3][1] = y0_minus_offset + step
-    roi_buffer[start_index + 3][2] = x0
-    roi_buffer[start_index + 3][3] = y1_minus_offset + step
-
-    roi_buffer[start_index + 4][0] = x1
-    roi_buffer[start_index + 4][1] = y0_minus_offset
-    roi_buffer[start_index + 4][2] = x1 + bg_width
-    roi_buffer[start_index + 4][3] = y1_minus_offset
-
-    roi_buffer[start_index + 5][0] = x1
-    roi_buffer[start_index + 5][1] = y0_minus_offset + step
-    roi_buffer[start_index + 5][2] = x1 + bg_width
-    roi_buffer[start_index + 5][3] = y1_minus_offset + step
+    fill_signal_bg_roi_row(
+        roi_buffer,
+        start_index + 0,
+        start_index + 2,
+        start_index + 4,
+        x0,
+        y0_minus_offset,
+        x1,
+        y1_minus_offset,
+        bg_width,
+    )
+    fill_signal_bg_roi_row(
+        roi_buffer,
+        start_index + 1,
+        start_index + 3,
+        start_index + 5,
+        x0,
+        y0_minus_offset + step,
+        x1,
+        y1_minus_offset + step,
+        bg_width,
+    )
 
 
 # %% Camera config classes

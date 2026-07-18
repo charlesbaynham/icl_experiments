@@ -23,6 +23,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_no
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
     NormalisedFastKineticsLMTCorrectedMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_single_image_imaging import (
+    SingleImageLMTCorrectedClockMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_single_image_imaging import (
+    SingleImageLMTCorrectedMixin,
+)
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
 )
@@ -122,4 +128,85 @@ class DeclarativeLMTGlobalSymmetricMachZehnderClockReadoutFrag(
 
 DeclarativeLMTGlobalSymmetricMachZehnderClockReadout = make_fragment_scan_exp(
     DeclarativeLMTGlobalSymmetricMachZehnderClockReadoutFrag
+)
+
+
+class DeclarativeLMTGlobalSymmetricMachZehnderSingleImageFrag(
+    FLIRBlueMOTMeasurementMixin,
+    LMTGlobalParamsSymmetricMachZehnderMixin,
+    DeclarativeLMTBase,
+    # As DeclarativeLMTGlobalSymmetricMachZehnderFrag, but the background comes
+    # from boxes flanking each port in the same frame rather than from a second
+    # fast-kinetics series, which drops the ~400 ms clear-out delay per shot.
+    SingleImageLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Velocity selection, launch and Mach-Zehnder from global parameters, read out
+    with predicted ROIs and same-frame spatial background.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+DeclarativeLMTGlobalSymmetricMachZehnderSingleImage = make_fragment_scan_exp(
+    DeclarativeLMTGlobalSymmetricMachZehnderSingleImageFrag
+)
+
+
+class DeclarativeLMTGlobalSymmetricMachZehnderSingleImageClockReadoutFrag(
+    FLIRBlueMOTMeasurementMixin,
+    LMTGlobalParamsSymmetricMachZehnderMixin,
+    DeclarativeLMTBase,
+    # Single-image spatial background as above, with the momentum-resolving
+    # clock selection pulse instead of the 679/707 repump.
+    SingleImageLMTCorrectedClockMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Momentum-resolved clock-pulse readout of the global-parameter symmetric
+    Mach-Zehnder, with predicted ROIs and same-frame spatial background.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+DeclarativeLMTGlobalSymmetricMachZehnderSingleImageClockReadout = (
+    make_fragment_scan_exp(
+        DeclarativeLMTGlobalSymmetricMachZehnderSingleImageClockReadoutFrag
+    )
 )

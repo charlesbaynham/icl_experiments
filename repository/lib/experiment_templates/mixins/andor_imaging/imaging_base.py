@@ -307,15 +307,22 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         return ground, excited
 
     @staticmethod
-    def _composite_monitor_roi_targets(rois, fast_kinetics_height):
-        """Map a get_rois() buffer to the two ROI targets for the composite
-        monitor image (``[excited_target, ground_target]``).
+    def _composite_monitor_roi_targets(
+        rois, fast_kinetics_height, ground_indices=(0,), excited_indices=(1,)
+    ):
+        """Map a get_rois() buffer to the ROI targets for the composite monitor
+        image (excited targets first, then ground).
 
         The composite stacks the excited sub-frame (low index) above a
         ``ANDOR_MONITOR_SEPARATOR_WIDTH``-wide separator and the ground
         sub-frame. Because the applet renders array axis 1 flipped, the excited
-        ROI is shifted up in y by the sub-frame height plus the separator width
-        while the ground ROI keeps its sub-frame coordinates.
+        ROIs are shifted up in y by the sub-frame height plus the separator width
+        while the ground ROIs keep their sub-frame coordinates.
+
+        ``ground_indices`` / ``excited_indices`` select which ROIs to draw, and
+        are passed straight to :meth:`_split_bg_corrected_roi_targets`. The
+        defaults draw one signal box per sub-frame; pass the background indices
+        too when the overlay should show the boxes the subtraction actually used.
 
         This must be fed ROIs sampled at the same instant as the dedicated
         ground/excited applet targets: for dynamically-predicted ROIs those
@@ -323,12 +330,13 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         result from a kernel hook rather than sampling on the host.
         """
         ground, excited = AndorImagingBase._split_bg_corrected_roi_targets(
-            rois, fast_kinetics_height
+            rois, fast_kinetics_height, ground_indices, excited_indices
         )
         y_offset = fast_kinetics_height + ANDOR_MONITOR_SEPARATOR_WIDTH
-        excited[0][1] += y_offset
-        excited[0][3] += y_offset
-        return [excited[0], ground[0]]
+        for roi in excited:
+            roi[1] += y_offset
+            roi[3] += y_offset
+        return excited + ground
 
     def host_setup(self):
         super().host_setup()

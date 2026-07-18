@@ -68,3 +68,59 @@ def test_composite_monitor_targets_excited_offset_by_subframe_plus_separator():
     # composite by fk_height + separator width.
     offset = fk_height + ANDOR_MONITOR_SEPARATOR_WIDTH
     assert excited_target == [100, 210 + offset, 120, 240 + offset]
+
+
+def test_composite_monitor_targets_draw_background_boxes_when_asked():
+    """The dynamic readout overlays signal *and* background boxes.
+
+    When a background box is what clipped or got retired, an overlay showing
+    only the signal box looks perfectly healthy while the subtraction it feeds
+    is not.
+    """
+    from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+        ANDOR_MONITOR_SEPARATOR_WIDTH,
+    )
+
+    rois = np.array(
+        [
+            [100, 200, 120, 230],  # ground signal
+            [100, 260, 120, 290],  # excited signal
+            [80, 200, 100, 230],  # ground bg left
+            [80, 260, 100, 290],  # excited bg left
+            [120, 200, 140, 230],  # ground bg right
+            [120, 260, 140, 290],  # excited bg right
+        ],
+        dtype=np.int32,
+    )
+    fk_height = 50
+    offset = fk_height + ANDOR_MONITOR_SEPARATOR_WIDTH
+
+    targets = composite(
+        rois, fk_height, ground_indices=(0, 2, 4), excited_indices=(1, 3, 5)
+    )
+
+    assert len(targets) == 6
+    excited_targets, ground_targets = targets[:3], targets[3:]
+    assert ground_targets == [
+        [100, 200, 120, 230],
+        [80, 200, 100, 230],
+        [120, 200, 140, 230],
+    ]
+    assert excited_targets == [
+        [100, 210 + offset, 120, 240 + offset],
+        [80, 210 + offset, 100, 240 + offset],
+        [120, 210 + offset, 140, 240 + offset],
+    ]
+
+
+def test_composite_monitor_default_arguments_are_unchanged():
+    """The static readouts call this positionally and must be unaffected."""
+    rois = np.array(
+        [[100, 200, 120, 230], [100, 260, 120, 290]],
+        dtype=np.int32,
+    )
+
+    assert composite(rois, 50) == composite(
+        rois, 50, ground_indices=(0,), excited_indices=(1,)
+    )
+    assert len(composite(rois, 50)) == 2
