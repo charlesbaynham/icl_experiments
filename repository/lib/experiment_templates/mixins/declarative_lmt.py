@@ -77,12 +77,17 @@ Principles
 import abc
 import logging
 
+import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
+from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
+from artiq.language import rpc
+from artiq.master.scheduler import Scheduler
+from artiq.master.worker_impl import CCB
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -112,6 +117,11 @@ from repository.lib.lmt_sequence import CompiledSequence
 from repository.lib.lmt_sequence import compile_sequence
 
 logger = logging.getLogger(__name__)
+
+EXCITATION_FRACTION_HIST_COUNTS_DATASET = (
+    "declarative_lmt_excitation_fraction_hist_counts"
+)
+EXCITATION_FRACTION_HIST_BINS_DATASET = "declarative_lmt_excitation_fraction_hist_bins"
 
 CLOCK_OPLL_BEAM_INFO = constants.URUKULED_BEAMS["698_clock_OPLL_offset"]
 
@@ -191,6 +201,13 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         # The clock OPLL device (_clock_opll) and the set_clock_opll /
         # start_clock_opll_ramp / stop_clock_opll_ramp wrappers come from
         # ClockOPLLTrackingMixin.
+
+        # For the excitation-fraction histogram CCB (launched in host_setup, if
+        # an imaging mixin providing excitation_fraction is also present).
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+        self.setattr_device("ccb")
+        self.ccb: CCB
 
         # Required by ClockSpectroscopyBase.prepare_clock_delivery_aom
         if not hasattr(self, "spectroscopy_pulse_time"):
@@ -611,6 +628,44 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     )
                 handles[slot] = handle
 
+        # Only present when an imaging mixin (e.g.
+        # NormalisedFastKineticsLMTCorrectedMixin) is also combined in - see
+        # launch_excitation_fraction_histogram_applet.
+        if hasattr(self, "excitation_fraction"):
+            self.launch_excitation_fraction_histogram_applet()
+
+    @host_only
+    def launch_excitation_fraction_histogram_applet(self):
+        """Live histogram of the per-shot excitation_fraction values.
+
+        Rebinned from scratch after every shot in
+        _update_excitation_fraction_histogram, which reads ndscan's own
+        per-point dataset for the channel (see
+        DoubleTrapImagingRepumpedNormalisedBase.launch_ellipse_applet for the
+        same, admittedly fragile, dataset-path convention).
+        """
+        rid = self.scheduler.rid
+        cmd = (
+            f"${{artiq_applet}}plot_hist {EXCITATION_FRACTION_HIST_COUNTS_DATASET} "
+            f'--x {EXCITATION_FRACTION_HIST_BINS_DATASET} --title "RID {rid} excitation fraction"'
+        )
+        self.ccb.issue("create_applet", "LMT excitation fraction", cmd)
+
+    @rpc(flags={"async"})
+    def _update_excitation_fraction_histogram(self):
+        dataset_path = (
+            f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction"
+        )
+        try:
+            raw = self.get_dataset(dataset_path)
+        except KeyError:
+            return
+        counts, bins = np.histogram(raw, bins=50)
+        self.set_dataset(
+            EXCITATION_FRACTION_HIST_COUNTS_DATASET, counts, broadcast=True
+        )
+        self.set_dataset(EXCITATION_FRACTION_HIST_BINS_DATASET, bins, broadcast=True)
+
     # set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp come from
     # ClockOPLLTrackingMixin (they drive _clock_opll and update the
     # frequency-tracking state read by PulseDMARecording.register_pulse).
@@ -886,6 +941,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self.stop_clock_opll_ramp()
         self.set_clock_opll(start_opll_offset)
 
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        # Rebins the excitation-fraction histogram CCB once imaging (and hence
+        # this shot's excitation_fraction push) has completed. No other mixin
+        # combined with declarative LMT experiments currently uses this hook.
+        self.host_functions_after_experiment_hook_default()
+        self._update_excitation_fraction_histogram()
+
 
 class DeclarativeLMTBase(
     LMTTrajectoryAppletMixin, DeclarativeLMTCoreBase, DipoleTrapWithExperimentBase
@@ -908,6 +971,9 @@ class DeclarativeLMTBase(
 
     * :meth:`~post_dipole_trap_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~host_functions_after_experiment_hook` (claimed by
+      :class:`DeclarativeLMTCoreBase` to rebin the excitation-fraction
+      histogram CCB; do not combine with another mixin that overrides it)
 
     In particular this means the legacy shelving mixin
     (``ClockShelvingAndClearoutDipoleTrapMixin``) cannot be combined with
