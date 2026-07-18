@@ -812,7 +812,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4009e6,
+        99.3955e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
