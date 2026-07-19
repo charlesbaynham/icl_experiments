@@ -20,6 +20,9 @@ from repository.lib.lmt_sequence import Pulse
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
+from repository.lib.experiment_templates.mixins.lmt_global_params import (
+    derived_dark_times,
+)
 from repository.lib.lmt_sequence import compile_sequence
 from repository.lib.lmt_sequence import symmetric_mach_zehnder_sequence
 from repository.lib.physics.lmt_resonance import GROUND
@@ -118,6 +121,24 @@ def test_dark_waits_reference_global_params():
         "lmt_dark_time_1",
         "lmt_dark_time_2",
     ]
+
+
+@pytest.mark.parametrize("imbalance", [-300e-6, -120e-6, 0.0, 120e-6, 300e-6])
+def test_derived_dark_times_hold_total_constant(imbalance):
+    mean = 200e-6
+    dark1, dark2 = derived_dark_times(mean, imbalance)
+    # Total interrogation time is fixed at 2 * mean for every imbalance...
+    assert dark1 + dark2 == pytest.approx(2.0 * mean)
+    # ...and the opening (dark2 - dark1) equals the imbalance.
+    assert dark2 - dark1 == pytest.approx(imbalance)
+
+
+def test_derived_dark_times_symmetric_in_imbalance():
+    mean = 200e-6
+    dark1_pos, dark2_pos = derived_dark_times(mean, 120e-6)
+    dark1_neg, dark2_neg = derived_dark_times(mean, -120e-6)
+    assert dark1_pos == pytest.approx(dark2_neg)
+    assert dark2_pos == pytest.approx(dark1_neg)
 
 
 def test_negative_counts_raise():

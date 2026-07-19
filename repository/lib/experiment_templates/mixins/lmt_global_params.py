@@ -26,6 +26,8 @@ See :mod:`repository.lib.lmt_sequence` for the generated interferometer shape
 import logging
 import math
 
+from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
@@ -51,6 +53,27 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 # event). The full-intensity SetPoint follows; both share the single delivery
 # AOM, so all launch and interferometer pulses run at one set point.
 _SLICE_SETPOINT_INDEX = 0
+
+
+@portable
+def derived_dark_times(mean_dark_time, imbalance):
+    """Split a constant total interrogation time into two opposed dark periods.
+
+    Holds ``dark1 + dark2 = 2 * mean_dark_time`` while opening the
+    interferometer by ``imbalance``::
+
+        dark1 = mean_dark_time - imbalance / 2
+        dark2 = mean_dark_time + imbalance / 2
+
+    Sweeping ``imbalance`` at fixed ``mean_dark_time`` separates the two output
+    wavepackets by ``v_rec * imbalance`` at the final beam splitter while the
+    total interrogation time - and every time-dependent decoherence channel -
+    is held constant, isolating wavepacket overlap from time-dependent
+    dephasing. ``imbalance`` may be negative; ``|imbalance| <= 2 * mean``
+    keeps both dark periods non-negative.
+    """
+    half = imbalance / 2.0
+    return mean_dark_time - half, mean_dark_time + half
 
 
 class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
@@ -232,6 +255,45 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
         )
         self.lmt_dark_time_2: FloatParamHandle
 
+        # Constant-total-time imbalance mode. When enabled, the two dark times
+        # are overwritten each shot from a common mean and an opening imbalance
+        # (see derived_dark_times); lmt_dark_time_1/2 must NOT also be scanned in
+        # this mode, as the derived values would clobber the scan. Kept off by
+        # default so the independent dark times above behave exactly as before.
+        self.setattr_param(
+            "lmt_use_derived_dark_times",
+            BoolParam,
+            "Derive the two dark times from a constant total time and an "
+            "imbalance (set once per run; not scannable)",
+            default=False,
+            is_scannable=False,
+        )
+        self.lmt_use_derived_dark_times: BoolParamHandle
+
+        self.setattr_param(
+            "lmt_dark_time_mean",
+            FloatParam,
+            "Mean of the two dark times (half the total interrogation time); "
+            "used only when lmt_use_derived_dark_times is set",
+            default=constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
+            unit="us",
+            min=0.0,
+        )
+        self.lmt_dark_time_mean: FloatParamHandle
+
+        self.setattr_param(
+            "lmt_dark_time_imbalance",
+            FloatParam,
+            "Dark-time imbalance dark2 - dark1 (the interferometer opening); "
+            "used only when lmt_use_derived_dark_times is set. Keep "
+            "|imbalance| <= 2 * mean so both dark periods stay non-negative",
+            default=0.0,
+            unit="us",
+            min=None,
+            max=None,
+        )
+        self.lmt_dark_time_imbalance: FloatParamHandle
+
         self.setattr_param(
             "lmt_interferometry_phase",
             FloatParam,
@@ -263,6 +325,25 @@ class LMTGlobalParamsSymmetricMachZehnderMixin(DeclarativeLMTCoreBase):
             phase_param="lmt_interferometry_phase",
             clearout_both_excited=self.lmt_clearout_both_excited.get(),
         )
+
+    def host_setup(self):
+        super().host_setup()
+        # Cache the two dark-time param stores so the per-shot kernel hook can
+        # overwrite their values directly (the engine reads the same stores via
+        # the dark Wait handles' .get()). Bound unconditionally so the kernel
+        # attributes always exist; only used when derived mode is enabled.
+        self._lmt_dark_store_1 = self.lmt_dark_time_1._store
+        self._lmt_dark_store_2 = self.lmt_dark_time_2._store
+
+    @kernel
+    def _lmt_pre_sequence_hook(self):
+        if self.lmt_use_derived_dark_times.get():
+            dark1, dark2 = derived_dark_times(
+                self.lmt_dark_time_mean.get(),
+                self.lmt_dark_time_imbalance.get(),
+            )
+            self._lmt_dark_store_1.set_value(dark1)
+            self._lmt_dark_store_2.set_value(dark2)
 
     @staticmethod
     def _is_slice_pulse(event) -> bool:

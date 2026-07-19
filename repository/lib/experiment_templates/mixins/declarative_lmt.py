@@ -815,6 +815,15 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
 
     @kernel
+    def _lmt_pre_sequence_hook(self):
+        """Per-shot hook run just before the declared sequence executes.
+
+        Default no-op. A mixin overrides this to compute per-point derived
+        parameters in-kernel - e.g. splitting a constant total interrogation
+        time into two dark periods for a Mach-Zehnder imbalance scan.
+        """
+
+    @kernel
     def run_lmt_sequence(self):
         """Execute the declared sequence.
 
@@ -834,6 +843,8 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         clearouts via ``register_clearout`` and each callback action via
         ``register_intent_action`` (one ordinary pulse intent row per action).
         """
+        self._lmt_pre_sequence_hook()
+
         t_ref_mu = self.get_doppler_t_ref_mu()
         skip_after = self.skip_after.get()
 
