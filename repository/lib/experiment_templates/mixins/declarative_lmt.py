@@ -265,6 +265,24 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
         self.lmt_probe_stark_alpha: FloatParamHandle
 
+        # A linear frequency chirp of the interferometer phase reference,
+        # implemented purely as extra switch-DDS phase at Phase events
+        # (0.5 * rate * dt^2 turns, dt from the sequence's first Phase event),
+        # so no pulse's resonance moves. The per-pulse OPLL tracking already
+        # chirps the optical frequency along the gravity line at
+        # GRAVITY_DOPPLER_PER_SEC_CLOCK (standard g), so at the 0.0 default an
+        # interferometer holds only the residual k*(g_true - g_std)*T^2 phase;
+        # -GRAVITY_DOPPLER_PER_SEC_CLOCK restores the full k*g*T^2 winding.
+        self.setattr_param(
+            "lmt_phase_chirp_rate",
+            FloatParam,
+            "Interferometer phase-reference chirp rate",
+            default=0.0,
+            unit="MHz/s",
+            scale=1e6,
+        )
+        self.lmt_phase_chirp_rate: FloatParamHandle
+
         self.setattr_param(
             "skip_after",
             IntParam,
@@ -836,6 +854,9 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         """
         t_ref_mu = self.get_doppler_t_ref_mu()
         skip_after = self.skip_after.get()
+        # Phase-reference chirp: t=0 at the first Phase event of the shot
+        t_phase_ref_mu = int64(-1)
+        phase_chirp_rate = self.lmt_phase_chirp_rate.get()
 
         for i in range(self._lmt_n_events):
             if skip_after >= 0 and i > skip_after:
@@ -921,6 +942,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # FIRST, before the DDS writes advance the cursor, so it cannot
                 # land after a following zero-gap pulse.
                 phase = self._lmt_phase_handles[i].get() * self._lmt_phase_multiplier[i]
+                if t_phase_ref_mu < int64(0):
+                    t_phase_ref_mu = now_mu()
+                else:
+                    dt = self.core.mu_to_seconds(now_mu() - t_phase_ref_mu)
+                    phase += 0.5 * phase_chirp_rate * dt * dt
                 self.dma_recording_fragment.register_phase()
                 self.set_clock_up_dds(
                     frequency=self.clock_switch_frequency_handle.get(),
